@@ -49,12 +49,10 @@ export default function App() {
     setMsg('');
     
     if (isRegistering) {
-      // Registrierung
       const { error } = await supabase.auth.signUp({ email, password });
       if (error) setMsg('Fehler: ' + error.message);
       else setMsg('Registrierung erfolgreich! Du kannst dich jetzt einloggen.');
     } else {
-      // Login
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) setMsg('Fehler: ' + error.message);
     }
@@ -80,11 +78,12 @@ export default function App() {
 
     if (error) alert('Fehler: ' + error.message);
     else {
-      alert('Tipp gespeichert!');
+      alert('Tipp gespeichert! 🏀');
       setTips({ ...tips, [gameId + 'h']: '', [gameId + 'a']: '' });
     }
   }
 
+  // --- ANSICHT: LOGIN / REGISTRIERUNG ---
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
@@ -104,14 +103,14 @@ export default function App() {
             />
             <input
               type="password"
-              placeholder="Passwort"
+              placeholder="Passwort (mind. 6 Zeichen)"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
               required
               minLength={6}
             />
-            <button type="submit" className="w-full bg-blue-600 text-white p-3 rounded-lg font-semibold hover:bg-blue-700">
+            <button type="submit" className="w-full bg-blue-600 text-white p-3 rounded-lg font-semibold hover:bg-blue-700 transition">
               {isRegistering ? 'Registrieren' : 'Anmelden'}
             </button>
           </form>
@@ -120,25 +119,32 @@ export default function App() {
               setIsRegistering(!isRegistering);
               setMsg('');
             }}
-            className="w-full mt-4 text-blue-600 hover:underline text-sm"
+            className="w-full mt-4 text-blue-600 hover:underline text-sm font-medium"
           >
             {isRegistering ? 'Zurück zum Login' : 'Noch keinen Account? Hier registrieren'}
           </button>
-          {msg && <p className="mt-4 text-sm text-center text-blue-600">{msg}</p>}
+          {msg && <p className="mt-4 text-sm text-center text-blue-600 font-medium">{msg}</p>}
         </div>
       </div>
     );
   }
 
+  // --- ANSICHT: EINGELOGGT ---
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-blue-700 text-white p-4 shadow-md">
+      <header className="bg-blue-700 text-white p-4 shadow-md sticky top-0 z-10">
         <div className="max-w-2xl mx-auto flex justify-between items-center">
-          <h1 className="text-xl font-bold">🏀 TVN Tipp-Spiel</h1>
-          <div className="flex gap-3">
-            <button onClick={() => setView('tips')} className={`px-3 py-1 rounded ${view === 'tips' ? 'bg-blue-900' : 'bg-blue-600'}`}>Tipps</button>
-            <button onClick={() => setView('leaderboard')} className={`px-3 py-1 rounded ${view === 'leaderboard' ? 'bg-blue-900' : 'bg-blue-600'}`}>Tabelle</button>
-            <button onClick={handleLogout} className="bg-red-500 px-3 py-1 rounded text-sm">Logout</button>
+          <h1 className="text-xl font-bold">🏀 TVN Tipps</h1>
+          <div className="flex gap-2">
+            <button onClick={() => setView('tips')} className={`px-3 py-1.5 rounded text-sm font-medium transition ${view === 'tips' ? 'bg-blue-900 text-white' : 'bg-blue-600 hover:bg-blue-500'}`}>
+              Spiele
+            </button>
+            <button onClick={() => setView('leaderboard')} className={`px-3 py-1.5 rounded text-sm font-medium transition ${view === 'leaderboard' ? 'bg-blue-900 text-white' : 'bg-blue-600 hover:bg-blue-500'}`}>
+              Tabelle
+            </button>
+            <button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 px-3 py-1.5 rounded text-sm font-medium transition ml-2">
+              Logout
+            </button>
           </div>
         </div>
       </header>
@@ -146,37 +152,46 @@ export default function App() {
       <main className="max-w-2xl mx-auto p-4">
         {view === 'tips' && (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-700">Kommende Spiele</h2>
-            {games.length === 0 && <p className="text-gray-500">Keine Spiele gefunden.</p>}
+            <h2 className="text-lg font-semibold text-gray-700 mb-2">Kommende Spiele</h2>
+            {games.length === 0 && (
+              <div className="text-center py-8 text-gray-500 bg-white rounded-lg shadow">
+                Keine anstehenden Spiele gefunden.
+              </div>
+            )}
             {games.map(game => (
               <div key={game.id} className="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
-                <div className="text-xs text-gray-500 mb-2">
-                  {new Date(game.start_time).toLocaleString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' })} | {game.location}
+                <div className="text-xs font-semibold text-blue-600 mb-1 uppercase tracking-wide">
+                  {game.competition || 'Liga'}
+                </div>
+                <div className="text-xs text-gray-500 mb-3 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                  <span>📅 {new Date(game.start_time).toLocaleString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' })} Uhr</span>
+                  <span className="hidden sm:inline">|</span>
+                  <span>📍 {game.location}</span>
                 </div>
                 <div className="flex justify-between items-center text-lg font-bold mb-4">
                   <span className="text-right flex-1">{game.home_team}</span>
-                  <span className="text-gray-400 px-2">vs</span>
+                  <span className="text-gray-400 px-3 text-sm font-normal">vs</span>
                   <span className="text-left flex-1">{game.away_team}</span>
                 </div>
-                <div className="flex items-center gap-2 bg-gray-50 p-3 rounded">
+                <div className="flex items-center gap-2 bg-gray-50 p-3 rounded border border-gray-200">
                   <input 
                     type="number" min="0" placeholder="Heim" 
-                    className="w-16 p-2 border rounded text-center font-bold"
+                    className="w-16 p-2 border rounded text-center font-bold focus:ring-2 focus:ring-blue-500 outline-none"
                     value={tips[game.id + 'h'] || ''}
                     onChange={(e) => setTips({...tips, [game.id + 'h']: e.target.value})}
                   />
                   <span className="font-bold text-gray-400">:</span>
                   <input 
                     type="number" min="0" placeholder="Gast" 
-                    className="w-16 p-2 border rounded text-center font-bold"
+                    className="w-16 p-2 border rounded text-center font-bold focus:ring-2 focus:ring-blue-500 outline-none"
                     value={tips[game.id + 'a'] || ''}
                     onChange={(e) => setTips({...tips, [game.id + 'a']: e.target.value})}
                   />
                   <button 
-                    className="ml-auto bg-green-600 text-white px-4 py-2 rounded font-semibold hover:bg-green-700"
+                    className="ml-auto bg-green-600 text-white px-4 py-2 rounded font-semibold hover:bg-green-700 transition shadow-sm"
                     onClick={() => submitTip(game.id, tips[game.id + 'h'], tips[game.id + 'a'])}
                   >
-                    Abgeben
+                    Tippen
                   </button>
                 </div>
               </div>
@@ -204,7 +219,11 @@ export default function App() {
                   </tr>
                 ))}
                 {leaderboard.length === 0 && (
-                  <tr><td colSpan="3" className="p-4 text-center text-gray-500">Noch keine gewerteten Spiele.</td></tr>
+                  <tr>
+                    <td colSpan="3" className="p-6 text-center text-gray-500">
+                      Noch keine gewerteten Spiele. Punkte werden nach Spielschluss vergeben.
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>
