@@ -1,6 +1,11 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 
+// Helper: Zeige Spielzeit 2 Stunden früher an
+function getDisplayTime(startTime) {
+  return new Date(new Date(startTime).getTime() - 2 * 60 * 60 * 1000);
+}
+
 export default function App() {
   const [user, setUser] = useState(null);
   const [email, setEmail] = useState('');
@@ -28,7 +33,6 @@ export default function App() {
   const [newGroupIsPublic, setNewGroupIsPublic] = useState(false);
   const [joinCode, setJoinCode] = useState('');
 
-  // Promise-basiertes Confirm-Modal
   const [confirmModal, setConfirmModal] = useState(null);
   const confirmResolveRef = useRef(null);
 
@@ -40,7 +44,6 @@ export default function App() {
     setTimeout(() => setToast(null), 3000);
   }
 
-  // Confirm-Funktion die ein Promise zurückgibt
   function askConfirm(message) {
     return new Promise((resolve) => {
       confirmResolveRef.current = resolve;
@@ -432,8 +435,10 @@ export default function App() {
     }
   }
 
+  // FIX: Tipp-Sperre 2 Stunden vor Spielbeginn
   function isGameStarted(startTime) {
-    return new Date(startTime) <= new Date();
+    const tipDeadline = new Date(new Date(startTime).getTime() - 2 * 60 * 60 * 1000);
+    return tipDeadline <= new Date();
   }
 
   function getResultBadge(game) {
@@ -509,7 +514,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-tvn-beige">
-      {/* Toast Notification */}
       {toast && (
         <div className={`toast ${toast.type === 'success' ? 'toast-success' : toast.type === 'error' ? 'toast-error' : 'toast-info'}`}>
           <div className="px-6 py-4 rounded-card shadow-card-hover font-body font-semibold flex items-center gap-2">
@@ -519,7 +523,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Confirm Modal - Schön gestaltet */}
       {confirmModal && (
         <div className="modal-overlay" onClick={handleConfirmNo}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -542,7 +545,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Points Info Modal */}
       {showPointsInfo && (
         <div className="modal-overlay" onClick={() => setShowPointsInfo(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -585,7 +587,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Create Group Modal */}
       {showCreateGroup && (
         <div className="modal-overlay" onClick={() => setShowCreateGroup(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -613,7 +614,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Join Group Modal */}
       {showJoinGroup && (
         <div className="modal-overlay" onClick={() => setShowJoinGroup(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -636,7 +636,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Header */}
       <header className="bg-gradient-to-r from-tvn-navy via-tvn-navy-dark to-tvn-navy text-white shadow-lg sticky top-0 z-50 backdrop-blur-sm bg-opacity-95">
         <div className="max-w-6xl mx-auto px-4 py-3">
           <div className="flex justify-between items-center">
@@ -673,7 +672,7 @@ export default function App() {
         {view === 'tips' && (
           <div>
             <h2 className="text-2xl font-heading font-bold text-tvn-text mb-2">Kommende Spiele</h2>
-            <p className="text-sm text-tvn-muted mb-6 font-body">Spiele der nächsten 7 Tage</p>
+            <p className="text-sm text-tvn-muted mb-6 font-body">Spiele der nächsten 7 Tage • Tipp-Sperre 2h vor Anpfiff</p>
 
             {loading && (
               <div className="text-center py-12 text-tvn-muted font-body">
@@ -694,6 +693,7 @@ export default function App() {
                 const awayDisplay = game.age_group ? `${game.age_group} ${game.away_team}` : game.away_team;
                 const started = isGameStarted(game.start_time);
                 const hasTip = myTips[game.id];
+                const displayTime = getDisplayTime(game.start_time);
 
                 return (
                   <div key={game.id} ref={el => cardsRef.current[index] = el}
@@ -705,7 +705,7 @@ export default function App() {
                       <div className="text-xs text-gray-400 mb-4 font-body">
                         <div className="flex items-center gap-2">
                           <span>📅</span>
-                          <span>{new Date(game.start_time).toLocaleString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} Uhr</span>
+                          <span>{displayTime.toLocaleString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} Uhr</span>
                         </div>
                       </div>
                       <div className="flex justify-between items-center text-lg font-heading font-bold mb-4 text-white flex-grow">
@@ -716,7 +716,7 @@ export default function App() {
 
                       {started ? (
                         <div className="bg-tvn-navy-dark p-3 rounded-input border border-tvn-beige-border text-center">
-                          <span className="text-gray-400 font-body text-sm">⏰ Spiel läuft / beendet</span>
+                          <span className="text-gray-400 font-body text-sm">⏰ Tipp-Sperre aktiv (2h vor Anpfiff)</span>
                           {hasTip && (
                             <div className="mt-2 text-tvn-gold font-mono font-bold">
                               Dein Tipp: {hasTip.predicted_home_score} : {hasTip.predicted_away_score}
@@ -798,6 +798,7 @@ export default function App() {
                 const awayDisplay = game.age_group ? `${game.age_group} ${game.away_team}` : game.away_team;
                 const tip = myTips[game.id];
                 const points = getTipPoints(tip, game);
+                const displayTime = getDisplayTime(game.start_time);
 
                 return (
                   <div key={game.id} ref={el => finishedCardsRef.current[index] = el}
@@ -810,7 +811,7 @@ export default function App() {
                         {getResultBadge(game)}
                       </div>
                       <div className="text-xs text-gray-400 mb-4 font-body">
-                        📅 {new Date(game.start_time).toLocaleString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} Uhr
+                        📅 {displayTime.toLocaleString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} Uhr
                       </div>
                       <div className="flex justify-between items-center mb-2 text-white flex-grow">
                         <span className="text-right flex-1 font-heading font-bold">{homeDisplay}</span>
@@ -937,7 +938,7 @@ export default function App() {
                     </tr>
                   ))}
                   {groupLeaderboard.length === 0 && (
-                    <tr><td colSpan="3" className="p-8 text-center text-gray-400 font-body">Noch keine gewerteten Spiele.</td></tr>
+                    <tr><td colSpan="3" className="p-8 text-center text-gray-400 font-body">Noch keine Mitglieder mit Tipps.</td></tr>
                   )}
                 </tbody>
               </table>
@@ -976,7 +977,7 @@ export default function App() {
                   </tr>
                 ))}
                 {leaderboard.length === 0 && (
-                  <tr><td colSpan="3" className="p-8 text-center text-gray-400 font-body">Noch keine gewerteten Spiele.</td></tr>
+                  <tr><td colSpan="3" className="p-8 text-center text-gray-400 font-body">Noch keine registrierten Nutzer.</td></tr>
                 )}
               </tbody>
             </table>
