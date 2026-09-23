@@ -1,3 +1,106 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Basis-Styles */
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #F6F4EF;
+  color: #171512;
+  margin: 0;
+  padding: 0;
+}
+
+/* Scroll-Reveal Animation */
+.card-reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.card-reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Card Hover Effect (nur Desktop) */
+@media (hover: hover) {
+  .card-hover {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .card-hover:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(11,22,38,0.35);
+  }
+}
+
+/* Favorite Card Glow */
+.card-favorite {
+  border: 2px solid #FFD700;
+  animation: glowPulse 3s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 30px rgba(255,215,0,0.35); }
+  50% { box-shadow: 0 0 60px rgba(255,215,0,0.5); }
+}
+
+/* Ripple Effect für Buttons */
+.btn-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-ripple::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn-ripple:active::after {
+  width: 300px;
+  height: 300px;
+}
+
+/* Basketball Bounce für Herz-Icon */
+@keyframes bounceHeart {
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(1.3) rotate(-10deg); }
+  50% { transform: scale(0.9) rotate(10deg); }
+  75% { transform: scale(1.1); }
+}
+
+.bounce-heart {
+  animation: bounceHeart 0.9s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+/* Altersgruppen-Border */
+.border-age-u10 { border-left: 4px solid #3B82F6; }
+.border-age-u14 { border-left: 4px solid #10B981; }
+.border-age-u18 { border-left: 4px solid #8B5CF6; }
+.border-age-herren { border-left: 4px solid #E8A33D; }
+
+/* Gradient Background für Cards */
+.card-gradient {
+  background: linear-gradient(135deg, #10203B 0%, #0B1626 100%);
+}
+
+/* Mobile Touch Targets */
+@media (max-width: 600px) {
+  button, input, select {
+    min-height: 44px;
+  }
+  
+  .card-hover:hover {
+    transform: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+  }
+}
