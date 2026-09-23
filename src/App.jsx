@@ -158,44 +158,50 @@ export default function App() {
                 Keine anstehenden Spiele gefunden.
               </div>
             )}
-            {games.map(game => (
-              <div key={game.id} className="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
-                <div className="text-xs font-semibold text-blue-600 mb-1 uppercase tracking-wide">
-                  {game.competition || 'Liga'}
+            {games.map(game => {
+              // Altersklasse vor den Teamnamen setzen
+              const homeDisplay = game.age_group ? `${game.age_group} ${game.home_team}` : game.home_team;
+              const awayDisplay = game.age_group ? `${game.age_group} ${game.away_team}` : game.away_team;
+              
+              return (
+                <div key={game.id} className="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
+                  <div className="text-xs font-semibold text-blue-600 mb-1 uppercase tracking-wide">
+                    {game.competition || 'Liga'}
+                  </div>
+                  <div className="text-xs text-gray-500 mb-3 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                    <span>📅 {new Date(game.start_time).toLocaleString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' })} Uhr</span>
+                    <span className="hidden sm:inline">|</span>
+                    <span>📍 {game.location}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-lg font-bold mb-4">
+                    <span className="text-right flex-1">{homeDisplay}</span>
+                    <span className="text-gray-400 px-3 text-sm font-normal">vs</span>
+                    <span className="text-left flex-1">{awayDisplay}</span>
+                  </div>
+                  <div className="flex items-center gap-2 bg-gray-50 p-3 rounded border border-gray-200">
+                    <input 
+                      type="number" min="0" placeholder="Heim" 
+                      className="w-16 p-2 border rounded text-center font-bold focus:ring-2 focus:ring-blue-500 outline-none"
+                      value={tips[game.id + 'h'] || ''}
+                      onChange={(e) => setTips({...tips, [game.id + 'h']: e.target.value})}
+                    />
+                    <span className="font-bold text-gray-400">:</span>
+                    <input 
+                      type="number" min="0" placeholder="Gast" 
+                      className="w-16 p-2 border rounded text-center font-bold focus:ring-2 focus:ring-blue-500 outline-none"
+                      value={tips[game.id + 'a'] || ''}
+                      onChange={(e) => setTips({...tips, [game.id + 'a']: e.target.value})}
+                    />
+                    <button 
+                      className="ml-auto bg-green-600 text-white px-4 py-2 rounded font-semibold hover:bg-green-700 transition shadow-sm"
+                      onClick={() => submitTip(game.id, tips[game.id + 'h'], tips[game.id + 'a'])}
+                    >
+                      Tippen
+                    </button>
+                  </div>
                 </div>
-                <div className="text-xs text-gray-500 mb-3 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                  <span>📅 {new Date(game.start_time).toLocaleString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' })} Uhr</span>
-                  <span className="hidden sm:inline">|</span>
-                  <span>📍 {game.location}</span>
-                </div>
-                <div className="flex justify-between items-center text-lg font-bold mb-4">
-                  <span className="text-right flex-1">{game.home_team}</span>
-                  <span className="text-gray-400 px-3 text-sm font-normal">vs</span>
-                  <span className="text-left flex-1">{game.away_team}</span>
-                </div>
-                <div className="flex items-center gap-2 bg-gray-50 p-3 rounded border border-gray-200">
-                  <input 
-                    type="number" min="0" placeholder="Heim" 
-                    className="w-16 p-2 border rounded text-center font-bold focus:ring-2 focus:ring-blue-500 outline-none"
-                    value={tips[game.id + 'h'] || ''}
-                    onChange={(e) => setTips({...tips, [game.id + 'h']: e.target.value})}
-                  />
-                  <span className="font-bold text-gray-400">:</span>
-                  <input 
-                    type="number" min="0" placeholder="Gast" 
-                    className="w-16 p-2 border rounded text-center font-bold focus:ring-2 focus:ring-blue-500 outline-none"
-                    value={tips[game.id + 'a'] || ''}
-                    onChange={(e) => setTips({...tips, [game.id + 'a']: e.target.value})}
-                  />
-                  <button 
-                    className="ml-auto bg-green-600 text-white px-4 py-2 rounded font-semibold hover:bg-green-700 transition shadow-sm"
-                    onClick={() => submitTip(game.id, tips[game.id + 'h'], tips[game.id + 'a'])}
-                  >
-                    Tippen
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
