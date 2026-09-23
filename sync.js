@@ -1,5 +1,4 @@
 import ical from 'node-ical';
-import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -8,8 +7,6 @@ if (!supabaseUrl || !supabaseKey) {
   console.error('Fehler: SUPABASE_URL oder SUPABASE_SERVICE_ROLE_KEY nicht in den Secrets gefunden!');
   process.exit(1);
 }
-
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function sync() {
   console.log('Starte ICS-Sync...');
@@ -40,13 +37,30 @@ async function sync() {
       }
     }
 
-    const { error } = await supabase.from('games').upsert(games, { onConflict: 'id' });
-    if (error) {
-      console.error('Supabase Fehler:', error);
-      process.exit(1);
-    } else {
-      console.log(`✅ Erfolgreich ${games.length} Spiele synchronisiert!`);
+    if (games.length === 0) {
+      console.log('Keine Spiele in der ICS-Datei gefunden.');
+      return;
     }
+
+    // Direkter Aufruf der Supabase REST API zum Upserten (Aktualisieren oder Einfügen)
+    const response = await fetch(`${supabaseUrl}/rest/v1/games`, {
+      method: 'POST',
+      headers: {
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates' // Das ist der Supabase-Befehl für "Upsert"
+      },
+      body: JSON.stringify(games)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error('Supabase API Fehler:', response.status, errorData);
+      process.exit(1);
+    }
+
+    console.log(`✅ Erfolgreich ${games.length} Spiele synchronisiert!`);
   } catch (err) {
     console.error('Allgemeiner Fehler beim Sync:', err);
     process.exit(1);
