@@ -27,13 +27,12 @@ function extractScore(summary, description) {
   }
 
   // 2. Fallback: Suche im Summary (z.B. "Hürther BC 58:83 TV Neunkirchen")
-  // Wir suchen nach Zahlen:Zahlen, die von Leerzeichen umgeben sind.
   const sumMatch = summary.match(/\s(\d{1,3})\s*:\s*(\d{1,3})\s/);
   if (sumMatch && !summary.toLowerCase().includes(" vs. ")) {
     return { home: parseInt(sumMatch[1], 10), away: parseInt(sumMatch[2], 10) };
   }
 
-  return null; // Kein Ergebnis gefunden
+  return null;
 }
 
 async function sync() {
@@ -58,11 +57,8 @@ async function sync() {
         const ageGroup = extractAgeGroup(wettbewerb);
         const isCancelled = summary.includes('AUSGEFALLEN') || summary.includes('ABGESAGT');
 
-        // Spielstand extrahieren
         const score = extractScore(summary, desc);
         
-        // WICHTIG: home_score und away_score sind HIER bereits definiert (als null)
-        // Damit haben ALLE Objekte im Array exakt die gleichen Schlüssel!
         const gameData = {
           id: event.uid,
           summary: summary,
@@ -73,14 +69,11 @@ async function sync() {
           start_time: event.start ? event.start.toISOString() : null,
           location: event.location || '',
           is_cancelled: isCancelled,
-          home_score: null, 
-          away_score: null
+          home_score: score ? score.home : null,
+          away_score: score ? score.away : null
         };
 
-        // Wenn ein Ergebnis gefunden wurde, überschreiben wir das null mit der Zahl
         if (score !== null) {
-          gameData.home_score = score.home;
-          gameData.away_score = score.away;
           console.log(`  ✅ Ergebnis gefunden: ${heimTeam} ${score.home}:${score.away} ${gastTeam}`);
         } else {
           console.log(`  ⏳ Kein Ergebnis (Zukunft): ${heimTeam} vs. ${gastTeam}`);
@@ -95,7 +88,9 @@ async function sync() {
       return;
     }
 
-    // Upsert: Aktualisiert vorhandene Spiele (anhand der ID) oder fügt neue hinzu
+    // --- SCHRITT 1: Alle Spieldaten syncen (OHNE Scores, um bestehende Ergebnisse zu schützen) ---
+    const gamesWithoutScores = games.map(({ home_score, away_score, ...rest }) => rest);
+    
     const response = await fetch(`${supabaseUrl}/rest/v1/games`, {
       method: 'POST',
       headers: {
@@ -104,16 +99,47 @@ async function sync() {
         'Content-Type': 'application/json',
         'Prefer': 'resolution=merge-duplicates' 
       },
-      body: JSON.stringify(games)
+      body: JSON.stringify(gamesWithoutScores)
     });
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('❌ Supabase API Fehler:', response.status, errorData);
+      console.error('❌ Supabase API Fehler (Spiele):', response.status, errorData);
       process.exit(1);
     }
+    console.log(`\n✅ Schritt 1: ${games.length} Spieldaten synchronisiert.`);
 
-    console.log(`\n🎉 Erfolgreich ${games.length} Spiele synchronisiert!`);
+    // --- SCHRITT 2: Ergebnisse gezielt aktualisieren (nur für Spiele mit einem Score) ---
+    const gamesWithScores = games.filter(g => g.home_score !== null);
+    
+    if (gamesWithScores.length > 0) {
+      console.log(`\n🔄 Schritt 2: Aktualisiere ${gamesWithScores.length} Ergebnisse...`);
+      for (const game of gamesWithScores) {
+        const updateResponse = await fetch(`${supabaseUrl}/rest/v1/games?id=eq.${encodeURIComponent(game.id)}`, {
+          method: 'PATCH',
+          headers: {
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            home_score: game.home_score,
+            away_score: game.away_score
+          })
+        });
+
+        if (!updateResponse.ok) {
+          const errorData = await updateResponse.text();
+          console.error(`  ❌ Fehler beim Update von ${game.id}:`, updateResponse.status, errorData);
+        } else {
+          console.log(`  ✅ Score aktualisiert: ${game.home_team} ${game.home_score}:${game.away_score} ${game.away_team}`);
+        }
+      }
+    } else {
+      console.log('\nℹ️ Keine neuen Ergebnisse zum Aktualisieren gefunden.');
+    }
+
+    console.log(`\n🎉 Sync erfolgreich abgeschlossen!`);
   } catch (err) {
     console.error('❌ Allgemeiner Fehler beim Sync:', err);
     process.exit(1);
