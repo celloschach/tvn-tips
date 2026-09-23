@@ -74,7 +74,6 @@ export default function App() {
       const now = new Date();
       const in7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-      // Nächste 7 Tage Spiele
       const { data: gamesData, error: gamesError } = await supabase
         .from('games')
         .select('*')
@@ -86,14 +85,11 @@ export default function App() {
       if (gamesError) console.error('Fehler beim Laden der Spiele:', gamesError);
       setGames(gamesData || []);
 
-      // Fertige Spiele laden
       await loadFinishedGames('7');
 
-      // Leaderboard
       const { data: lbData } = await supabase.from('leaderboard').select('*');
       setLeaderboard(lbData || []);
 
-      // Eigene Tipps laden
       if (userId) {
         const { data: tipsData } = await supabase
           .from('predictions')
@@ -102,12 +98,9 @@ export default function App() {
 
         if (tipsData) {
           const tipsMap = {};
-          tipsData.forEach(t => {
-            tipsMap[t.game_id] = t;
-          });
+          tipsData.forEach(t => { tipsMap[t.game_id] = t; });
           setMyTips(tipsMap);
 
-          // Tipps in die Input-Felder laden
           const tipsState = {};
           tipsData.forEach(t => {
             tipsState[t.game_id + 'h'] = t.predicted_home_score?.toString() || '';
@@ -122,7 +115,7 @@ export default function App() {
     setLoading(false);
   }
 
-  // Fertige Spiele mit Zeitspanne laden
+  // Fertige Spiele laden
   async function loadFinishedGames(days) {
     setResultFilter(days);
     let query = supabase
@@ -141,7 +134,6 @@ export default function App() {
     setFinishedGames(data || []);
   }
 
-  // Login
   async function handleLogin(e) {
     e.preventDefault();
     setMsg('');
@@ -155,7 +147,6 @@ export default function App() {
     }
   }
 
-  // Logout
   async function handleLogout() {
     await supabase.auth.signOut();
     setUser(null);
@@ -166,7 +157,6 @@ export default function App() {
     setTips({});
   }
 
-  // Tipp abgeben
   async function submitTip(gameId, homeScore, awayScore) {
     if (!homeScore || !awayScore) return alert('Bitte beide Ergebnisse eingeben.');
 
@@ -184,7 +174,6 @@ export default function App() {
     }
   }
 
-  // Tipp löschen
   async function deleteTip(gameId) {
     if (!confirm('Tipp wirklich löschen?')) return;
 
@@ -209,12 +198,10 @@ export default function App() {
     }
   }
 
-  // Prüfen ob Spiel schon gestartet hat
   function isGameStarted(startTime) {
     return new Date(startTime) <= new Date();
   }
 
-  // Altersgruppe CSS-Klasse
   function getAgeGroupClass(ageGroup) {
     if (!ageGroup) return 'border-age-herren';
     if (ageGroup.includes('U10') || ageGroup.includes('U12')) return 'border-age-u10';
@@ -223,14 +210,37 @@ export default function App() {
     return 'border-age-herren';
   }
 
-  // Ergebnis-Badge
-  function getResultBadge(homeScore, awayScore) {
-    if (homeScore > awayScore) return <span className="badge-win text-xs px-2 py-1 rounded-button font-mono font-bold">SIEG</span>;
-    if (homeScore < awayScore) return <span className="badge-loss text-xs px-2 py-1 rounded-button font-mono font-bold">NIEDERLAGE</span>;
-    return <span className="badge-draw text-xs px-2 py-1 rounded-button font-mono font-bold">UNENTSCHIEDEN</span>;
+  // NEU: Sieg/Niederlage aus Sicht von TV Neunkirchen
+  function getResultBadge(game) {
+    const homeLower = game.home_team.toLowerCase();
+    const awayLower = game.away_team.toLowerCase();
+    
+    const isTVNHome = homeLower.includes('neunkirchen') || homeLower.includes('tvn');
+    const isTVNAway = awayLower.includes('neunkirchen') || awayLower.includes('tvn');
+
+    let tvnWon = false;
+    let tvnLost = false;
+
+    if (isTVNHome) {
+      tvnWon = game.home_score > game.away_score;
+      tvnLost = game.home_score < game.away_score;
+    } else if (isTVNAway) {
+      tvnWon = game.away_score > game.home_score;
+      tvnLost = game.away_score < game.home_score;
+    } else {
+      // Fallback falls TVN nicht beteiligt (z.B. fremdes Spiel)
+      tvnWon = game.home_score > game.away_score;
+      tvnLost = game.home_score < game.away_score;
+    }
+
+    if (game.home_score === game.away_score) {
+      return <span className="badge-draw text-xs px-2 py-1 rounded-button font-mono font-bold">UNENTSCHIEDEN</span>;
+    }
+    if (tvnWon) return <span className="badge-win text-xs px-2 py-1 rounded-button font-mono font-bold">SIEG</span>;
+    if (tvnLost) return <span className="badge-loss text-xs px-2 py-1 rounded-button font-mono font-bold">NIEDERLAGE</span>;
+    return null;
   }
 
-  // Punkte berechnen für einen Tipp
   function getTipPoints(tip, game) {
     if (!tip || game.home_score === null) return null;
     if (tip.predicted_home_score === game.home_score && tip.predicted_away_score === game.away_score) return 3;
@@ -275,7 +285,6 @@ export default function App() {
   // --- EINGELOGGT ---
   return (
     <div className="min-h-screen bg-tvn-beige">
-      {/* Header */}
       <header className="card-gradient text-white p-4 shadow-card sticky top-0 z-50">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-heading font-bold text-tvn-gold">🏀 TVN Tipps</h1>
@@ -336,13 +345,9 @@ export default function App() {
                         {game.competition || 'Liga'}
                       </div>
                       <div className="text-xs text-gray-400 mb-4 font-body">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2">
                           <span>📅</span>
                           <span>{new Date(game.start_time).toLocaleString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} Uhr</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span>📍</span>
-                          <span>{game.location}</span>
                         </div>
                       </div>
                       <div className="flex justify-between items-center text-lg font-heading font-bold mb-4 text-white">
@@ -363,12 +368,12 @@ export default function App() {
                       ) : (
                         <div>
                           <div className="flex items-center gap-2 bg-tvn-navy-dark p-3 rounded-input border border-tvn-beige-border">
-                            <input type="number" min="0" placeholder="Heim"
+                            <input type="number" min="0" placeholder="H"
                               className="w-16 p-2 bg-tvn-navy border border-tvn-beige-border rounded-button text-center font-mono font-bold text-white focus:ring-2 focus:ring-tvn-gold outline-none"
                               value={tips[game.id + 'h'] || ''}
                               onChange={(e) => setTips({ ...tips, [game.id + 'h']: e.target.value })} />
                             <span className="font-bold text-tvn-gold">:</span>
-                            <input type="number" min="0" placeholder="Gast"
+                            <input type="number" min="0" placeholder="G"
                               className="w-16 p-2 bg-tvn-navy border border-tvn-beige-border rounded-button text-center font-mono font-bold text-white focus:ring-2 focus:ring-tvn-gold outline-none"
                               value={tips[game.id + 'a'] || ''}
                               onChange={(e) => setTips({ ...tips, [game.id + 'a']: e.target.value })} />
@@ -434,7 +439,7 @@ export default function App() {
                         <div className="text-xs font-mono font-semibold text-tvn-gold uppercase tracking-wide">
                           {game.competition || 'Liga'}
                         </div>
-                        {getResultBadge(game.home_score, game.away_score)}
+                        {getResultBadge(game)}
                       </div>
                       <div className="text-xs text-gray-400 mb-4 font-body">
                         📅 {new Date(game.start_time).toLocaleString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} Uhr
