@@ -97,7 +97,6 @@ export default function App() {
     }
   }, [finishedGames, myFinishedGames, resultTab, view, setupObserver]);
 
-  // Username aus profiles Tabelle laden
   async function loadUsername(userId) {
     const { data } = await supabase
       .from('profiles')
@@ -360,7 +359,6 @@ export default function App() {
     setGroupLeaderboard(lb || []);
   }
 
-  // Login mit Username-Anzeige
   async function handleLogin(e) {
     e.preventDefault();
     setMsg('');
@@ -378,7 +376,7 @@ export default function App() {
       });
       if (error) setMsg('Fehler: ' + error.message);
       else {
-        showToast('Registrierung erfolgreich! Du kannst dich jetzt einloggen.', 'success');
+        showToast('Registrierung erfolgreich!', 'success');
         setRegUsername('');
         setIsRegistering(false);
       }
@@ -491,10 +489,10 @@ export default function App() {
     }
 
     if (game.home_score === game.away_score) {
-      return <span className="badge-draw text-xs px-2 py-1 rounded-button font-mono font-bold">UNENTSCHIEDEN</span>;
+      return <span className="badge-draw text-xs px-3 py-1.5 rounded-button font-mono font-bold">UNENTSCHIEDEN</span>;
     }
-    if (tvnWon) return <span className="badge-win text-xs px-2 py-1 rounded-button font-mono font-bold">SIEG</span>;
-    if (tvnLost) return <span className="badge-loss text-xs px-2 py-1 rounded-button font-mono font-bold">NIEDERLAGE</span>;
+    if (tvnWon) return <span className="badge-win text-xs px-3 py-1.5 rounded-button font-mono font-bold">SIEG</span>;
+    if (tvnLost) return <span className="badge-loss text-xs px-3 py-1.5 rounded-button font-mono font-bold">NIEDERLAGE</span>;
     return null;
   }
 
@@ -514,44 +512,49 @@ export default function App() {
     return 0;
   }
 
-  // --- LOGIN VIEW ---
+  // LOGIN VIEW
   if (!user) {
     return (
-      <div className="min-h-screen bg-tvn-beige flex items-center justify-center p-4">
-        <div className="card-gradient p-8 rounded-card shadow-card-hover max-w-md w-full">
-          <h1 className="text-3xl font-heading font-bold text-center mb-2 text-tvn-gold">🏀 TVN Tipp-Spiel</h1>
-          <p className="text-center mb-6 text-gray-300 font-body">
-            {isRegistering ? 'Erstelle einen neuen Account' : 'Melde dich mit deinem Account an'}
-          </p>
+      <div className="min-h-screen bg-dark-900 flex items-center justify-center p-4">
+        <div className="glass-card p-8 rounded-card shadow-card max-w-md w-full">
+          <div className="text-center mb-6">
+            <div className="text-5xl mb-3">🏀</div>
+            <h1 className="text-3xl font-heading font-bold bg-gradient-to-r from-neon-gold to-neon-pink bg-clip-text text-transparent">
+              TVN Tipp-Spiel
+            </h1>
+            <p className="text-gray-400 font-body mt-2">
+              {isRegistering ? 'Erstelle deinen Account' : 'Willkommen zurück'}
+            </p>
+          </div>
           <form onSubmit={handleLogin} className="space-y-4">
             {isRegistering && (
               <input type="text" placeholder="Benutzername" value={regUsername} onChange={(e) => setRegUsername(e.target.value)}
-                className="w-full p-3 bg-tvn-navy border border-tvn-beige-border rounded-input text-white placeholder-gray-400 focus:ring-2 focus:ring-tvn-gold outline-none font-body" required />
+                className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold focus:ring-2 focus:ring-neon-gold/20 outline-none font-body transition" required />
             )}
             <input type="email" placeholder="E-Mail-Adresse" value={email} onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 bg-tvn-navy border border-tvn-beige-border rounded-input text-white placeholder-gray-400 focus:ring-2 focus:ring-tvn-gold outline-none font-body" required />
-            <input type="password" placeholder="Passwort (mind. 6 Zeichen)" value={password} onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 bg-tvn-navy border border-tvn-beige-border rounded-input text-white placeholder-gray-400 focus:ring-2 focus:ring-tvn-gold outline-none font-body" required minLength={6} />
-            <button type="submit" className="btn-ripple w-full bg-tvn-gold text-tvn-navy p-3 rounded-button font-heading font-semibold hover:bg-tvn-favorite transition">
+              className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold focus:ring-2 focus:ring-neon-gold/20 outline-none font-body transition" required />
+            <input type="password" placeholder="Passwort" value={password} onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold focus:ring-2 focus:ring-neon-gold/20 outline-none font-body transition" required minLength={6} />
+            <button type="submit" className="glow-button w-full bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 p-3 rounded-button font-heading font-bold hover:shadow-glow transition">
               {isRegistering ? 'Registrieren' : 'Anmelden'}
             </button>
           </form>
           <button onClick={() => { setIsRegistering(!isRegistering); setMsg(''); }}
-            className="w-full mt-4 text-tvn-gold hover:text-tvn-favorite text-sm font-medium font-body transition">
-            {isRegistering ? 'Zurück zum Login' : 'Noch keinen Account? Hier registrieren'}
+            className="w-full mt-4 text-neon-gold hover:text-neon-pink text-sm font-medium font-body transition">
+            {isRegistering ? 'Zurück zum Login' : 'Noch keinen Account? Registrieren'}
           </button>
-          {msg && <p className="mt-4 text-sm text-center text-tvn-gold font-medium font-body">{msg}</p>}
+          {msg && <p className="mt-4 text-sm text-center text-neon-red font-medium font-body">{msg}</p>}
         </div>
       </div>
     );
   }
 
-  // --- MAIN VIEW ---
+  // MAIN VIEW
   return (
-    <div className="min-h-screen bg-tvn-beige">
+    <div className="min-h-screen bg-dark-900">
       {toast && (
         <div className={`toast ${toast.type === 'success' ? 'toast-success' : toast.type === 'error' ? 'toast-error' : 'toast-info'}`}>
-          <div className="px-6 py-4 rounded-card shadow-card-hover font-body font-semibold flex items-center gap-2">
+          <div className="px-6 py-4 rounded-card shadow-card font-body font-semibold flex items-center gap-2">
             <span>{toast.type === 'success' ? '✅' : toast.type === 'error' ? '❌' : 'ℹ️'}</span>
             <span>{toast.message}</span>
           </div>
@@ -563,17 +566,17 @@ export default function App() {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="text-center mb-4">
               <div className="text-4xl mb-2">⚠️</div>
-              <h3 className="text-xl font-heading font-bold text-tvn-text">Bist du sicher?</h3>
+              <h3 className="text-xl font-heading font-bold text-white">Bist du sicher?</h3>
             </div>
-            <p className="text-tvn-muted font-body mb-6 text-center">{confirmModal.message}</p>
+            <p className="text-gray-400 font-body mb-6 text-center">{confirmModal.message}</p>
             <div className="flex gap-3">
               <button onClick={handleConfirmNo}
-                className="flex-1 btn-ripple bg-gray-200 text-tvn-text px-4 py-3 rounded-button font-heading font-semibold hover:bg-gray-300 transition">
+                className="flex-1 glow-button bg-dark-700 text-white px-4 py-3 rounded-button font-heading font-semibold hover:bg-dark-600 transition">
                 Abbrechen
               </button>
               <button onClick={handleConfirmYes}
-                className="flex-1 btn-ripple bg-red-600 text-white px-4 py-3 rounded-button font-heading font-semibold hover:bg-red-700 transition">
-                Ja, löschen
+                className="flex-1 glow-button bg-neon-red text-white px-4 py-3 rounded-button font-heading font-semibold hover:bg-red-700 transition">
+                Löschen
               </button>
             </div>
           </div>
@@ -583,39 +586,39 @@ export default function App() {
       {showPointsInfo && (
         <div className="modal-overlay" onClick={() => setShowPointsInfo(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-xl font-heading font-bold text-tvn-text mb-4">🏆 Punkte-System</h3>
-            <div className="space-y-3 font-body text-tvn-muted">
+            <h3 className="text-xl font-heading font-bold text-white mb-4">🏆 Punkte-System</h3>
+            <div className="space-y-3 font-body text-gray-400">
               <div className="flex items-start gap-3">
                 <span className="text-2xl">🎯</span>
                 <div>
-                  <div className="font-bold text-tvn-text">5 Punkte</div>
+                  <div className="font-bold text-white">5 Punkte</div>
                   <div className="text-sm">Exaktes Ergebnis getippt</div>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <span className="text-2xl">👍</span>
                 <div>
-                  <div className="font-bold text-tvn-text">3 Punkte</div>
-                  <div className="text-sm">Ergebnis innerhalb von 10 Punkten Differenz</div>
+                  <div className="font-bold text-white">3 Punkte</div>
+                  <div className="text-sm">Innerhalb von 10 Punkten Differenz</div>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <span className="text-2xl">✓</span>
                 <div>
-                  <div className="font-bold text-tvn-text">1 Punkt</div>
-                  <div className="text-sm">Richtige Tendenz (Sieg/Niederlage/Unentschieden)</div>
+                  <div className="font-bold text-white">1 Punkt</div>
+                  <div className="text-sm">Richtige Tendenz</div>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <span className="text-2xl">❌</span>
                 <div>
-                  <div className="font-bold text-tvn-text">0 Punkte</div>
+                  <div className="font-bold text-white">0 Punkte</div>
                   <div className="text-sm">Falsch getippt</div>
                 </div>
               </div>
             </div>
             <button onClick={() => setShowPointsInfo(false)}
-              className="mt-6 w-full btn-ripple bg-tvn-gold text-tvn-navy px-4 py-3 rounded-button font-heading font-semibold hover:bg-tvn-favorite transition">
+              className="mt-6 w-full glow-button bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 px-4 py-3 rounded-button font-heading font-bold hover:shadow-glow transition">
               Verstanden
             </button>
           </div>
@@ -625,22 +628,22 @@ export default function App() {
       {showCreateGroup && (
         <div className="modal-overlay" onClick={() => setShowCreateGroup(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-xl font-heading font-bold text-tvn-text mb-4">Gruppe erstellen</h3>
+            <h3 className="text-xl font-heading font-bold text-white mb-4">Gruppe erstellen</h3>
             <div className="space-y-4">
               <input type="text" placeholder="Gruppenname" value={newGroupName} onChange={(e) => setNewGroupName(e.target.value)}
-                className="w-full p-3 border border-tvn-beige-border rounded-input font-body" />
-              <label className="flex items-center gap-2 font-body">
+                className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold outline-none font-body" />
+              <label className="flex items-center gap-2 font-body text-gray-400">
                 <input type="checkbox" checked={newGroupIsPublic} onChange={(e) => setNewGroupIsPublic(e.target.checked)}
                   className="w-5 h-5" />
                 <span>Öffentliche Gruppe</span>
               </label>
               <div className="flex gap-3">
                 <button onClick={() => setShowCreateGroup(false)}
-                  className="flex-1 btn-ripple bg-gray-200 text-tvn-text px-4 py-3 rounded-button font-heading font-semibold hover:bg-gray-300 transition">
+                  className="flex-1 glow-button bg-dark-700 text-white px-4 py-3 rounded-button font-heading font-semibold hover:bg-dark-600 transition">
                   Abbrechen
                 </button>
                 <button onClick={createGroup}
-                  className="flex-1 btn-ripple bg-tvn-gold text-tvn-navy px-4 py-3 rounded-button font-heading font-semibold hover:bg-tvn-favorite transition">
+                  className="flex-1 glow-button bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 px-4 py-3 rounded-button font-heading font-bold hover:shadow-glow transition">
                   Erstellen
                 </button>
               </div>
@@ -652,17 +655,17 @@ export default function App() {
       {showJoinGroup && (
         <div className="modal-overlay" onClick={() => setShowJoinGroup(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-xl font-heading font-bold text-tvn-text mb-4">Gruppe beitreten</h3>
+            <h3 className="text-xl font-heading font-bold text-white mb-4">Gruppe beitreten</h3>
             <div className="space-y-4">
               <input type="text" placeholder="Beitrittscode" value={joinCode} onChange={(e) => setJoinCode(e.target.value)}
-                className="w-full p-3 border border-tvn-beige-border rounded-input font-body uppercase" />
+                className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold outline-none font-body uppercase" />
               <div className="flex gap-3">
                 <button onClick={() => setShowJoinGroup(false)}
-                  className="flex-1 btn-ripple bg-gray-200 text-tvn-text px-4 py-3 rounded-button font-heading font-semibold hover:bg-gray-300 transition">
+                  className="flex-1 glow-button bg-dark-700 text-white px-4 py-3 rounded-button font-heading font-semibold hover:bg-dark-600 transition">
                   Abbrechen
                 </button>
                 <button onClick={joinGroup}
-                  className="flex-1 btn-ripple bg-tvn-gold text-tvn-navy px-4 py-3 rounded-button font-heading font-semibold hover:bg-tvn-favorite transition">
+                  className="flex-1 glow-button bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 px-4 py-3 rounded-button font-heading font-bold hover:shadow-glow transition">
                   Beitreten
                 </button>
               </div>
@@ -671,70 +674,106 @@ export default function App() {
         </div>
       )}
 
-      {/* Header mit klickbarem Logo + Username */}
-      <header className="bg-gradient-to-r from-tvn-navy via-tvn-navy-dark to-tvn-navy text-white shadow-lg sticky top-0 z-50 backdrop-blur-sm bg-opacity-95">
-        <div className="max-w-6xl mx-auto px-4 py-3">
-          <div className="flex justify-between items-center">
-            {/* Klickbares Logo */}
-            <button onClick={() => setView('tips')}
-              className="text-2xl font-heading font-bold text-tvn-gold flex items-center gap-2 hover:opacity-80 transition cursor-pointer">
-              <span className="text-3xl">🏀</span>
-              <span>TVN Tipps</span>
+      {/* SIDEBAR (Desktop) */}
+      <aside className="sidebar hidden lg:flex flex-col">
+        <div className="p-6 border-b border-white/10">
+          <button onClick={() => setView('tips')} className="flex items-center gap-2 hover:opacity-80 transition">
+            <span className="text-3xl">🏀</span>
+            <span className="text-xl font-heading font-bold bg-gradient-to-r from-neon-gold to-neon-pink bg-clip-text text-transparent">
+              TVN Tipps
+            </span>
+          </button>
+        </div>
+        <nav className="flex-1 p-4 space-y-2">
+          {[
+            { id: 'tips', label: 'Spiele', icon: '⚽' },
+            { id: 'results', label: 'Ergebnisse', icon: '📊' },
+            { id: 'groups', label: 'Gruppen', icon: '👥' },
+            { id: 'leaderboard', label: 'Tabelle', icon: '🏆' }
+          ].map(tab => (
+            <button key={tab.id} onClick={() => setView(tab.id)}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-button font-heading font-semibold transition ${
+                view === tab.id
+                  ? 'bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 shadow-glow'
+                  : 'text-gray-400 hover:text-white hover:bg-dark-700'
+              }`}>
+              <span className="text-xl">{tab.icon}</span>
+              <span>{tab.label}</span>
             </button>
+          ))}
+        </nav>
+        <div className="p-4 border-t border-white/10">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-neon-purple to-neon-pink flex items-center justify-center text-white font-bold">
+              {username?.[0]?.toUpperCase() || 'U'}
+            </div>
+            <div className="flex-1">
+              <div className="text-sm font-heading font-bold text-white">{username}</div>
+              <div className="text-xs text-gray-500 font-body">Online</div>
+            </div>
+          </div>
+          <button onClick={handleLogout}
+            className="w-full glow-button bg-neon-red/20 text-neon-red px-4 py-2 rounded-button font-heading font-semibold hover:bg-neon-red/30 transition">
+            Logout
+          </button>
+        </div>
+      </aside>
 
-            <nav className="flex gap-1 bg-white/5 rounded-lg p-1">
-              {[
-                { id: 'tips', label: 'Spiele' },
-                { id: 'results', label: 'Ergebnisse' },
-                { id: 'groups', label: 'Gruppen' },
-                { id: 'leaderboard', label: 'Tabelle' }
-              ].map(tab => (
-                <button key={tab.id} onClick={() => setView(tab.id)}
-                  className={`btn-ripple px-4 py-2 rounded-md text-sm font-heading font-semibold transition-all ${
-                    view === tab.id 
-                      ? 'bg-tvn-gold text-tvn-navy shadow-md' 
-                      : 'text-white/80 hover:text-white hover:bg-white/10'
-                  }`}>
-                  {tab.label}
-                </button>
-              ))}
-            </nav>
-
-            <div className="flex items-center gap-3">
-              {/* Username anzeigen */}
-              <div className="hidden sm:flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-button">
-                <span className="text-tvn-gold text-lg">👤</span>
-                <span className="text-sm font-heading font-semibold text-white">{username || 'User'}</span>
-              </div>
-              <button onClick={handleLogout}
-                className="btn-ripple bg-red-600/80 hover:bg-red-600 px-4 py-2 rounded-button text-sm font-heading font-semibold transition">
-                Logout
-              </button>
+      {/* HEADER (Mobile) */}
+      <header className="lg:hidden bg-dark-800 border-b border-white/10 p-4 sticky top-0 z-50">
+        <div className="flex justify-between items-center">
+          <button onClick={() => setView('tips')} className="flex items-center gap-2">
+            <span className="text-2xl">🏀</span>
+            <span className="text-lg font-heading font-bold bg-gradient-to-r from-neon-gold to-neon-pink bg-clip-text text-transparent">
+              TVN Tipps
+            </span>
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-neon-purple to-neon-pink flex items-center justify-center text-white text-sm font-bold">
+              {username?.[0]?.toUpperCase() || 'U'}
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto p-4 md:p-6">
+      {/* MAIN CONTENT */}
+      <main className="lg:ml-60 p-4 md:p-6 pb-24 lg:pb-6">
         {view === 'tips' && (
           <div>
-            <h2 className="text-2xl font-heading font-bold text-tvn-text mb-2">Kommende Spiele</h2>
-            <p className="text-sm text-tvn-muted mb-6 font-body">Spiele der nächsten 7 Tage • Tipp-Sperre 2h vor Anpfiff</p>
+            {/* Hero Section */}
+            <div className="glass-card rounded-card p-6 mb-6 bg-gradient-to-r from-neon-purple/10 to-neon-pink/10">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-2xl md:text-3xl font-heading font-bold text-white mb-2">
+                    Hallo {username}! 👋
+                  </h1>
+                  <p className="text-gray-400 font-body">Spiele der nächsten 7 Tage</p>
+                </div>
+                <div className="text-right hidden md:block">
+                  <div className="text-3xl font-heading font-bold text-neon-gold">
+                    {leaderboard.find(r => r.username === username)?.total_points || 0}
+                  </div>
+                  <div className="text-sm text-gray-400 font-body">Punkte</div>
+                </div>
+              </div>
+            </div>
+
+            <h2 className="text-xl font-heading font-bold text-white mb-4">Kommende Spiele</h2>
 
             {loading && (
-              <div className="text-center py-12 text-tvn-muted font-body">
-                <div className="text-4xl mb-4">🏀</div>
+              <div className="text-center py-12 text-gray-500 font-body">
+                <div className="text-4xl mb-4 animate-pulse">🏀</div>
                 Lade Spiele...
               </div>
             )}
 
             {!loading && games.length === 0 && (
-              <div className="text-center py-12 text-tvn-muted bg-white rounded-card shadow-card font-body">
+              <div className="glass-card rounded-card p-8 text-center text-gray-500 font-body">
                 Keine Spiele in den nächsten 7 Tagen.
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {games.map((game, index) => {
                 const homeDisplay = game.age_group ? `${game.age_group} ${game.home_team}` : game.home_team;
                 const awayDisplay = game.age_group ? `${game.age_group} ${game.away_team}` : game.away_team;
@@ -744,52 +783,56 @@ export default function App() {
 
                 return (
                   <div key={game.id} ref={el => cardsRef.current[index] = el}
-                    className="card-reveal card-hover card-gradient rounded-card shadow-card overflow-hidden flex flex-col">
-                    <div className="p-5 flex flex-col flex-grow">
-                      <div className="text-xs font-mono font-semibold text-tvn-gold mb-2 uppercase tracking-wide">
-                        {game.competition || 'Liga'}
-                      </div>
-                      <div className="text-xs text-gray-400 mb-4 font-body">
-                        <div className="flex items-center gap-2">
-                          <span>📅</span>
-                          <span>{displayTime.toLocaleString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} Uhr</span>
+                    className="card-reveal hover-lift glass-card rounded-card overflow-hidden">
+                    <div className="p-5">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="text-xs font-mono font-semibold text-neon-gold uppercase tracking-wide">
+                          {game.competition || 'Liga'}
                         </div>
+                        {hasTip && (
+                          <div className="text-xs bg-neon-green/20 text-neon-green px-2 py-1 rounded-button font-mono font-bold">
+                            ✓ Getippt
+                          </div>
+                        )}
                       </div>
-                      <div className="flex justify-between items-center text-lg font-heading font-bold mb-4 text-white flex-grow">
+                      <div className="text-xs text-gray-500 mb-4 font-body">
+                        📅 {displayTime.toLocaleString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} Uhr
+                      </div>
+                      <div className="flex justify-between items-center text-base font-heading font-bold mb-4 text-white">
                         <span className="text-right flex-1">{homeDisplay}</span>
-                        <span className="text-tvn-gold px-3 text-sm font-normal">vs</span>
+                        <span className="text-neon-gold px-3 text-sm font-normal">vs</span>
                         <span className="text-left flex-1">{awayDisplay}</span>
                       </div>
 
                       {started ? (
-                        <div className="bg-tvn-navy-dark p-3 rounded-input border border-tvn-beige-border text-center">
-                          <span className="text-gray-400 font-body text-sm">⏰ Tipp-Sperre aktiv (2h vor Anpfiff)</span>
+                        <div className="bg-dark-700 p-3 rounded-button border border-white/5 text-center">
+                          <span className="text-gray-500 font-body text-sm">⏰ Tipp-Sperre aktiv</span>
                           {hasTip && (
-                            <div className="mt-2 text-tvn-gold font-mono font-bold">
+                            <div className="mt-2 text-neon-gold font-mono font-bold">
                               Dein Tipp: {hasTip.predicted_home_score} : {hasTip.predicted_away_score}
                             </div>
                           )}
                         </div>
                       ) : (
                         <div>
-                          <div className="flex items-center gap-2 bg-tvn-navy-dark p-3 rounded-input border border-tvn-beige-border">
+                          <div className="flex items-center gap-2 bg-dark-700 p-3 rounded-button border border-white/5">
                             <input type="number" min="0" placeholder="H"
-                              className="w-16 p-2 bg-tvn-navy border border-tvn-beige-border rounded-button text-center font-mono font-bold text-white focus:ring-2 focus:ring-tvn-gold outline-none"
+                              className="w-16 p-2 bg-dark-800 border border-white/10 rounded-button text-center font-mono font-bold text-white focus:border-neon-gold outline-none"
                               value={tips[game.id + 'h'] || ''}
                               onChange={(e) => setTips({ ...tips, [game.id + 'h']: e.target.value })} />
-                            <span className="font-bold text-tvn-gold">:</span>
+                            <span className="font-bold text-neon-gold">:</span>
                             <input type="number" min="0" placeholder="G"
-                              className="w-16 p-2 bg-tvn-navy border border-tvn-beige-border rounded-button text-center font-mono font-bold text-white focus:ring-2 focus:ring-tvn-gold outline-none"
+                              className="w-16 p-2 bg-dark-800 border border-white/10 rounded-button text-center font-mono font-bold text-white focus:border-neon-gold outline-none"
                               value={tips[game.id + 'a'] || ''}
                               onChange={(e) => setTips({ ...tips, [game.id + 'a']: e.target.value })} />
-                            <button className="btn-ripple ml-auto bg-tvn-gold text-tvn-navy px-4 py-2 rounded-button font-heading font-semibold hover:bg-tvn-favorite transition"
+                            <button className="glow-button ml-auto bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 px-4 py-2 rounded-button font-heading font-bold hover:shadow-glow transition"
                               onClick={() => submitTip(game.id, tips[game.id + 'h'], tips[game.id + 'a'])}>
                               {hasTip ? 'Ändern' : 'Tippen'}
                             </button>
                           </div>
                           {hasTip && (
                             <button onClick={() => deleteTip(game.id)}
-                              className="mt-2 w-full text-xs text-red-400 hover:text-red-300 font-body transition">
+                              className="mt-2 w-full text-xs text-neon-red hover:text-red-400 font-body transition">
                               🗑️ Tipp löschen
                             </button>
                           )}
@@ -805,21 +848,19 @@ export default function App() {
 
         {view === 'results' && (
           <div>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
-              <h2 className="text-2xl font-heading font-bold text-tvn-text">Ergebnisse</h2>
-              <div className="flex gap-2">
-                <button onClick={() => setResultTab('all')}
-                  className={`btn-ripple px-4 py-2 rounded-button text-sm font-heading font-semibold transition ${resultTab === 'all' ? 'bg-tvn-gold text-tvn-navy' : 'bg-white text-tvn-text border border-tvn-beige-border hover:bg-tvn-beige'}`}>
-                  Alle
-                </button>
-                <button onClick={() => setResultTab('my')}
-                  className={`btn-ripple px-4 py-2 rounded-button text-sm font-heading font-semibold transition ${resultTab === 'my' ? 'bg-tvn-gold text-tvn-navy' : 'bg-white text-tvn-text border border-tvn-beige-border hover:bg-tvn-beige'}`}>
-                  Meine Tipps
-                </button>
-              </div>
+            <h2 className="text-xl font-heading font-bold text-white mb-4">Ergebnisse</h2>
+            <div className="flex gap-2 mb-4">
+              <button onClick={() => setResultTab('all')}
+                className={`glow-button px-4 py-2 rounded-button text-sm font-heading font-semibold transition ${resultTab === 'all' ? 'bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 shadow-glow' : 'bg-dark-700 text-gray-400 hover:text-white'}`}>
+                Alle
+              </button>
+              <button onClick={() => setResultTab('my')}
+                className={`glow-button px-4 py-2 rounded-button text-sm font-heading font-semibold transition ${resultTab === 'my' ? 'bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 shadow-glow' : 'bg-dark-700 text-gray-400 hover:text-white'}`}>
+                Meine Tipps
+              </button>
             </div>
 
-            <div className="flex gap-2 mb-6">
+            <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
               {[
                 { label: '7 Tage', value: '7' },
                 { label: '30 Tage', value: '30' },
@@ -827,19 +868,19 @@ export default function App() {
                 { label: 'Alle', value: 'all' }
               ].map(f => (
                 <button key={f.value} onClick={() => loadFinishedGames(f.value)}
-                  className={`btn-ripple px-3 py-1.5 rounded-button text-xs font-heading font-semibold transition ${resultFilter === f.value ? 'bg-tvn-navy text-white' : 'bg-white text-tvn-text border border-tvn-beige-border hover:bg-tvn-beige'}`}>
+                  className={`glow-button px-3 py-1.5 rounded-button text-xs font-heading font-semibold transition whitespace-nowrap ${resultFilter === f.value ? 'bg-dark-700 text-white border border-neon-gold' : 'bg-dark-800 text-gray-500 hover:text-white'}`}>
                   {f.label}
                 </button>
               ))}
             </div>
 
             {(resultTab === 'all' ? finishedGames : myFinishedGames).length === 0 && (
-              <div className="text-center py-12 text-tvn-muted bg-white rounded-card shadow-card font-body">
-                {resultTab === 'all' ? 'Keine Ergebnisse in diesem Zeitraum.' : 'Du hast in diesem Zeitraum keine Tipps abgegeben.'}
+              <div className="glass-card rounded-card p-8 text-center text-gray-500 font-body">
+                Keine Ergebnisse in diesem Zeitraum.
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {(resultTab === 'all' ? finishedGames : myFinishedGames).map((game, index) => {
                 const homeDisplay = game.age_group ? `${game.age_group} ${game.home_team}` : game.home_team;
                 const awayDisplay = game.age_group ? `${game.age_group} ${game.away_team}` : game.away_team;
@@ -849,39 +890,39 @@ export default function App() {
 
                 return (
                   <div key={game.id} ref={el => finishedCardsRef.current[index] = el}
-                    className="card-reveal card-hover card-gradient rounded-card shadow-card overflow-hidden flex flex-col">
-                    <div className="p-5 flex flex-col flex-grow">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="text-xs font-mono font-semibold text-tvn-gold uppercase tracking-wide">
+                    className="card-reveal hover-lift glass-card rounded-card overflow-hidden">
+                    <div className="p-5">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="text-xs font-mono font-semibold text-neon-gold uppercase tracking-wide">
                           {game.competition || 'Liga'}
                         </div>
                         {getResultBadge(game)}
                       </div>
-                      <div className="text-xs text-gray-400 mb-4 font-body">
+                      <div className="text-xs text-gray-500 mb-4 font-body">
                         📅 {displayTime.toLocaleString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} Uhr
                       </div>
-                      <div className="flex justify-between items-center mb-2 text-white flex-grow">
+                      <div className="flex justify-between items-center mb-3 text-white">
                         <span className="text-right flex-1 font-heading font-bold">{homeDisplay}</span>
-                        <span className="text-tvn-gold font-mono font-bold text-xl px-3">{game.home_score} : {game.away_score}</span>
+                        <span className="text-neon-gold font-mono font-bold text-xl px-3">{game.home_score} : {game.away_score}</span>
                         <span className="text-left flex-1 font-heading font-bold">{awayDisplay}</span>
                       </div>
 
                       {tip && (
-                        <div className="mt-3 bg-tvn-navy-dark p-3 rounded-input border border-tvn-beige-border">
+                        <div className="mt-3 bg-dark-700 p-3 rounded-button border border-white/5">
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-400 text-xs font-body">Dein Tipp:</span>
+                            <span className="text-gray-500 text-xs font-body">Dein Tipp:</span>
                             <span className="text-white font-mono font-bold">{tip.predicted_home_score} : {tip.predicted_away_score}</span>
                           </div>
                           <div className="flex justify-between items-center mt-1">
-                            <span className="text-gray-400 text-xs font-body">Punkte:</span>
-                            <span className={`font-mono font-bold ${points === 5 ? 'text-green-400' : points === 3 ? 'text-yellow-400' : points === 1 ? 'text-blue-400' : 'text-red-400'}`}>
-                              {points === 5 ? '🎯 5 Punkte' : points === 3 ? '👍 3 Punkte' : points === 1 ? '✓ 1 Punkt' : '❌ 0 Punkte'}
+                            <span className="text-gray-500 text-xs font-body">Punkte:</span>
+                            <span className={`font-mono font-bold ${points === 5 ? 'text-neon-green' : points === 3 ? 'text-neon-gold' : points === 1 ? 'text-neon-purple' : 'text-neon-red'}`}>
+                              {points === 5 ? '🎯 5' : points === 3 ? '👍 3' : points === 1 ? '✓ 1' : '❌ 0'}
                             </span>
                           </div>
                         </div>
                       )}
                       {!tip && resultTab === 'all' && (
-                        <div className="mt-3 text-center text-gray-500 text-xs font-body">Kein Tipp abgegeben</div>
+                        <div className="mt-3 text-center text-gray-600 text-xs font-body">Kein Tipp abgegeben</div>
                       )}
                     </div>
                   </div>
@@ -894,38 +935,38 @@ export default function App() {
         {view === 'groups' && !selectedGroup && (
           <div>
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-heading font-bold text-tvn-text">Meine Gruppen</h2>
+              <h2 className="text-xl font-heading font-bold text-white">Meine Gruppen</h2>
               <div className="flex gap-2">
                 <button onClick={() => setShowJoinGroup(true)}
-                  className="btn-ripple bg-white text-tvn-text border border-tvn-beige-border px-4 py-2 rounded-button font-heading font-semibold hover:bg-tvn-beige transition">
+                  className="glow-button bg-dark-700 text-gray-400 hover:text-white px-4 py-2 rounded-button font-heading font-semibold transition">
                   Beitreten
                 </button>
                 <button onClick={() => setShowCreateGroup(true)}
-                  className="btn-ripple bg-tvn-gold text-tvn-navy px-4 py-2 rounded-button font-heading font-semibold hover:bg-tvn-favorite transition">
+                  className="glow-button bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 px-4 py-2 rounded-button font-heading font-bold hover:shadow-glow transition">
                   + Erstellen
                 </button>
               </div>
             </div>
 
             {groups.length === 0 && (
-              <div className="text-center py-12 text-tvn-muted bg-white rounded-card shadow-card font-body">
-                Du bist noch in keiner Gruppe. Erstelle eine oder tritt einer bei!
+              <div className="glass-card rounded-card p-8 text-center text-gray-500 font-body">
+                Du bist noch in keiner Gruppe.
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {groups.map(group => (
                 <div key={group.id} onClick={() => loadGroupDetails(group.id)}
-                  className="card-hover card-gradient rounded-card shadow-card overflow-hidden cursor-pointer">
+                  className="hover-lift glass-card rounded-card overflow-hidden cursor-pointer">
                   <div className="p-5">
                     <div className="flex justify-between items-start mb-3">
-                      <h3 className="text-xl font-heading font-bold text-white">{group.name}</h3>
-                      <span className={`text-xs px-2 py-1 rounded-button font-mono font-bold ${group.is_public ? 'bg-green-500 text-white' : 'bg-blue-500 text-white'}`}>
+                      <h3 className="text-lg font-heading font-bold text-white">{group.name}</h3>
+                      <span className={`text-xs px-2 py-1 rounded-button font-mono font-bold ${group.is_public ? 'bg-neon-green/20 text-neon-green' : 'bg-neon-purple/20 text-neon-purple'}`}>
                         {group.is_public ? 'ÖFFENTLICH' : 'PRIVAT'}
                       </span>
                     </div>
                     {!group.is_public && (
-                      <div className="text-sm text-gray-400 font-mono">
+                      <div className="text-sm text-gray-500 font-mono">
                         Code: {group.join_code}
                       </div>
                     )}
@@ -939,37 +980,37 @@ export default function App() {
         {view === 'groups' && selectedGroup && (
           <div>
             <button onClick={() => setSelectedGroup(null)}
-              className="mb-4 text-tvn-gold hover:text-tvn-favorite font-heading font-semibold transition">
-              ← Zurück zu Gruppen
+              className="mb-4 text-neon-gold hover:text-neon-pink font-heading font-semibold transition">
+              ← Zurück
             </button>
 
-            <div className="card-gradient rounded-card shadow-card p-6 mb-6">
+            <div className="glass-card rounded-card p-6 mb-6">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h2 className="text-3xl font-heading font-bold text-tvn-gold mb-2">{selectedGroup.name}</h2>
-                  <span className={`text-xs px-2 py-1 rounded-button font-mono font-bold ${selectedGroup.is_public ? 'bg-green-500 text-white' : 'bg-blue-500 text-white'}`}>
+                  <h2 className="text-2xl font-heading font-bold text-white mb-2">{selectedGroup.name}</h2>
+                  <span className={`text-xs px-2 py-1 rounded-button font-mono font-bold ${selectedGroup.is_public ? 'bg-neon-green/20 text-neon-green' : 'bg-neon-purple/20 text-neon-purple'}`}>
                     {selectedGroup.is_public ? 'ÖFFENTLICH' : 'PRIVAT'}
                   </span>
                 </div>
                 {selectedGroup.created_by === user.id && (
                   <button onClick={() => deleteGroup(selectedGroup.id)}
-                    className="btn-ripple bg-red-600 text-white px-4 py-2 rounded-button font-heading font-semibold hover:bg-red-700 transition">
-                    Gruppe löschen
+                    className="glow-button bg-neon-red/20 text-neon-red px-4 py-2 rounded-button font-heading font-semibold hover:bg-neon-red/30 transition">
+                    Löschen
                   </button>
                 )}
               </div>
               {!selectedGroup.is_public && (
-                <div className="bg-tvn-navy-dark p-4 rounded-input border border-tvn-beige-border">
-                  <div className="text-sm text-gray-400 font-body mb-1">Beitrittscode:</div>
-                  <div className="text-2xl font-mono font-bold text-tvn-gold">{selectedGroup.join_code}</div>
+                <div className="bg-dark-700 p-4 rounded-button border border-white/5">
+                  <div className="text-sm text-gray-500 font-body mb-1">Beitrittscode:</div>
+                  <div className="text-2xl font-mono font-bold text-neon-gold">{selectedGroup.join_code}</div>
                 </div>
               )}
             </div>
 
-            <div className="card-gradient rounded-card shadow-card overflow-hidden mb-6">
-              <h3 className="text-xl font-heading font-bold p-4 border-b border-tvn-beige-border text-tvn-gold">Leaderboard</h3>
+            <div className="glass-card rounded-card overflow-hidden">
+              <h3 className="text-lg font-heading font-bold p-4 border-b border-white/10 text-white">Leaderboard</h3>
               <table className="w-full text-left">
-                <thead className="bg-tvn-navy-dark text-gray-400 text-sm font-mono">
+                <thead className="bg-dark-800 text-gray-500 text-sm font-mono">
                   <tr>
                     <th className="p-4">Platz</th>
                     <th className="p-4">Name</th>
@@ -978,20 +1019,17 @@ export default function App() {
                 </thead>
                 <tbody className="text-white font-body">
                   {groupLeaderboard.map((row, index) => (
-                    <tr key={row.username} className={`border-t border-tvn-beige-border ${row.username === username ? 'bg-tvn-navy font-bold' : ''}`}>
-                      <td className="p-4 text-tvn-gold font-mono">{index + 1}.</td>
+                    <tr key={row.username} className={`border-t border-white/5 ${row.username === username ? 'bg-neon-gold/10 font-bold' : ''}`}>
+                      <td className="p-4 text-neon-gold font-mono">{index + 1}.</td>
                       <td className="p-4">
                         {row.username}
                         {row.username === username && (
-                          <span className="ml-2 text-xs bg-tvn-gold text-tvn-navy px-2 py-1 rounded-button font-semibold">Du</span>
+                          <span className="ml-2 text-xs bg-neon-gold text-dark-900 px-2 py-1 rounded-button font-semibold">Du</span>
                         )}
                       </td>
-                      <td className="p-4 text-right font-mono font-bold text-tvn-gold">{row.total_points}</td>
+                      <td className="p-4 text-right font-mono font-bold text-neon-gold">{row.total_points}</td>
                     </tr>
                   ))}
-                  {groupLeaderboard.length === 0 && (
-                    <tr><td colSpan="3" className="p-8 text-center text-gray-400 font-body">Noch keine Mitglieder mit Tipps.</td></tr>
-                  )}
                 </tbody>
               </table>
             </div>
@@ -999,43 +1037,66 @@ export default function App() {
         )}
 
         {view === 'leaderboard' && (
-          <div className="card-gradient rounded-card shadow-card overflow-hidden">
-            <div className="p-6 border-b border-tvn-beige-border flex justify-between items-center">
-              <h2 className="text-2xl font-heading font-bold text-tvn-gold">🏆 All-Time Leaderboard</h2>
+          <div className="glass-card rounded-card overflow-hidden">
+            <div className="p-6 border-b border-white/10 flex justify-between items-center">
+              <h2 className="text-xl font-heading font-bold text-white">🏆 All-Time Leaderboard</h2>
               <button onClick={() => setShowPointsInfo(true)}
-                className="btn-ripple bg-tvn-gold/20 hover:bg-tvn-gold/30 text-tvn-gold px-4 py-2 rounded-button text-sm font-heading font-semibold transition">
-                ℹ️ Punkte-System
+                className="glow-button bg-neon-gold/20 text-neon-gold px-4 py-2 rounded-button text-sm font-heading font-semibold hover:bg-neon-gold/30 transition">
+                ℹ️ Punkte
               </button>
             </div>
             <table className="w-full text-left">
-              <thead className="bg-tvn-navy-dark text-gray-400 text-sm font-mono">
+              <thead className="bg-dark-800 text-gray-500 text-sm font-mono">
                 <tr>
-                  <th className="p-4">Platz</th>
-                  <th className="p-4">Name</th>
-                  <th className="p-4 text-right">Punkte</th>
-                </tr>
-              </thead>
-              <tbody className="text-white font-body">
-                {leaderboard.map((row, index) => (
-                  <tr key={row.username} className={`border-t border-tvn-beige-border ${row.username === username ? 'bg-tvn-navy font-bold' : 'hover:bg-tvn-navy-dark'}`}>
-                    <td className="p-4 text-tvn-gold font-mono">{index + 1}.</td>
-                    <td className="p-4">
-                      {row.username}
-                      {row.username === username && (
-                        <span className="ml-2 text-xs bg-tvn-gold text-tvn-navy px-2 py-1 rounded-button font-semibold">Du</span>
-                      )}
-                    </td>
-                    <td className="p-4 text-right font-mono font-bold text-tvn-gold">{row.total_points}</td>
+                    <th className="p-4">Platz</th>
+                    <th className="p-4">Name</th>
+                    <th className="p-4 text-right">Punkte</th>
                   </tr>
-                ))}
-                {leaderboard.length === 0 && (
-                  <tr><td colSpan="3" className="p-8 text-center text-gray-400 font-body">Noch keine registrierten Nutzer.</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody className="text-white font-body">
+                  {leaderboard.map((row, index) => (
+                    <tr key={row.username} className={`border-t border-white/5 ${row.username === username ? 'bg-neon-gold/10 font-bold' : 'hover:bg-dark-800'}`}>
+                      <td className="p-4 text-neon-gold font-mono">{index + 1}.</td>
+                      <td className="p-4">
+                        {row.username}
+                        {row.username === username && (
+                          <span className="ml-2 text-xs bg-neon-gold text-dark-900 px-2 py-1 rounded-button font-semibold">Du</span>
+                        )}
+                      </td>
+                      <td className="p-4 text-right font-mono font-bold text-neon-gold">{row.total_points}</td>
+                    </tr>
+                  ))}
+                  {leaderboard.length === 0 && (
+                    <tr><td colSpan="3" className="p-8 text-center text-gray-600 font-body">Noch keine registrierten Nutzer.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </main>
+
+      {/* BOTTOM NAVIGATION (Mobile) */}
+      <nav className="bottom-nav lg:hidden">
+        <div className="flex justify-around items-center">
+          {[
+            { id: 'tips', label: 'Spiele', icon: '⚽' },
+            { id: 'results', label: 'Ergebnisse', icon: '📊' },
+            { id: 'groups', label: 'Gruppen', icon: '👥' },
+            { id: 'leaderboard', label: 'Tabelle', icon: '🏆' }
+          ].map(tab => (
+            <button key={tab.id} onClick={() => setView(tab.id)}
+              className={`flex flex-col items-center gap-1 px-4 py-2 transition ${
+                view === tab.id
+                  ? 'text-neon-gold'
+                  : 'text-gray-500 hover:text-gray-300'
+              }`}>
+              <span className="text-xl">{tab.icon}</span>
+              <span className="text-xs font-heading font-semibold">{tab.label}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
     </div>
   );
 }
