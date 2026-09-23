@@ -9,29 +9,29 @@ export default function App() {
   const [view, setView] = useState('login');
   const [games, setGames] = useState([]);
   const [finishedGames, setFinishedGames] = useState([]);
+  const [myFinishedGames, setMyFinishedGames] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
   const [myTips, setMyTips] = useState({});
   const [tips, setTips] = useState({});
   const [msg, setMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const [resultFilter, setResultFilter] = useState('7');
+  const [resultTab, setResultTab] = useState('all');
   const [toast, setToast] = useState(null);
   const [confirmModal, setConfirmModal] = useState(null);
+  const [showPointsInfo, setShowPointsInfo] = useState(false);
   const cardsRef = useRef([]);
   const finishedCardsRef = useRef([]);
 
-  // Toast anzeigen
   function showToast(message, type = 'success') {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   }
 
-  // Confirm Modal
   function showConfirm(message, onConfirm) {
     setConfirmModal({ message, onConfirm });
   }
 
-  // Scroll-Reveal
   const setupObserver = useCallback((refs) => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -59,9 +59,8 @@ export default function App() {
       const obs = setupObserver(finishedCardsRef.current);
       return () => obs.disconnect();
     }
-  }, [finishedGames, view, setupObserver]);
+  }, [finishedGames, myFinishedGames, view, setupObserver]);
 
-  // Auth
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
@@ -80,7 +79,6 @@ export default function App() {
     return () => authListener.subscription.unsubscribe();
   }, []);
 
-  // Daten laden
   async function loadData(userId) {
     setLoading(true);
     try {
@@ -128,7 +126,6 @@ export default function App() {
     setLoading(false);
   }
 
-  // Fertige Spiele laden
   async function loadFinishedGames(days) {
     setResultFilter(days);
     let query = supabase
@@ -145,6 +142,10 @@ export default function App() {
 
     const { data } = await query;
     setFinishedGames(data || []);
+
+    // Meine Tipps filtern
+    const myGames = data.filter(game => myTips[game.id]);
+    setMyFinishedGames(myGames);
   }
 
   async function handleLogin(e) {
@@ -170,7 +171,7 @@ export default function App() {
     setTips({});
   }
 
-  // FIX: Tipp abgeben oder ändern (erst löschen, dann neu einfügen)
+  // FIX: Upsert mit onConflict
   async function submitTip(gameId, homeScore, awayScore) {
     if (!homeScore || !awayScore) {
       showToast('Bitte beide Ergebnisse eingeben.', 'error');
@@ -178,20 +179,12 @@ export default function App() {
     }
 
     try {
-      // Erst alten Tipp löschen (falls vorhanden)
-      await supabase
-        .from('predictions')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('game_id', gameId);
-
-      // Dann neuen Tipp einfügen
-      const { error } = await supabase.from('predictions').insert({
+      const { error } = await supabase.from('predictions').upsert({
         user_id: user.id,
         game_id: gameId,
         predicted_home_score: parseInt(homeScore),
         predicted_away_score: parseInt(awayScore)
-      });
+      }, { onConflict: 'user_id,game_id' });
 
       if (error) {
         showToast('Fehler: ' + error.message, 'error');
@@ -204,7 +197,6 @@ export default function App() {
     }
   }
 
-  // FIX: Tipp löschen
   async function deleteTip(gameId) {
     showConfirm('Tipp wirklich löschen?', async () => {
       try {
@@ -270,14 +262,25 @@ export default function App() {
 
   function getTipPoints(tip, game) {
     if (!tip || game.home_score === null) return null;
-    if (tip.predicted_home_score === game.home_score && tip.predicted_away_score === game.away_score) return 3;
+    
+    // 5 Punkte: Exaktes Ergebnis
+    if (tip.predicted_home_score === game.home_score && tip.predicted_away_score === game.away_score) return 5;
+    
+    // 3 Punkte: Innerhalb von 10 Punkten Differenz
+    const tipDiff = tip.predicted_home_score - tip.predicted_away_score;
+    const gameDiff = game.home_score - game.away_score;
+    if (Math.abs(tipDiff - gameDiff) <= 10) return 3;
+    
+    // 1 Punkt: Richtige Tendenz
     const tipHome = tip.predicted_home_score > tip.predicted_away_score;
     const tipAway = tip.predicted_home_score < tip.predicted_away_score;
     const tipDraw = tip.predicted_home_score === tip.predicted_away_score;
     const gameHome = game.home_score > game.away_score;
     const gameAway = game.home_score < game.away_score;
     const gameDraw = game.home_score === game.away_score;
+    
     if ((tipHome && gameHome) || (tipAway && gameAway) || (tipDraw && gameDraw)) return 1;
+    
     return 0;
   }
 
@@ -312,7 +315,6 @@ export default function App() {
   // --- EINGELOGGT ---
   return (
     <div className="min-h-screen bg-tvn-beige">
-      {/* Toast Notification */}
       {toast && (
         <div className={`toast ${toast.type === 'success' ? 'toast-success' : toast.type === 'error' ? 'toast-error' : 'toast-info'}`}>
           <div className="px-6 py-4 rounded-card shadow-card-hover font-body font-semibold">
@@ -321,7 +323,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Confirm Modal */}
       {confirmModal && (
         <div className="modal-overlay" onClick={() => setConfirmModal(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -341,34 +342,81 @@ export default function App() {
         </div>
       )}
 
-      {/* Header */}
-      <header className="card-gradient text-white p-4 shadow-card sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-heading font-bold text-tvn-gold">🏀 TVN Tipps</h1>
-          <div className="flex gap-2">
-            <button onClick={() => setView('tips')}
-              className={`btn-ripple px-4 py-2 rounded-button text-sm font-heading font-semibold transition ${view === 'tips' ? 'bg-tvn-gold text-tvn-navy' : 'bg-tvn-navy hover:bg-tvn-navy-dark text-white'}`}>
-              Spiele
+      {showPointsInfo && (
+        <div className="modal-overlay" onClick={() => setShowPointsInfo(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-xl font-heading font-bold text-tvn-text mb-4">🏆 Punkte-System</h3>
+            <div className="space-y-3 font-body text-tvn-muted">
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">🎯</span>
+                <div>
+                  <div className="font-bold text-tvn-text">5 Punkte</div>
+                  <div className="text-sm">Exaktes Ergebnis getippt</div>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">👍</span>
+                <div>
+                  <div className="font-bold text-tvn-text">3 Punkte</div>
+                  <div className="text-sm">Ergebnis innerhalb von 10 Punkten Differenz</div>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">✓</span>
+                <div>
+                  <div className="font-bold text-tvn-text">1 Punkt</div>
+                  <div className="text-sm">Richtige Tendenz (Sieg/Niederlage/Unentschieden)</div>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">❌</span>
+                <div>
+                  <div className="font-bold text-tvn-text">0 Punkte</div>
+                  <div className="text-sm">Falsch getippt</div>
+                </div>
+              </div>
+            </div>
+            <button onClick={() => setShowPointsInfo(false)}
+              className="mt-6 w-full btn-ripple bg-tvn-gold text-tvn-navy px-4 py-3 rounded-button font-heading font-semibold hover:bg-tvn-favorite transition">
+              Verstanden
             </button>
-            <button onClick={() => setView('results')}
-              className={`btn-ripple px-4 py-2 rounded-button text-sm font-heading font-semibold transition ${view === 'results' ? 'bg-tvn-gold text-tvn-navy' : 'bg-tvn-navy hover:bg-tvn-navy-dark text-white'}`}>
-              Ergebnisse
-            </button>
-            <button onClick={() => setView('leaderboard')}
-              className={`btn-ripple px-4 py-2 rounded-button text-sm font-heading font-semibold transition ${view === 'leaderboard' ? 'bg-tvn-gold text-tvn-navy' : 'bg-tvn-navy hover:bg-tvn-navy-dark text-white'}`}>
-              Tabelle
-            </button>
-            <button onClick={handleLogout}
-              className="btn-ripple bg-red-600 hover:bg-red-700 px-4 py-2 rounded-button text-sm font-heading font-semibold transition">
-              Logout
-            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modernerer Header */}
+      <header className="bg-gradient-to-r from-tvn-navy via-tvn-navy-dark to-tvn-navy text-white shadow-lg sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-4 py-3">
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-heading font-bold text-tvn-gold flex items-center gap-2">
+              <span className="text-3xl">🏀</span>
+              <span>TVN Tipps</span>
+            </h1>
+            <div className="flex gap-2">
+              <button onClick={() => setView('tips')}
+                className={`btn-ripple px-4 py-2 rounded-button text-sm font-heading font-semibold transition ${view === 'tips' ? 'bg-tvn-gold text-tvn-navy' : 'bg-white/10 hover:bg-white/20 text-white'}`}>
+                Spiele
+              </button>
+              <button onClick={() => setView('results')}
+                className={`btn-ripple px-4 py-2 rounded-button text-sm font-heading font-semibold transition ${view === 'results' ? 'bg-tvn-gold text-tvn-navy' : 'bg-white/10 hover:bg-white/20 text-white'}`}>
+                Ergebnisse
+              </button>
+              <button onClick={() => setView('leaderboard')}
+                className={`btn-ripple px-4 py-2 rounded-button text-sm font-heading font-semibold transition ${view === 'leaderboard' ? 'bg-tvn-gold text-tvn-navy' : 'bg-white/10 hover:bg-white/20 text-white'}`}>
+                Tabelle
+              </button>
+              <button onClick={handleLogout}
+                className="btn-ripple bg-red-600/80 hover:bg-red-600 px-4 py-2 rounded-button text-sm font-heading font-semibold transition">
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto p-4 md:p-6">
 
-        {/* ===== SPIELE (Nächste 7 Tage) ===== */}
+        {/* ===== SPIELE ===== */}
         {view === 'tips' && (
           <div>
             <h2 className="text-2xl font-heading font-bold text-tvn-text mb-2">Kommende Spiele</h2>
@@ -461,28 +509,39 @@ export default function App() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
               <h2 className="text-2xl font-heading font-bold text-tvn-text">Ergebnisse</h2>
               <div className="flex gap-2">
-                {[
-                  { label: '7 Tage', value: '7' },
-                  { label: '30 Tage', value: '30' },
-                  { label: '90 Tage', value: '90' },
-                  { label: 'Alle', value: 'all' }
-                ].map(f => (
-                  <button key={f.value} onClick={() => loadFinishedGames(f.value)}
-                    className={`btn-ripple px-3 py-1.5 rounded-button text-xs font-heading font-semibold transition ${resultFilter === f.value ? 'bg-tvn-gold text-tvn-navy' : 'bg-white text-tvn-text border border-tvn-beige-border hover:bg-tvn-beige'}`}>
-                    {f.label}
-                  </button>
-                ))}
+                <button onClick={() => setResultTab('all')}
+                  className={`btn-ripple px-3 py-1.5 rounded-button text-xs font-heading font-semibold transition ${resultTab === 'all' ? 'bg-tvn-gold text-tvn-navy' : 'bg-white text-tvn-text border border-tvn-beige-border hover:bg-tvn-beige'}`}>
+                  Alle
+                </button>
+                <button onClick={() => setResultTab('my')}
+                  className={`btn-ripple px-3 py-1.5 rounded-button text-xs font-heading font-semibold transition ${resultTab === 'my' ? 'bg-tvn-gold text-tvn-navy' : 'bg-white text-tvn-text border border-tvn-beige-border hover:bg-tvn-beige'}`}>
+                  Meine Tipps
+                </button>
               </div>
             </div>
 
-            {finishedGames.length === 0 && (
+            <div className="flex gap-2 mb-6">
+              {[
+                { label: '7 Tage', value: '7' },
+                { label: '30 Tage', value: '30' },
+                { label: '90 Tage', value: '90' },
+                { label: 'Alle', value: 'all' }
+              ].map(f => (
+                <button key={f.value} onClick={() => loadFinishedGames(f.value)}
+                  className={`btn-ripple px-3 py-1.5 rounded-button text-xs font-heading font-semibold transition ${resultFilter === f.value ? 'bg-tvn-navy text-white' : 'bg-white text-tvn-text border border-tvn-beige-border hover:bg-tvn-beige'}`}>
+                  {f.label}
+                </button>
+              ))}
+            </div>
+
+            {(resultTab === 'all' ? finishedGames : myFinishedGames).length === 0 && (
               <div className="text-center py-12 text-tvn-muted bg-white rounded-card shadow-card font-body">
-                Keine Ergebnisse in diesem Zeitraum.
+                {resultTab === 'all' ? 'Keine Ergebnisse in diesem Zeitraum.' : 'Du hast in diesem Zeitraum keine Tipps abgegeben.'}
               </div>
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {finishedGames.map((game, index) => {
+              {(resultTab === 'all' ? finishedGames : myFinishedGames).map((game, index) => {
                 const homeDisplay = game.age_group ? `${game.age_group} ${game.home_team}` : game.home_team;
                 const awayDisplay = game.age_group ? `${game.age_group} ${game.away_team}` : game.away_team;
                 const tip = myTips[game.id];
@@ -515,13 +574,13 @@ export default function App() {
                           </div>
                           <div className="flex justify-between items-center mt-1">
                             <span className="text-gray-400 text-xs font-body">Punkte:</span>
-                            <span className={`font-mono font-bold ${points === 3 ? 'text-green-400' : points === 1 ? 'text-yellow-400' : 'text-red-400'}`}>
-                              {points === 3 ? '🎯 3 Punkte' : points === 1 ? '👍 1 Punkt' : '❌ 0 Punkte'}
+                            <span className={`font-mono font-bold ${points === 5 ? 'text-green-400' : points === 3 ? 'text-yellow-400' : points === 1 ? 'text-blue-400' : 'text-red-400'}`}>
+                              {points === 5 ? '🎯 5 Punkte' : points === 3 ? '👍 3 Punkte' : points === 1 ? '✓ 1 Punkt' : '❌ 0 Punkte'}
                             </span>
                           </div>
                         </div>
                       )}
-                      {!tip && (
+                      {!tip && resultTab === 'all' && (
                         <div className="mt-3 text-center text-gray-500 text-xs font-body">Kein Tipp abgegeben</div>
                       )}
                     </div>
@@ -535,7 +594,13 @@ export default function App() {
         {/* ===== LEADERBOARD ===== */}
         {view === 'leaderboard' && (
           <div className="card-gradient rounded-card shadow-card overflow-hidden">
-            <h2 className="text-2xl font-heading font-bold p-6 border-b border-tvn-beige-border text-tvn-gold">🏆 Punktetabelle</h2>
+            <div className="p-6 border-b border-tvn-beige-border flex justify-between items-center">
+              <h2 className="text-2xl font-heading font-bold text-tvn-gold">🏆 Punktetabelle</h2>
+              <button onClick={() => setShowPointsInfo(true)}
+                className="btn-ripple bg-tvn-gold/20 hover:bg-tvn-gold/30 text-tvn-gold px-4 py-2 rounded-button text-sm font-heading font-semibold transition">
+                ℹ️ Punkte-System
+              </button>
+            </div>
             <table className="w-full text-left">
               <thead className="bg-tvn-navy-dark text-gray-400 text-sm font-mono">
                 <tr>
