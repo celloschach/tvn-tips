@@ -18,7 +18,6 @@ export default function App() {
   const [resultFilter, setResultFilter] = useState('7');
   const [resultTab, setResultTab] = useState('all');
   const [toast, setToast] = useState(null);
-  const [confirmModal, setConfirmModal] = useState(null);
   const [showPointsInfo, setShowPointsInfo] = useState(false);
   const [groups, setGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
@@ -35,10 +34,6 @@ export default function App() {
   function showToast(message, type = 'success') {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
-  }
-
-  function showConfirm(message, onConfirm) {
-    setConfirmModal({ message, onConfirm });
   }
 
   const setupObserver = useCallback((refs) => {
@@ -155,23 +150,19 @@ export default function App() {
     setMyFinishedGames(myGames);
   }
 
-  // FIX: Gruppen laden - vereinfachte Query
   async function loadGroups(userId) {
     try {
       const uid = userId || user?.id;
       if (!uid) return;
 
-      // Alle Gruppen laden, bei denen der User Mitglied ist ODER die öffentlich sind
       const { data: memberGroups } = await supabase
         .from('group_members')
         .select('group_id')
         .eq('user_id', uid);
 
       const memberGroupIds = memberGroups?.map(m => m.group_id) || [];
-
       let allGroups = [];
 
-      // Öffentliche Gruppen
       const { data: publicGroups } = await supabase
         .from('groups')
         .select('*')
@@ -179,7 +170,6 @@ export default function App() {
 
       if (publicGroups) allGroups = [...publicGroups];
 
-      // Private Gruppen, bei denen der User Mitglied ist
       if (memberGroupIds.length > 0) {
         const { data: privateGroups } = await supabase
           .from('groups')
@@ -190,7 +180,6 @@ export default function App() {
         if (privateGroups) allGroups = [...allGroups, ...privateGroups];
       }
 
-      // Duplikate entfernen
       const uniqueGroups = allGroups.filter((group, index, self) =>
         index === self.findIndex((g) => g.id === group.id)
       );
@@ -240,8 +229,6 @@ export default function App() {
       setShowCreateGroup(false);
       setNewGroupName('');
       setNewGroupIsPublic(false);
-      
-      // FIX: Gruppen sofort neu laden
       await loadGroups(user.id);
     } catch (err) {
       showToast('Fehler: ' + err.message, 'error');
@@ -286,66 +273,32 @@ export default function App() {
 
       setShowJoinGroup(false);
       setJoinCode('');
-      
-      // FIX: Gruppen sofort neu laden
       await loadGroups(user.id);
     } catch (err) {
       showToast('Fehler: ' + err.message, 'error');
     }
   }
 
+  // FIX: Einfache window.confirm statt custom Modal
   async function deleteGroup(groupId) {
-    showConfirm('Gruppe wirklich löschen? Dies kann nicht rückgängig gemacht werden.', async () => {
-      try {
-        const { error } = await supabase
-          .from('groups')
-          .delete()
-          .eq('id', groupId);
+    if (!window.confirm('Gruppe wirklich löschen? Dies kann nicht rückgängig gemacht werden.')) {
+      return;
+    }
 
-        if (error) throw error;
-
-        showToast('Gruppe gelöscht!', 'success');
-        setSelectedGroup(null);
-        await loadGroups(user.id);
-      } catch (err) {
-        showToast('Fehler: ' + err.message, 'error');
-      }
-      setConfirmModal(null);
-    });
-  }
-
-  async function removeMember(groupId, userId) {
-    showConfirm('Mitglied wirklich entfernen?', async () => {
-      try {
-        const { error } = await supabase
-          .from('group_members')
-          .delete()
-          .eq('group_id', groupId)
-          .eq('user_id', userId);
-
-        if (error) throw error;
-
-        showToast('Mitglied entfernt!', 'success');
-        loadGroupDetails(groupId);
-      } catch (err) {
-        showToast('Fehler: ' + err.message, 'error');
-      }
-      setConfirmModal(null);
-    });
-  }
-
-  async function toggleAdmin(groupId, userId, currentIsAdmin) {
     try {
       const { error } = await supabase
-        .from('group_members')
-        .update({ is_admin: !currentIsAdmin })
-        .eq('group_id', groupId)
-        .eq('user_id', userId);
+        .from('groups')
+        .delete()
+        .eq('id', groupId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Delete Error:', error);
+        throw error;
+      }
 
-      showToast(currentIsAdmin ? 'Admin-Rechte entzogen!' : 'Admin-Rechte vergeben!', 'success');
-      loadGroupDetails(groupId);
+      showToast('Gruppe gelöscht!', 'success');
+      setSelectedGroup(null);
+      await loadGroups(user.id);
     } catch (err) {
       showToast('Fehler: ' + err.message, 'error');
     }
@@ -359,11 +312,6 @@ export default function App() {
       .single();
 
     setSelectedGroup(group);
-
-    const { data: members } = await supabase
-      .from('group_members')
-      .select(`*, profiles(username)`)
-      .eq('group_id', groupId);
 
     const { data: lb } = await supabase
       .from('group_leaderboard')
@@ -435,42 +383,35 @@ export default function App() {
       }
 
       showToast('Tipp gespeichert! 🏀', 'success');
-      loadData(user.id);
+      await loadData(user.id);
     } catch (err) {
       showToast('Fehler: ' + err.message, 'error');
     }
   }
 
+  // FIX: Einfache window.confirm + kompletter Reload
   async function deleteTip(gameId) {
-    showConfirm('Tipp wirklich löschen?', async () => {
-      try {
-        const { error } = await supabase
-          .from('predictions')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('game_id', gameId);
+    if (!window.confirm('Tipp wirklich löschen?')) {
+      return;
+    }
 
-        if (error) throw error;
+    try {
+      const { error } = await supabase
+        .from('predictions')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('game_id', gameId);
 
-        setTips(prev => {
-          const newTips = { ...prev };
-          delete newTips[gameId + 'h'];
-          delete newTips[gameId + 'a'];
-          return newTips;
-        });
-
-        setMyTips(prev => {
-          const newMyTips = { ...prev };
-          delete newMyTips[gameId];
-          return newMyTips;
-        });
-
-        showToast('Tipp gelöscht!', 'success');
-      } catch (err) {
-        showToast('Fehler: ' + err.message, 'error');
+      if (error) {
+        console.error('Delete Error:', error);
+        throw error;
       }
-      setConfirmModal(null);
-    });
+
+      showToast('Tipp gelöscht!', 'success');
+      await loadData(user.id);
+    } catch (err) {
+      showToast('Fehler: ' + err.message, 'error');
+    }
   }
 
   function isGameStarted(startTime) {
@@ -555,25 +496,6 @@ export default function App() {
         <div className={`toast ${toast.type === 'success' ? 'toast-success' : toast.type === 'error' ? 'toast-error' : 'toast-info'}`}>
           <div className="px-6 py-4 rounded-card shadow-card-hover font-body font-semibold">
             {toast.message}
-          </div>
-        </div>
-      )}
-
-      {confirmModal && (
-        <div className="modal-overlay" onClick={() => setConfirmModal(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-xl font-heading font-bold text-tvn-text mb-4">Bestätigung</h3>
-            <p className="text-tvn-muted font-body mb-6">{confirmModal.message}</p>
-            <div className="flex gap-3">
-              <button onClick={() => setConfirmModal(null)}
-                className="flex-1 btn-ripple bg-gray-200 text-tvn-text px-4 py-3 rounded-button font-heading font-semibold hover:bg-gray-300 transition">
-                Abbrechen
-              </button>
-              <button onClick={confirmModal.onConfirm}
-                className="flex-1 btn-ripple bg-red-600 text-white px-4 py-3 rounded-button font-heading font-semibold hover:bg-red-700 transition">
-                Löschen
-              </button>
-            </div>
           </div>
         </div>
       )}
