@@ -13,6 +13,7 @@ body {
   background-color: #0a0a0a;
   color: #ffffff;
   overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Scrollbar Styling */
@@ -38,19 +39,7 @@ body {
   background: rgba(20, 20, 20, 0.7);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Gradient Border */
-.gradient-border {
-  position: relative;
-  background: linear-gradient(135deg, #8B5CF6, #EC4899);
-  padding: 2px;
-  border-radius: 16px;
-}
-
-.gradient-border > * {
-  background: #141414;
-  border-radius: 14px;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 /* Hover Lift Effect */
@@ -166,6 +155,7 @@ body {
   width: 90%;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   animation: scaleIn 0.2s ease-out;
+  transition: background 0.3s ease;
 }
 
 @keyframes scaleIn {
@@ -210,6 +200,7 @@ body {
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     z-index: 100;
     padding: 12px 0;
+    transition: background 0.3s ease;
   }
 }
 
@@ -225,21 +216,146 @@ body {
     backdrop-filter: blur(10px);
     border-right: 1px solid rgba(255, 255, 255, 0.1);
     z-index: 100;
+    transition: background 0.3s ease;
   }
 }
 
-/* Podest Styles */
-.podest-1 {
-  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-  box-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
+/* Kalender Grid */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
 }
 
-.podest-2 {
-  background: linear-gradient(135deg, #C0C0C0 0%, #A8A8A8 100%);
-  box-shadow: 0 0 20px rgba(192, 192, 192, 0.3);
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.podest-3 {
-  background: linear-gradient(135deg, #CD7F32 0%, #B8860B 100%);
-  box-shadow: 0 0 20px rgba(205, 127, 50, 0.3);
+.calendar-day:hover {
+  background: rgba(255, 184, 0, 0.1);
+}
+
+.calendar-day.has-games {
+  background: rgba(255, 184, 0, 0.2);
+  border: 1px solid rgba(255, 184, 0, 0.4);
+}
+
+.calendar-day.today {
+  border: 2px solid #FFB800;
+}
+
+/* Confetti Animation */
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-100vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+.confetti {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  z-index: 99999;
+  pointer-events: none;
+}
+
+/* ============================================
+   LIGHT MODE STYLES
+   ============================================ */
+html:not(.dark) body {
+  background-color: #F6F4EF;
+  color: #171512;
+}
+
+html:not(.dark) .glass-card {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+html:not(.dark) .sidebar,
+html:not(.dark) .bottom-nav {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+html:not(.dark) .text-white {
+  color: #171512;
+}
+
+html:not(.dark) .text-gray-400 {
+  color: #71695C;
+}
+
+html:not(.dark) .text-gray-500 {
+  color: #9CA3AF;
+}
+
+html:not(.dark) .text-gray-600 {
+  color: #4B5563;
+}
+
+html:not(.dark) .bg-dark-900 {
+  background-color: #F6F4EF;
+}
+
+html:not(.dark) .bg-dark-800 {
+  background-color: #FFFFFF;
+}
+
+html:not(.dark) .bg-dark-700 {
+  background-color: #F3F4F6;
+}
+
+html:not(.dark) .bg-dark-600 {
+  background-color: #E5E7EB;
+}
+
+html:not(.dark) .border-white\/10 {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+html:not(.dark) .border-white\/5 {
+  border-color: rgba(0, 0, 0, 0.05);
+}
+
+html:not(.dark) .hover\:bg-dark-800:hover {
+  background-color: #F3F4F6;
+}
+
+html:not(.dark) .hover\:bg-dark-700:hover {
+  background-color: #E5E7EB;
+}
+
+html:not(.dark) .hover\:bg-dark-600:hover {
+  background-color: #D1D5DB;
+}
+
+html:not(.dark) .modal-content {
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+html:not(.dark) ::-webkit-scrollbar-track {
+  background: #F3F4F6;
+}
+
+html:not(.dark) .calendar-day:hover {
+  background: rgba(232, 163, 61, 0.1);
+}
+
+html:not(.dark) .calendar-day.has-games {
+  background: rgba(232, 163, 61, 0.2);
+  border: 1px solid rgba(232, 163, 61, 0.4);
 }
