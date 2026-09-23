@@ -1,15 +1,16 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 
-// Helper: Zeige Spielzeit 2 Stunden früher an
 function getDisplayTime(startTime) {
   return new Date(new Date(startTime).getTime() - 2 * 60 * 60 * 1000);
 }
 
 export default function App() {
   const [user, setUser] = useState(null);
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [regUsername, setRegUsername] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const [view, setView] = useState('login');
   const [games, setGames] = useState([]);
@@ -96,10 +97,21 @@ export default function App() {
     }
   }, [finishedGames, myFinishedGames, resultTab, view, setupObserver]);
 
+  // Username aus profiles Tabelle laden
+  async function loadUsername(userId) {
+    const { data } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('id', userId)
+      .single();
+    if (data) setUsername(data.username);
+  }
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setUser(session.user);
+        loadUsername(session.user.id);
         setView('tips');
         loadData(session.user.id);
         loadGroups(session.user.id);
@@ -108,6 +120,7 @@ export default function App() {
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
+        loadUsername(session.user.id);
         setView('tips');
         loadData(session.user.id);
         loadGroups(session.user.id);
@@ -347,13 +360,28 @@ export default function App() {
     setGroupLeaderboard(lb || []);
   }
 
+  // Login mit Username-Anzeige
   async function handleLogin(e) {
     e.preventDefault();
     setMsg('');
     if (isRegistering) {
-      const { error } = await supabase.auth.signUp({ email, password });
+      if (!regUsername.trim()) {
+        setMsg('Bitte Benutzernamen eingeben.');
+        return;
+      }
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { username: regUsername.trim() }
+        }
+      });
       if (error) setMsg('Fehler: ' + error.message);
-      else showToast('Registrierung erfolgreich!', 'success');
+      else {
+        showToast('Registrierung erfolgreich! Du kannst dich jetzt einloggen.', 'success');
+        setRegUsername('');
+        setIsRegistering(false);
+      }
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) setMsg('Fehler: ' + error.message);
@@ -363,9 +391,11 @@ export default function App() {
   async function handleLogout() {
     await supabase.auth.signOut();
     setUser(null);
+    setUsername('');
     setView('login');
     setEmail('');
     setPassword('');
+    setRegUsername('');
     setMyTips({});
     setTips({});
     setGroups([]);
@@ -435,7 +465,6 @@ export default function App() {
     }
   }
 
-  // FIX: Tipp-Sperre 2 Stunden vor Spielbeginn
   function isGameStarted(startTime) {
     const tipDeadline = new Date(new Date(startTime).getTime() - 2 * 60 * 60 * 1000);
     return tipDeadline <= new Date();
@@ -485,6 +514,7 @@ export default function App() {
     return 0;
   }
 
+  // --- LOGIN VIEW ---
   if (!user) {
     return (
       <div className="min-h-screen bg-tvn-beige flex items-center justify-center p-4">
@@ -494,6 +524,10 @@ export default function App() {
             {isRegistering ? 'Erstelle einen neuen Account' : 'Melde dich mit deinem Account an'}
           </p>
           <form onSubmit={handleLogin} className="space-y-4">
+            {isRegistering && (
+              <input type="text" placeholder="Benutzername" value={regUsername} onChange={(e) => setRegUsername(e.target.value)}
+                className="w-full p-3 bg-tvn-navy border border-tvn-beige-border rounded-input text-white placeholder-gray-400 focus:ring-2 focus:ring-tvn-gold outline-none font-body" required />
+            )}
             <input type="email" placeholder="E-Mail-Adresse" value={email} onChange={(e) => setEmail(e.target.value)}
               className="w-full p-3 bg-tvn-navy border border-tvn-beige-border rounded-input text-white placeholder-gray-400 focus:ring-2 focus:ring-tvn-gold outline-none font-body" required />
             <input type="password" placeholder="Passwort (mind. 6 Zeichen)" value={password} onChange={(e) => setPassword(e.target.value)}
@@ -512,6 +546,7 @@ export default function App() {
     );
   }
 
+  // --- MAIN VIEW ---
   return (
     <div className="min-h-screen bg-tvn-beige">
       {toast && (
@@ -636,13 +671,17 @@ export default function App() {
         </div>
       )}
 
+      {/* Header mit klickbarem Logo + Username */}
       <header className="bg-gradient-to-r from-tvn-navy via-tvn-navy-dark to-tvn-navy text-white shadow-lg sticky top-0 z-50 backdrop-blur-sm bg-opacity-95">
         <div className="max-w-6xl mx-auto px-4 py-3">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-heading font-bold text-tvn-gold flex items-center gap-2">
+            {/* Klickbares Logo */}
+            <button onClick={() => setView('tips')}
+              className="text-2xl font-heading font-bold text-tvn-gold flex items-center gap-2 hover:opacity-80 transition cursor-pointer">
               <span className="text-3xl">🏀</span>
               <span>TVN Tipps</span>
-            </h1>
+            </button>
+
             <nav className="flex gap-1 bg-white/5 rounded-lg p-1">
               {[
                 { id: 'tips', label: 'Spiele' },
@@ -660,10 +699,18 @@ export default function App() {
                 </button>
               ))}
             </nav>
-            <button onClick={handleLogout}
-              className="btn-ripple bg-red-600/80 hover:bg-red-600 px-4 py-2 rounded-button text-sm font-heading font-semibold transition">
-              Logout
-            </button>
+
+            <div className="flex items-center gap-3">
+              {/* Username anzeigen */}
+              <div className="hidden sm:flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-button">
+                <span className="text-tvn-gold text-lg">👤</span>
+                <span className="text-sm font-heading font-semibold text-white">{username || 'User'}</span>
+              </div>
+              <button onClick={handleLogout}
+                className="btn-ripple bg-red-600/80 hover:bg-red-600 px-4 py-2 rounded-button text-sm font-heading font-semibold transition">
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -931,9 +978,14 @@ export default function App() {
                 </thead>
                 <tbody className="text-white font-body">
                   {groupLeaderboard.map((row, index) => (
-                    <tr key={row.username} className={`border-t border-tvn-beige-border ${row.username === user.email.split('@')[0] ? 'bg-tvn-navy font-bold' : ''}`}>
+                    <tr key={row.username} className={`border-t border-tvn-beige-border ${row.username === username ? 'bg-tvn-navy font-bold' : ''}`}>
                       <td className="p-4 text-tvn-gold font-mono">{index + 1}.</td>
-                      <td className="p-4">{row.username}</td>
+                      <td className="p-4">
+                        {row.username}
+                        {row.username === username && (
+                          <span className="ml-2 text-xs bg-tvn-gold text-tvn-navy px-2 py-1 rounded-button font-semibold">Du</span>
+                        )}
+                      </td>
                       <td className="p-4 text-right font-mono font-bold text-tvn-gold">{row.total_points}</td>
                     </tr>
                   ))}
@@ -965,11 +1017,11 @@ export default function App() {
               </thead>
               <tbody className="text-white font-body">
                 {leaderboard.map((row, index) => (
-                  <tr key={row.username} className={`border-t border-tvn-beige-border ${row.username === user.email.split('@')[0] ? 'bg-tvn-navy font-bold' : 'hover:bg-tvn-navy-dark'}`}>
+                  <tr key={row.username} className={`border-t border-tvn-beige-border ${row.username === username ? 'bg-tvn-navy font-bold' : 'hover:bg-tvn-navy-dark'}`}>
                     <td className="p-4 text-tvn-gold font-mono">{index + 1}.</td>
                     <td className="p-4">
                       {row.username}
-                      {row.username === user.email.split('@')[0] && (
+                      {row.username === username && (
                         <span className="ml-2 text-xs bg-tvn-gold text-tvn-navy px-2 py-1 rounded-button font-semibold">Du</span>
                       )}
                     </td>
