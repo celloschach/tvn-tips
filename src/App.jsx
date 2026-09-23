@@ -20,6 +20,17 @@ export default function App() {
   const [toast, setToast] = useState(null);
   const [confirmModal, setConfirmModal] = useState(null);
   const [showPointsInfo, setShowPointsInfo] = useState(false);
+  
+  // Gruppen-State
+  const [groups, setGroups] = useState([]);
+  const [selectedGroup, setSelectedGroup] = useState(null);
+  const [groupLeaderboard, setGroupLeaderboard] = useState([]);
+  const [showCreateGroup, setShowCreateGroup] = useState(false);
+  const [showJoinGroup, setShowJoinGroup] = useState(false);
+  const [newGroupName, setNewGroupName] = useState('');
+  const [newGroupIsPublic, setNewGroupIsPublic] = useState(false);
+  const [joinCode, setJoinCode] = useState('');
+  
   const cardsRef = useRef([]);
   const finishedCardsRef = useRef([]);
 
@@ -47,6 +58,7 @@ export default function App() {
     return observer;
   }, []);
 
+  // FIX: Observer bei jedem Daten-Change neu aufsetzen
   useEffect(() => {
     if (view === 'tips') {
       const obs = setupObserver(cardsRef.current);
@@ -59,7 +71,7 @@ export default function App() {
       const obs = setupObserver(finishedCardsRef.current);
       return () => obs.disconnect();
     }
-  }, [finishedGames, myFinishedGames, view, setupObserver]);
+  }, [finishedGames, myFinishedGames, resultTab, view, setupObserver]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -67,6 +79,7 @@ export default function App() {
         setUser(session.user);
         setView('tips');
         loadData(session.user.id);
+        loadGroups();
       }
     });
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -74,6 +87,7 @@ export default function App() {
       if (session?.user) {
         setView('tips');
         loadData(session.user.id);
+        loadGroups();
       }
     });
     return () => authListener.subscription.unsubscribe();
@@ -85,7 +99,7 @@ export default function App() {
       const now = new Date();
       const in7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-      const { data: gamesData, error: gamesError } = await supabase
+      const { data: gamesData } = await supabase
         .from('games')
         .select('*')
         .eq('is_cancelled', false)
@@ -93,9 +107,7 @@ export default function App() {
         .lte('start_time', in7Days.toISOString())
         .order('start_time', { ascending: true });
 
-      if (gamesError) console.error('Fehler beim Laden der Spiele:', gamesError);
       setGames(gamesData || []);
-
       await loadFinishedGames('7');
 
       const { data: lbData } = await supabase.from('leaderboard').select('*');
@@ -121,7 +133,7 @@ export default function App() {
         }
       }
     } catch (err) {
-      console.error('Allgemeiner Fehler:', err);
+      console.error('Fehler:', err);
     }
     setLoading(false);
   }
@@ -142,10 +154,199 @@ export default function App() {
 
     const { data } = await query;
     setFinishedGames(data || []);
-
-    // Meine Tipps filtern
     const myGames = data.filter(game => myTips[game.id]);
     setMyFinishedGames(myGames);
+  }
+
+  // Gruppen laden
+  async function loadGroups() {
+    const { data } = await supabase
+      .from('groups')
+      .select(`
+        *,
+        group_members!inner(user_id, is_admin)
+      `)
+      .or(`is_public.eq.true,created_by.eq.${user?.id}`);
+    
+    setGroups(data || []);
+  }
+
+  // Gruppe erstellen
+  async function createGroup() {
+    if (!newGroupName.trim()) {
+      showToast('Bitte Gruppennamen eingeben.', 'error');
+      return;
+    }
+
+    // Namen-Validierung
+    const forbidden = ['admin', 'moderator', 'offiziell', 'tvn', 'verein'];
+    if (forbidden.some(f => newGroupName.toLowerCase().includes(f))) {
+      showToast('Dieser Name ist nicht erlaubt.', 'error');
+      return;
+    }
+
+    try {
+      const { data: codeData } = await supabase.rpc('generate_join_code');
+      const code = codeData || Math.random().toString(36).substring(2, 8).toUpperCase();
+
+      const { data: group, error } = await supabase
+        .from('groups')
+        .insert({
+          name: newGroupName,
+          is_public: newGroupIsPublic,
+          join_code: newGroupIsPublic ? null : code,
+          created_by: user.id
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Creator als Admin hinzufügen
+      await supabase.from('group_members').insert({
+        group_id: group.id,
+        user_id: user.id,
+        is_admin: true
+      });
+
+      showToast('Gruppe erstellt!', 'success');
+      setShowCreateGroup(false);
+      setNewGroupName('');
+      loadGroups();
+    } catch (err) {
+      showToast('Fehler: ' + err.message, 'error');
+    }
+  }
+
+  // Gruppe beitreten
+  async function joinGroup() {
+    if (!joinCode.trim()) {
+      showToast('Bitte Beitrittscode eingeben.', 'error');
+      return;
+    }
+
+    try {
+      const { data: group, error: groupError } = await supabase
+        .from('groups')
+        .select('*')
+        .eq('join_code', joinCode.toUpperCase())
+        .single();
+
+      if (groupError || !group) {
+        showToast('Ungültiger Beitrittscode.', 'error');
+        return;
+      }
+
+      const { error: memberError } = await supabase
+        .from('group_members')
+        .insert({
+          group_id: group.id,
+          user_id: user.id,
+          is_admin: false
+        });
+
+      if (memberError) {
+        if (memberError.code === '23505') {
+          showToast('Du bist bereits Mitglied.', 'info');
+        } else {
+          throw memberError;
+        }
+      } else {
+        showToast('Beigetreten!', 'success');
+      }
+
+      setShowJoinGroup(false);
+      setJoinCode('');
+      loadGroups();
+    } catch (err) {
+      showToast('Fehler: ' + err.message, 'error');
+    }
+  }
+
+  // Gruppe löschen
+  async function deleteGroup(groupId) {
+    showConfirm('Gruppe wirklich löschen?', async () => {
+      try {
+        const { error } = await supabase
+          .from('groups')
+          .delete()
+          .eq('id', groupId);
+
+        if (error) throw error;
+
+        showToast('Gruppe gelöscht!', 'success');
+        setSelectedGroup(null);
+        loadGroups();
+      } catch (err) {
+        showToast('Fehler: ' + err.message, 'error');
+      }
+      setConfirmModal(null);
+    });
+  }
+
+  // Mitglied entfernen
+  async function removeMember(groupId, userId) {
+    showConfirm('Mitglied wirklich entfernen?', async () => {
+      try {
+        const { error } = await supabase
+          .from('group_members')
+          .delete()
+          .eq('group_id', groupId)
+          .eq('user_id', userId);
+
+        if (error) throw error;
+
+        showToast('Mitglied entfernt!', 'success');
+        loadGroupDetails(groupId);
+      } catch (err) {
+        showToast('Fehler: ' + err.message, 'error');
+      }
+      setConfirmModal(null);
+    });
+  }
+
+  // Admin-Rechte vergeben
+  async function toggleAdmin(groupId, userId, currentIsAdmin) {
+    try {
+      const { error } = await supabase
+        .from('group_members')
+        .update({ is_admin: !currentIsAdmin })
+        .eq('group_id', groupId)
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      showToast(currentIsAdmin ? 'Admin-Rechte entzogen!' : 'Admin-Rechte vergeben!', 'success');
+      loadGroupDetails(groupId);
+    } catch (err) {
+      showToast('Fehler: ' + err.message, 'error');
+    }
+  }
+
+  // Gruppendetails laden
+  async function loadGroupDetails(groupId) {
+    const { data: group } = await supabase
+      .from('groups')
+      .select('*')
+      .eq('id', groupId)
+      .single();
+
+    setSelectedGroup(group);
+
+    const { data: members } = await supabase
+      .from('group_members')
+      .select(`
+        *,
+        profiles(username)
+      `)
+      .eq('group_id', groupId);
+
+    const { data: lb } = await supabase
+      .from('group_leaderboard')
+      .select('*')
+      .eq('group_id', groupId);
+
+    setGroupLeaderboard(lb || []);
   }
 
   async function handleLogin(e) {
@@ -154,7 +355,7 @@ export default function App() {
     if (isRegistering) {
       const { error } = await supabase.auth.signUp({ email, password });
       if (error) setMsg('Fehler: ' + error.message);
-      else showToast('Registrierung erfolgreich! Du kannst dich jetzt einloggen.', 'success');
+      else showToast('Registrierung erfolgreich!', 'success');
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) setMsg('Fehler: ' + error.message);
@@ -171,7 +372,7 @@ export default function App() {
     setTips({});
   }
 
-  // FIX: Upsert mit onConflict
+  // FIX: Tipp speichern mit echtem Upsert
   async function submitTip(gameId, homeScore, awayScore) {
     if (!homeScore || !awayScore) {
       showToast('Bitte beide Ergebnisse eingeben.', 'error');
@@ -179,24 +380,47 @@ export default function App() {
     }
 
     try {
-      const { error } = await supabase.from('predictions').upsert({
-        user_id: user.id,
-        game_id: gameId,
-        predicted_home_score: parseInt(homeScore),
-        predicted_away_score: parseInt(awayScore)
-      }, { onConflict: 'user_id,game_id' });
+      // Erst prüfen ob Tipp existiert
+      const { data: existing } = await supabase
+        .from('predictions')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('game_id', gameId)
+        .single();
 
-      if (error) {
-        showToast('Fehler: ' + error.message, 'error');
+      if (existing) {
+        // Update
+        const { error } = await supabase
+          .from('predictions')
+          .update({
+            predicted_home_score: parseInt(homeScore),
+            predicted_away_score: parseInt(awayScore)
+          })
+          .eq('id', existing.id);
+
+        if (error) throw error;
       } else {
-        showToast('Tipp gespeichert! 🏀', 'success');
-        loadData(user.id);
+        // Insert
+        const { error } = await supabase
+          .from('predictions')
+          .insert({
+            user_id: user.id,
+            game_id: gameId,
+            predicted_home_score: parseInt(homeScore),
+            predicted_away_score: parseInt(awayScore)
+          });
+
+        if (error) throw error;
       }
+
+      showToast('Tipp gespeichert! 🏀', 'success');
+      loadData(user.id);
     } catch (err) {
-      showToast('Fehler beim Speichern.', 'error');
+      showToast('Fehler: ' + err.message, 'error');
     }
   }
 
+  // FIX: Tipp wirklich löschen
   async function deleteTip(gameId) {
     showConfirm('Tipp wirklich löschen?', async () => {
       try {
@@ -206,22 +430,21 @@ export default function App() {
           .eq('user_id', user.id)
           .eq('game_id', gameId);
 
-        if (error) {
-          showToast('Fehler: ' + error.message, 'error');
-        } else {
-          const newTips = { ...tips };
-          delete newTips[gameId + 'h'];
-          delete newTips[gameId + 'a'];
-          setTips(newTips);
+        if (error) throw error;
 
-          const newMyTips = { ...myTips };
-          delete newMyTips[gameId];
-          setMyTips(newMyTips);
+        // State aktualisieren
+        const newTips = { ...tips };
+        delete newTips[gameId + 'h'];
+        delete newTips[gameId + 'a'];
+        setTips(newTips);
 
-          showToast('Tipp gelöscht!', 'success');
-        }
+        const newMyTips = { ...myTips };
+        delete newMyTips[gameId];
+        setMyTips(newMyTips);
+
+        showToast('Tipp gelöscht!', 'success');
       } catch (err) {
-        showToast('Fehler beim Löschen.', 'error');
+        showToast('Fehler: ' + err.message, 'error');
       }
       setConfirmModal(null);
     });
@@ -262,29 +485,21 @@ export default function App() {
 
   function getTipPoints(tip, game) {
     if (!tip || game.home_score === null) return null;
-    
-    // 5 Punkte: Exaktes Ergebnis
     if (tip.predicted_home_score === game.home_score && tip.predicted_away_score === game.away_score) return 5;
-    
-    // 3 Punkte: Innerhalb von 10 Punkten Differenz
     const tipDiff = tip.predicted_home_score - tip.predicted_away_score;
     const gameDiff = game.home_score - game.away_score;
     if (Math.abs(tipDiff - gameDiff) <= 10) return 3;
-    
-    // 1 Punkt: Richtige Tendenz
     const tipHome = tip.predicted_home_score > tip.predicted_away_score;
     const tipAway = tip.predicted_home_score < tip.predicted_away_score;
     const tipDraw = tip.predicted_home_score === tip.predicted_away_score;
     const gameHome = game.home_score > game.away_score;
     const gameAway = game.home_score < game.away_score;
     const gameDraw = game.home_score === game.away_score;
-    
     if ((tipHome && gameHome) || (tipAway && gameAway) || (tipDraw && gameDraw)) return 1;
-    
     return 0;
   }
 
-  // --- LOGIN ---
+  // LOGIN VIEW
   if (!user) {
     return (
       <div className="min-h-screen bg-tvn-beige flex items-center justify-center p-4">
@@ -312,9 +527,10 @@ export default function App() {
     );
   }
 
-  // --- EINGELOGGT ---
+  // MAIN VIEW
   return (
     <div className="min-h-screen bg-tvn-beige">
+      {/* Toast */}
       {toast && (
         <div className={`toast ${toast.type === 'success' ? 'toast-success' : toast.type === 'error' ? 'toast-error' : 'toast-info'}`}>
           <div className="px-6 py-4 rounded-card shadow-card-hover font-body font-semibold">
@@ -323,6 +539,7 @@ export default function App() {
         </div>
       )}
 
+      {/* Confirm Modal */}
       {confirmModal && (
         <div className="modal-overlay" onClick={() => setConfirmModal(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -342,6 +559,7 @@ export default function App() {
         </div>
       )}
 
+      {/* Points Info Modal */}
       {showPointsInfo && (
         <div className="modal-overlay" onClick={() => setShowPointsInfo(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -384,39 +602,92 @@ export default function App() {
         </div>
       )}
 
-      {/* Modernerer Header */}
-      <header className="bg-gradient-to-r from-tvn-navy via-tvn-navy-dark to-tvn-navy text-white shadow-lg sticky top-0 z-50">
+      {/* Create Group Modal */}
+      {showCreateGroup && (
+        <div className="modal-overlay" onClick={() => setShowCreateGroup(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-xl font-heading font-bold text-tvn-text mb-4">Gruppe erstellen</h3>
+            <div className="space-y-4">
+              <input type="text" placeholder="Gruppenname" value={newGroupName} onChange={(e) => setNewGroupName(e.target.value)}
+                className="w-full p-3 border border-tvn-beige-border rounded-input font-body" />
+              <label className="flex items-center gap-2 font-body">
+                <input type="checkbox" checked={newGroupIsPublic} onChange={(e) => setNewGroupIsPublic(e.target.checked)}
+                  className="w-5 h-5" />
+                <span>Öffentliche Gruppe</span>
+              </label>
+              <div className="flex gap-3">
+                <button onClick={() => setShowCreateGroup(false)}
+                  className="flex-1 btn-ripple bg-gray-200 text-tvn-text px-4 py-3 rounded-button font-heading font-semibold hover:bg-gray-300 transition">
+                  Abbrechen
+                </button>
+                <button onClick={createGroup}
+                  className="flex-1 btn-ripple bg-tvn-gold text-tvn-navy px-4 py-3 rounded-button font-heading font-semibold hover:bg-tvn-favorite transition">
+                  Erstellen
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Join Group Modal */}
+      {showJoinGroup && (
+        <div className="modal-overlay" onClick={() => setShowJoinGroup(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-xl font-heading font-bold text-tvn-text mb-4">Gruppe beitreten</h3>
+            <div className="space-y-4">
+              <input type="text" placeholder="Beitrittscode" value={joinCode} onChange={(e) => setJoinCode(e.target.value)}
+                className="w-full p-3 border border-tvn-beige-border rounded-input font-body uppercase" />
+              <div className="flex gap-3">
+                <button onClick={() => setShowJoinGroup(false)}
+                  className="flex-1 btn-ripple bg-gray-200 text-tvn-text px-4 py-3 rounded-button font-heading font-semibold hover:bg-gray-300 transition">
+                  Abbrechen
+                </button>
+                <button onClick={joinGroup}
+                  className="flex-1 btn-ripple bg-tvn-gold text-tvn-navy px-4 py-3 rounded-button font-heading font-semibold hover:bg-tvn-favorite transition">
+                  Beitreten
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Moderner Header */}
+      <header className="bg-gradient-to-r from-tvn-navy via-tvn-navy-dark to-tvn-navy text-white shadow-lg sticky top-0 z-50 backdrop-blur-sm bg-opacity-95">
         <div className="max-w-6xl mx-auto px-4 py-3">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-heading font-bold text-tvn-gold flex items-center gap-2">
               <span className="text-3xl">🏀</span>
               <span>TVN Tipps</span>
             </h1>
-            <div className="flex gap-2">
-              <button onClick={() => setView('tips')}
-                className={`btn-ripple px-4 py-2 rounded-button text-sm font-heading font-semibold transition ${view === 'tips' ? 'bg-tvn-gold text-tvn-navy' : 'bg-white/10 hover:bg-white/20 text-white'}`}>
-                Spiele
-              </button>
-              <button onClick={() => setView('results')}
-                className={`btn-ripple px-4 py-2 rounded-button text-sm font-heading font-semibold transition ${view === 'results' ? 'bg-tvn-gold text-tvn-navy' : 'bg-white/10 hover:bg-white/20 text-white'}`}>
-                Ergebnisse
-              </button>
-              <button onClick={() => setView('leaderboard')}
-                className={`btn-ripple px-4 py-2 rounded-button text-sm font-heading font-semibold transition ${view === 'leaderboard' ? 'bg-tvn-gold text-tvn-navy' : 'bg-white/10 hover:bg-white/20 text-white'}`}>
-                Tabelle
-              </button>
-              <button onClick={handleLogout}
-                className="btn-ripple bg-red-600/80 hover:bg-red-600 px-4 py-2 rounded-button text-sm font-heading font-semibold transition">
-                Logout
-              </button>
-            </div>
+            <nav className="flex gap-1 bg-white/5 rounded-lg p-1">
+              {[
+                { id: 'tips', label: 'Spiele' },
+                { id: 'results', label: 'Ergebnisse' },
+                { id: 'groups', label: 'Gruppen' },
+                { id: 'leaderboard', label: 'Tabelle' }
+              ].map(tab => (
+                <button key={tab.id} onClick={() => setView(tab.id)}
+                  className={`btn-ripple px-4 py-2 rounded-md text-sm font-heading font-semibold transition-all ${
+                    view === tab.id 
+                      ? 'bg-tvn-gold text-tvn-navy shadow-md' 
+                      : 'text-white/80 hover:text-white hover:bg-white/10'
+                  }`}>
+                  {tab.label}
+                </button>
+              ))}
+            </nav>
+            <button onClick={handleLogout}
+              className="btn-ripple bg-red-600/80 hover:bg-red-600 px-4 py-2 rounded-button text-sm font-heading font-semibold transition">
+              Logout
+            </button>
           </div>
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto p-4 md:p-6">
-
-        {/* ===== SPIELE ===== */}
+        {/* SPIELE VIEW */}
         {view === 'tips' && (
           <div>
             <h2 className="text-2xl font-heading font-bold text-tvn-text mb-2">Kommende Spiele</h2>
@@ -463,7 +734,7 @@ export default function App() {
 
                       {started ? (
                         <div className="bg-tvn-navy-dark p-3 rounded-input border border-tvn-beige-border text-center">
-                          <span className="text-gray-400 font-body text-sm">⏰ Spiel läuft / beendet – Tippen nicht mehr möglich</span>
+                          <span className="text-gray-400 font-body text-sm">⏰ Spiel läuft / beendet</span>
                           {hasTip && (
                             <div className="mt-2 text-tvn-gold font-mono font-bold">
                               Dein Tipp: {hasTip.predicted_home_score} : {hasTip.predicted_away_score}
@@ -503,18 +774,18 @@ export default function App() {
           </div>
         )}
 
-        {/* ===== ERGEBNISSE ===== */}
+        {/* ERGEBNISSE VIEW */}
         {view === 'results' && (
           <div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
               <h2 className="text-2xl font-heading font-bold text-tvn-text">Ergebnisse</h2>
               <div className="flex gap-2">
                 <button onClick={() => setResultTab('all')}
-                  className={`btn-ripple px-3 py-1.5 rounded-button text-xs font-heading font-semibold transition ${resultTab === 'all' ? 'bg-tvn-gold text-tvn-navy' : 'bg-white text-tvn-text border border-tvn-beige-border hover:bg-tvn-beige'}`}>
+                  className={`btn-ripple px-4 py-2 rounded-button text-sm font-heading font-semibold transition ${resultTab === 'all' ? 'bg-tvn-gold text-tvn-navy' : 'bg-white text-tvn-text border border-tvn-beige-border hover:bg-tvn-beige'}`}>
                   Alle
                 </button>
                 <button onClick={() => setResultTab('my')}
-                  className={`btn-ripple px-3 py-1.5 rounded-button text-xs font-heading font-semibold transition ${resultTab === 'my' ? 'bg-tvn-gold text-tvn-navy' : 'bg-white text-tvn-text border border-tvn-beige-border hover:bg-tvn-beige'}`}>
+                  className={`btn-ripple px-4 py-2 rounded-button text-sm font-heading font-semibold transition ${resultTab === 'my' ? 'bg-tvn-gold text-tvn-navy' : 'bg-white text-tvn-text border border-tvn-beige-border hover:bg-tvn-beige'}`}>
                   Meine Tipps
                 </button>
               </div>
@@ -591,11 +862,110 @@ export default function App() {
           </div>
         )}
 
-        {/* ===== LEADERBOARD ===== */}
+        {/* GRUPPEN VIEW */}
+        {view === 'groups' && !selectedGroup && (
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-heading font-bold text-tvn-text">Meine Gruppen</h2>
+              <div className="flex gap-2">
+                <button onClick={() => setShowJoinGroup(true)}
+                  className="btn-ripple bg-white text-tvn-text border border-tvn-beige-border px-4 py-2 rounded-button font-heading font-semibold hover:bg-tvn-beige transition">
+                  Beitreten
+                </button>
+                <button onClick={() => setShowCreateGroup(true)}
+                  className="btn-ripple bg-tvn-gold text-tvn-navy px-4 py-2 rounded-button font-heading font-semibold hover:bg-tvn-favorite transition">
+                  + Erstellen
+                </button>
+              </div>
+            </div>
+
+            {groups.length === 0 && (
+              <div className="text-center py-12 text-tvn-muted bg-white rounded-card shadow-card font-body">
+                Du bist noch in keiner Gruppe. Erstelle eine oder tritt einer bei!
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {groups.map(group => (
+                <div key={group.id} onClick={() => loadGroupDetails(group.id)}
+                  className="card-hover card-gradient rounded-card shadow-card overflow-hidden cursor-pointer">
+                  <div className="p-5">
+                    <div className="flex justify-between items-start mb-3">
+                      <h3 className="text-xl font-heading font-bold text-white">{group.name}</h3>
+                      <span className={`text-xs px-2 py-1 rounded-button font-mono font-bold ${group.is_public ? 'bg-green-500 text-white' : 'bg-blue-500 text-white'}`}>
+                        {group.is_public ? 'ÖFFENTLICH' : 'PRIVAT'}
+                      </span>
+                    </div>
+                    {!group.is_public && (
+                      <div className="text-sm text-gray-400 font-mono">
+                        Code: {group.join_code}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* GRUPPE DETAIL VIEW */}
+        {view === 'groups' && selectedGroup && (
+          <div>
+            <button onClick={() => setSelectedGroup(null)}
+              className="mb-4 text-tvn-gold hover:text-tvn-favorite font-heading font-semibold transition">
+              ← Zurück zu Gruppen
+            </button>
+
+            <div className="card-gradient rounded-card shadow-card p-6 mb-6">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h2 className="text-3xl font-heading font-bold text-tvn-gold mb-2">{selectedGroup.name}</h2>
+                  <span className={`text-xs px-2 py-1 rounded-button font-mono font-bold ${selectedGroup.is_public ? 'bg-green-500 text-white' : 'bg-blue-500 text-white'}`}>
+                    {selectedGroup.is_public ? 'ÖFFENTLICH' : 'PRIVAT'}
+                  </span>
+                </div>
+                <button onClick={() => deleteGroup(selectedGroup.id)}
+                  className="btn-ripple bg-red-600 text-white px-4 py-2 rounded-button font-heading font-semibold hover:bg-red-700 transition">
+                  Gruppe löschen
+                </button>
+              </div>
+              {!selectedGroup.is_public && (
+                <div className="bg-tvn-navy-dark p-4 rounded-input border border-tvn-beige-border">
+                  <div className="text-sm text-gray-400 font-body mb-1">Beitrittscode:</div>
+                  <div className="text-2xl font-mono font-bold text-tvn-gold">{selectedGroup.join_code}</div>
+                </div>
+              )}
+            </div>
+
+            <div className="card-gradient rounded-card shadow-card overflow-hidden mb-6">
+              <h3 className="text-xl font-heading font-bold p-4 border-b border-tvn-beige-border text-tvn-gold">Leaderboard</h3>
+              <table className="w-full text-left">
+                <thead className="bg-tvn-navy-dark text-gray-400 text-sm font-mono">
+                  <tr>
+                    <th className="p-4">Platz</th>
+                    <th className="p-4">Name</th>
+                    <th className="p-4 text-right">Punkte</th>
+                  </tr>
+                </thead>
+                <tbody className="text-white font-body">
+                  {groupLeaderboard.map((row, index) => (
+                    <tr key={row.username} className={`border-t border-tvn-beige-border ${row.username === user.email.split('@')[0] ? 'bg-tvn-navy font-bold' : ''}`}>
+                      <td className="p-4 text-tvn-gold font-mono">{index + 1}.</td>
+                      <td className="p-4">{row.username}</td>
+                      <td className="p-4 text-right font-mono font-bold text-tvn-gold">{row.total_points}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* LEADERBOARD VIEW */}
         {view === 'leaderboard' && (
           <div className="card-gradient rounded-card shadow-card overflow-hidden">
             <div className="p-6 border-b border-tvn-beige-border flex justify-between items-center">
-              <h2 className="text-2xl font-heading font-bold text-tvn-gold">🏆 Punktetabelle</h2>
+              <h2 className="text-2xl font-heading font-bold text-tvn-gold">🏆 All-Time Leaderboard</h2>
               <button onClick={() => setShowPointsInfo(true)}
                 className="btn-ripple bg-tvn-gold/20 hover:bg-tvn-gold/30 text-tvn-gold px-4 py-2 rounded-button text-sm font-heading font-semibold transition">
                 ℹ️ Punkte-System
