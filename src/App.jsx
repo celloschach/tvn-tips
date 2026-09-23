@@ -4,6 +4,8 @@ import { supabase } from './supabaseClient';
 export default function App() {
   const [user, setUser] = useState(null);
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isRegistering, setIsRegistering] = useState(false);
   const [view, setView] = useState('login');
   const [games, setGames] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
@@ -44,15 +46,26 @@ export default function App() {
 
   async function handleLogin(e) {
     e.preventDefault();
-    setMsg('Magic Link wird gesendet... Bitte prüfe dein E-Mail-Postfach.');
-    const { error } = await supabase.auth.signInWithOtp({ email });
-    if (error) setMsg('Fehler: ' + error.message);
+    setMsg('');
+    
+    if (isRegistering) {
+      // Registrierung
+      const { error } = await supabase.auth.signUp({ email, password });
+      if (error) setMsg('Fehler: ' + error.message);
+      else setMsg('Registrierung erfolgreich! Du kannst dich jetzt einloggen.');
+    } else {
+      // Login
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) setMsg('Fehler: ' + error.message);
+    }
   }
 
   async function handleLogout() {
     await supabase.auth.signOut();
     setUser(null);
     setView('login');
+    setEmail('');
+    setPassword('');
   }
 
   async function submitTip(gameId, homeScore, awayScore) {
@@ -77,20 +90,40 @@ export default function App() {
       <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
         <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
           <h1 className="text-2xl font-bold text-center mb-2">🏀 TVN Tipp-Spiel</h1>
-          <p className="text-gray-600 text-center mb-6">Melde dich mit deiner E-Mail an.</p>
+          <p className="text-gray-600 text-center mb-6">
+            {isRegistering ? 'Erstelle einen neuen Account' : 'Melde dich mit deinem Account an'}
+          </p>
           <form onSubmit={handleLogin} className="space-y-4">
             <input
               type="email"
-              placeholder="deine.email@beispiel.de"
+              placeholder="E-Mail-Adresse"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
               required
             />
+            <input
+              type="password"
+              placeholder="Passwort"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              required
+              minLength={6}
+            />
             <button type="submit" className="w-full bg-blue-600 text-white p-3 rounded-lg font-semibold hover:bg-blue-700">
-              Magic Link senden
+              {isRegistering ? 'Registrieren' : 'Anmelden'}
             </button>
           </form>
+          <button
+            onClick={() => {
+              setIsRegistering(!isRegistering);
+              setMsg('');
+            }}
+            className="w-full mt-4 text-blue-600 hover:underline text-sm"
+          >
+            {isRegistering ? 'Zurück zum Login' : 'Noch keinen Account? Hier registrieren'}
+          </button>
           {msg && <p className="mt-4 text-sm text-center text-blue-600">{msg}</p>}
         </div>
       </div>
