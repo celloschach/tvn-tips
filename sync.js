@@ -18,9 +18,13 @@ async function sync() {
       const event = data[k];
       if (event.type === 'VEVENT') {
         const desc = event.description || '';
+        
+        // Neue Extraktion für den Wettbewerb
+        const wettbewerbMatch = desc.match(/Wettbewerb:\s*([^\n]+)/);
         const heimMatch = desc.match(/Heim:\s*([^\n]+)/);
         const gastMatch = desc.match(/Gast:\s*([^\n]+)/);
         
+        const wettbewerb = wettbewerbMatch ? wettbewerbMatch[1].trim() : 'Unbekannt';
         const heimTeam = heimMatch ? heimMatch[1].trim() : 'Unbekannt';
         const gastTeam = gastMatch ? gastMatch[1].trim() : 'Unbekannt';
         const isCancelled = event.summary.includes('AUSGEFALLEN') || event.summary.includes('ABGESAGT');
@@ -28,6 +32,7 @@ async function sync() {
         games.push({
           id: event.uid,
           summary: event.summary,
+          competition: wettbewerb, // <-- NEU
           home_team: heimTeam,
           away_team: gastTeam,
           start_time: event.start ? event.start.toISOString() : null,
@@ -42,14 +47,13 @@ async function sync() {
       return;
     }
 
-    // Direkter Aufruf der Supabase REST API zum Upserten (Aktualisieren oder Einfügen)
     const response = await fetch(`${supabaseUrl}/rest/v1/games`, {
       method: 'POST',
       headers: {
         'apikey': supabaseKey,
         'Authorization': `Bearer ${supabaseKey}`,
         'Content-Type': 'application/json',
-        'Prefer': 'resolution=merge-duplicates' // Das ist der Supabase-Befehl für "Upsert"
+        'Prefer': 'resolution=merge-duplicates'
       },
       body: JSON.stringify(games)
     });
