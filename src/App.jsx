@@ -15,8 +15,21 @@ export default function App() {
   const [msg, setMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const [resultFilter, setResultFilter] = useState('7');
+  const [toast, setToast] = useState(null);
+  const [confirmModal, setConfirmModal] = useState(null);
   const cardsRef = useRef([]);
   const finishedCardsRef = useRef([]);
+
+  // Toast anzeigen
+  function showToast(message, type = 'success') {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  }
+
+  // Confirm Modal
+  function showConfirm(message, onConfirm) {
+    setConfirmModal({ message, onConfirm });
+  }
 
   // Scroll-Reveal
   const setupObserver = useCallback((refs) => {
@@ -140,7 +153,7 @@ export default function App() {
     if (isRegistering) {
       const { error } = await supabase.auth.signUp({ email, password });
       if (error) setMsg('Fehler: ' + error.message);
-      else setMsg('Registrierung erfolgreich! Du kannst dich jetzt einloggen.');
+      else showToast('Registrierung erfolgreich! Du kannst dich jetzt einloggen.', 'success');
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) setMsg('Fehler: ' + error.message);
@@ -157,60 +170,75 @@ export default function App() {
     setTips({});
   }
 
+  // FIX: Tipp abgeben oder ändern (erst löschen, dann neu einfügen)
   async function submitTip(gameId, homeScore, awayScore) {
-    if (!homeScore || !awayScore) return alert('Bitte beide Ergebnisse eingeben.');
+    if (!homeScore || !awayScore) {
+      showToast('Bitte beide Ergebnisse eingeben.', 'error');
+      return;
+    }
 
-    const { error } = await supabase.from('predictions').upsert({
-      user_id: user.id,
-      game_id: gameId,
-      predicted_home_score: parseInt(homeScore),
-      predicted_away_score: parseInt(awayScore)
-    });
+    try {
+      // Erst alten Tipp löschen (falls vorhanden)
+      await supabase
+        .from('predictions')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('game_id', gameId);
 
-    if (error) alert('Fehler: ' + error.message);
-    else {
-      alert('Tipp gespeichert! 🏀');
-      loadData(user.id);
+      // Dann neuen Tipp einfügen
+      const { error } = await supabase.from('predictions').insert({
+        user_id: user.id,
+        game_id: gameId,
+        predicted_home_score: parseInt(homeScore),
+        predicted_away_score: parseInt(awayScore)
+      });
+
+      if (error) {
+        showToast('Fehler: ' + error.message, 'error');
+      } else {
+        showToast('Tipp gespeichert! 🏀', 'success');
+        loadData(user.id);
+      }
+    } catch (err) {
+      showToast('Fehler beim Speichern.', 'error');
     }
   }
 
+  // FIX: Tipp löschen
   async function deleteTip(gameId) {
-    if (!confirm('Tipp wirklich löschen?')) return;
+    showConfirm('Tipp wirklich löschen?', async () => {
+      try {
+        const { error } = await supabase
+          .from('predictions')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('game_id', gameId);
 
-    const { error } = await supabase
-      .from('predictions')
-      .delete()
-      .eq('user_id', user.id)
-      .eq('game_id', gameId);
+        if (error) {
+          showToast('Fehler: ' + error.message, 'error');
+        } else {
+          const newTips = { ...tips };
+          delete newTips[gameId + 'h'];
+          delete newTips[gameId + 'a'];
+          setTips(newTips);
 
-    if (error) alert('Fehler: ' + error.message);
-    else {
-      const newTips = { ...tips };
-      delete newTips[gameId + 'h'];
-      delete newTips[gameId + 'a'];
-      setTips(newTips);
+          const newMyTips = { ...myTips };
+          delete newMyTips[gameId];
+          setMyTips(newMyTips);
 
-      const newMyTips = { ...myTips };
-      delete newMyTips[gameId];
-      setMyTips(newMyTips);
-
-      alert('Tipp gelöscht!');
-    }
+          showToast('Tipp gelöscht!', 'success');
+        }
+      } catch (err) {
+        showToast('Fehler beim Löschen.', 'error');
+      }
+      setConfirmModal(null);
+    });
   }
 
   function isGameStarted(startTime) {
     return new Date(startTime) <= new Date();
   }
 
-  function getAgeGroupClass(ageGroup) {
-    if (!ageGroup) return 'border-age-herren';
-    if (ageGroup.includes('U10') || ageGroup.includes('U12')) return 'border-age-u10';
-    if (ageGroup.includes('U14') || ageGroup.includes('U16')) return 'border-age-u14';
-    if (ageGroup.includes('U18')) return 'border-age-u18';
-    return 'border-age-herren';
-  }
-
-  // NEU: Sieg/Niederlage aus Sicht von TV Neunkirchen
   function getResultBadge(game) {
     const homeLower = game.home_team.toLowerCase();
     const awayLower = game.away_team.toLowerCase();
@@ -228,7 +256,6 @@ export default function App() {
       tvnWon = game.away_score > game.home_score;
       tvnLost = game.away_score < game.home_score;
     } else {
-      // Fallback falls TVN nicht beteiligt (z.B. fremdes Spiel)
       tvnWon = game.home_score > game.away_score;
       tvnLost = game.home_score < game.away_score;
     }
@@ -285,6 +312,36 @@ export default function App() {
   // --- EINGELOGGT ---
   return (
     <div className="min-h-screen bg-tvn-beige">
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`toast ${toast.type === 'success' ? 'toast-success' : toast.type === 'error' ? 'toast-error' : 'toast-info'}`}>
+          <div className="px-6 py-4 rounded-card shadow-card-hover font-body font-semibold">
+            {toast.message}
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Modal */}
+      {confirmModal && (
+        <div className="modal-overlay" onClick={() => setConfirmModal(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-xl font-heading font-bold text-tvn-text mb-4">Bestätigung</h3>
+            <p className="text-tvn-muted font-body mb-6">{confirmModal.message}</p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmModal(null)}
+                className="flex-1 btn-ripple bg-gray-200 text-tvn-text px-4 py-3 rounded-button font-heading font-semibold hover:bg-gray-300 transition">
+                Abbrechen
+              </button>
+              <button onClick={confirmModal.onConfirm}
+                className="flex-1 btn-ripple bg-red-600 text-white px-4 py-3 rounded-button font-heading font-semibold hover:bg-red-700 transition">
+                Löschen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Header */}
       <header className="card-gradient text-white p-4 shadow-card sticky top-0 z-50">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-heading font-bold text-tvn-gold">🏀 TVN Tipps</h1>
@@ -339,8 +396,8 @@ export default function App() {
 
                 return (
                   <div key={game.id} ref={el => cardsRef.current[index] = el}
-                    className={`card-reveal card-hover card-gradient rounded-card shadow-card overflow-hidden ${getAgeGroupClass(game.age_group)}`}>
-                    <div className="p-5">
+                    className="card-reveal card-hover card-gradient rounded-card shadow-card overflow-hidden flex flex-col">
+                    <div className="p-5 flex flex-col flex-grow">
                       <div className="text-xs font-mono font-semibold text-tvn-gold mb-2 uppercase tracking-wide">
                         {game.competition || 'Liga'}
                       </div>
@@ -350,7 +407,7 @@ export default function App() {
                           <span>{new Date(game.start_time).toLocaleString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} Uhr</span>
                         </div>
                       </div>
-                      <div className="flex justify-between items-center text-lg font-heading font-bold mb-4 text-white">
+                      <div className="flex justify-between items-center text-lg font-heading font-bold mb-4 text-white flex-grow">
                         <span className="text-right flex-1">{homeDisplay}</span>
                         <span className="text-tvn-gold px-3 text-sm font-normal">vs</span>
                         <span className="text-left flex-1">{awayDisplay}</span>
@@ -433,8 +490,8 @@ export default function App() {
 
                 return (
                   <div key={game.id} ref={el => finishedCardsRef.current[index] = el}
-                    className={`card-reveal card-hover card-gradient rounded-card shadow-card overflow-hidden ${getAgeGroupClass(game.age_group)}`}>
-                    <div className="p-5">
+                    className="card-reveal card-hover card-gradient rounded-card shadow-card overflow-hidden flex flex-col">
+                    <div className="p-5 flex flex-col flex-grow">
                       <div className="flex justify-between items-start mb-2">
                         <div className="text-xs font-mono font-semibold text-tvn-gold uppercase tracking-wide">
                           {game.competition || 'Liga'}
@@ -444,7 +501,7 @@ export default function App() {
                       <div className="text-xs text-gray-400 mb-4 font-body">
                         📅 {new Date(game.start_time).toLocaleString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} Uhr
                       </div>
-                      <div className="flex justify-between items-center mb-2 text-white">
+                      <div className="flex justify-between items-center mb-2 text-white flex-grow">
                         <span className="text-right flex-1 font-heading font-bold">{homeDisplay}</span>
                         <span className="text-tvn-gold font-mono font-bold text-xl px-3">{game.home_score} : {game.away_score}</span>
                         <span className="text-left flex-1 font-heading font-bold">{awayDisplay}</span>
