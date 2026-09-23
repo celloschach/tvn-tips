@@ -740,7 +740,6 @@ export default function App() {
       <main className="lg:ml-60 p-4 md:p-6 pb-24 lg:pb-6">
         {view === 'tips' && (
           <div>
-            {/* Hero Section */}
             <div className="glass-card rounded-card p-6 mb-6 bg-gradient-to-r from-neon-purple/10 to-neon-pink/10">
               <div className="flex items-center justify-between">
                 <div>
@@ -1048,32 +1047,31 @@ export default function App() {
             <table className="w-full text-left">
               <thead className="bg-dark-800 text-gray-500 text-sm font-mono">
                 <tr>
-                    <th className="p-4">Platz</th>
-                    <th className="p-4">Name</th>
-                    <th className="p-4 text-right">Punkte</th>
+                  <th className="p-4">Platz</th>
+                  <th className="p-4">Name</th>
+                  <th className="p-4 text-right">Punkte</th>
+                </tr>
+              </thead>
+              <tbody className="text-white font-body">
+                {leaderboard.map((row, index) => (
+                  <tr key={row.username} className={`border-t border-white/5 ${row.username === username ? 'bg-neon-gold/10 font-bold' : 'hover:bg-dark-800'}`}>
+                    <td className="p-4 text-neon-gold font-mono">{index + 1}.</td>
+                    <td className="p-4">
+                      {row.username}
+                      {row.username === username && (
+                        <span className="ml-2 text-xs bg-neon-gold text-dark-900 px-2 py-1 rounded-button font-semibold">Du</span>
+                      )}
+                    </td>
+                    <td className="p-4 text-right font-mono font-bold text-neon-gold">{row.total_points}</td>
                   </tr>
-                </thead>
-                <tbody className="text-white font-body">
-                  {leaderboard.map((row, index) => (
-                    <tr key={row.username} className={`border-t border-white/5 ${row.username === username ? 'bg-neon-gold/10 font-bold' : 'hover:bg-dark-800'}`}>
-                      <td className="p-4 text-neon-gold font-mono">{index + 1}.</td>
-                      <td className="p-4">
-                        {row.username}
-                        {row.username === username && (
-                          <span className="ml-2 text-xs bg-neon-gold text-dark-900 px-2 py-1 rounded-button font-semibold">Du</span>
-                        )}
-                      </td>
-                      <td className="p-4 text-right font-mono font-bold text-neon-gold">{row.total_points}</td>
-                    </tr>
-                  ))}
-                  {leaderboard.length === 0 && (
-                    <tr><td colSpan="3" className="p-8 text-center text-gray-600 font-body">Noch keine registrierten Nutzer.</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+                ))}
+                {leaderboard.length === 0 && (
+                  <tr><td colSpan="3" className="p-8 text-center text-gray-600 font-body">Noch keine registrierten Nutzer.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </main>
 
       {/* BOTTOM NAVIGATION (Mobile) */}
