@@ -27,13 +27,41 @@ export default function App() {
   const [newGroupName, setNewGroupName] = useState('');
   const [newGroupIsPublic, setNewGroupIsPublic] = useState(false);
   const [joinCode, setJoinCode] = useState('');
-  
+
+  // Promise-basiertes Confirm-Modal
+  const [confirmModal, setConfirmModal] = useState(null);
+  const confirmResolveRef = useRef(null);
+
   const cardsRef = useRef([]);
   const finishedCardsRef = useRef([]);
 
   function showToast(message, type = 'success') {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
+  }
+
+  // Confirm-Funktion die ein Promise zurückgibt
+  function askConfirm(message) {
+    return new Promise((resolve) => {
+      confirmResolveRef.current = resolve;
+      setConfirmModal({ message });
+    });
+  }
+
+  function handleConfirmYes() {
+    setConfirmModal(null);
+    if (confirmResolveRef.current) {
+      confirmResolveRef.current(true);
+      confirmResolveRef.current = null;
+    }
+  }
+
+  function handleConfirmNo() {
+    setConfirmModal(null);
+    if (confirmResolveRef.current) {
+      confirmResolveRef.current(false);
+      confirmResolveRef.current = null;
+    }
   }
 
   const setupObserver = useCallback((refs) => {
@@ -225,7 +253,7 @@ export default function App() {
         is_admin: true
       });
 
-      showToast('Gruppe erstellt!', 'success');
+      showToast('Gruppe erstellt! 🎉', 'success');
       setShowCreateGroup(false);
       setNewGroupName('');
       setNewGroupIsPublic(false);
@@ -268,7 +296,7 @@ export default function App() {
           throw memberError;
         }
       } else {
-        showToast('Beigetreten!', 'success');
+        showToast('Beigetreten! 🎉', 'success');
       }
 
       setShowJoinGroup(false);
@@ -279,11 +307,9 @@ export default function App() {
     }
   }
 
-  // FIX: Einfache window.confirm statt custom Modal
   async function deleteGroup(groupId) {
-    if (!window.confirm('Gruppe wirklich löschen? Dies kann nicht rückgängig gemacht werden.')) {
-      return;
-    }
+    const confirmed = await askConfirm('Gruppe wirklich löschen? Dies kann nicht rückgängig gemacht werden.');
+    if (!confirmed) return;
 
     try {
       const { error } = await supabase
@@ -291,10 +317,7 @@ export default function App() {
         .delete()
         .eq('id', groupId);
 
-      if (error) {
-        console.error('Delete Error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       showToast('Gruppe gelöscht!', 'success');
       setSelectedGroup(null);
@@ -389,11 +412,9 @@ export default function App() {
     }
   }
 
-  // FIX: Einfache window.confirm + kompletter Reload
   async function deleteTip(gameId) {
-    if (!window.confirm('Tipp wirklich löschen?')) {
-      return;
-    }
+    const confirmed = await askConfirm('Tipp wirklich löschen?');
+    if (!confirmed) return;
 
     try {
       const { error } = await supabase
@@ -402,10 +423,7 @@ export default function App() {
         .eq('user_id', user.id)
         .eq('game_id', gameId);
 
-      if (error) {
-        console.error('Delete Error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       showToast('Tipp gelöscht!', 'success');
       await loadData(user.id);
@@ -421,7 +439,6 @@ export default function App() {
   function getResultBadge(game) {
     const homeLower = game.home_team.toLowerCase();
     const awayLower = game.away_team.toLowerCase();
-    
     const isTVNHome = homeLower.includes('neunkirchen') || homeLower.includes('tvn');
     const isTVNAway = awayLower.includes('neunkirchen') || awayLower.includes('tvn');
 
@@ -492,14 +509,40 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-tvn-beige">
+      {/* Toast Notification */}
       {toast && (
         <div className={`toast ${toast.type === 'success' ? 'toast-success' : toast.type === 'error' ? 'toast-error' : 'toast-info'}`}>
-          <div className="px-6 py-4 rounded-card shadow-card-hover font-body font-semibold">
-            {toast.message}
+          <div className="px-6 py-4 rounded-card shadow-card-hover font-body font-semibold flex items-center gap-2">
+            <span>{toast.type === 'success' ? '✅' : toast.type === 'error' ? '❌' : 'ℹ️'}</span>
+            <span>{toast.message}</span>
           </div>
         </div>
       )}
 
+      {/* Confirm Modal - Schön gestaltet */}
+      {confirmModal && (
+        <div className="modal-overlay" onClick={handleConfirmNo}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="text-center mb-4">
+              <div className="text-4xl mb-2">⚠️</div>
+              <h3 className="text-xl font-heading font-bold text-tvn-text">Bist du sicher?</h3>
+            </div>
+            <p className="text-tvn-muted font-body mb-6 text-center">{confirmModal.message}</p>
+            <div className="flex gap-3">
+              <button onClick={handleConfirmNo}
+                className="flex-1 btn-ripple bg-gray-200 text-tvn-text px-4 py-3 rounded-button font-heading font-semibold hover:bg-gray-300 transition">
+                Abbrechen
+              </button>
+              <button onClick={handleConfirmYes}
+                className="flex-1 btn-ripple bg-red-600 text-white px-4 py-3 rounded-button font-heading font-semibold hover:bg-red-700 transition">
+                Ja, löschen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Points Info Modal */}
       {showPointsInfo && (
         <div className="modal-overlay" onClick={() => setShowPointsInfo(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -542,6 +585,7 @@ export default function App() {
         </div>
       )}
 
+      {/* Create Group Modal */}
       {showCreateGroup && (
         <div className="modal-overlay" onClick={() => setShowCreateGroup(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -569,6 +613,7 @@ export default function App() {
         </div>
       )}
 
+      {/* Join Group Modal */}
       {showJoinGroup && (
         <div className="modal-overlay" onClick={() => setShowJoinGroup(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -591,6 +636,7 @@ export default function App() {
         </div>
       )}
 
+      {/* Header */}
       <header className="bg-gradient-to-r from-tvn-navy via-tvn-navy-dark to-tvn-navy text-white shadow-lg sticky top-0 z-50 backdrop-blur-sm bg-opacity-95">
         <div className="max-w-6xl mx-auto px-4 py-3">
           <div className="flex justify-between items-center">
