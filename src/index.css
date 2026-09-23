@@ -10,13 +10,12 @@ body {
   padding: 0;
 }
 
-/* Scroll-Reveal Animation */
+/* Scroll-Reveal */
 .card-reveal {
   opacity: 0;
   transform: translateY(30px);
   transition: opacity 0.6s ease-out, transform 0.6s ease-out;
 }
-
 .card-reveal.revealed {
   opacity: 1;
   transform: translateY(0);
@@ -55,12 +54,6 @@ body {
   height: 300px;
 }
 
-/* Altersgruppen-Border */
-.border-age-u10 { border-left: 4px solid #3B82F6; }
-.border-age-u14 { border-left: 4px solid #10B981; }
-.border-age-u18 { border-left: 4px solid #8B5CF6; }
-.border-age-herren { border-left: 4px solid #E8A33D; }
-
 /* Gradient */
 .card-gradient {
   background: linear-gradient(135deg, #10203B 0%, #0B1626 100%);
@@ -81,3 +74,77 @@ body {
 .badge-win { background-color: #10B981; color: white; }
 .badge-loss { background-color: #EF4444; color: white; }
 .badge-draw { background-color: #F59E0B; color: white; }
+
+/* Toast Notification */
+.toast {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 99999;
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.toast-success {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  color: white;
+}
+
+.toast-error {
+  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  color: white;
+}
+
+.toast-info {
+  background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+  color: white;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 99998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  background: white;
+  border-radius: 14px;
+  padding: 24px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: scaleIn 0.2s ease-out;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
