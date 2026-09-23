@@ -20,8 +20,6 @@ export default function App() {
   const [toast, setToast] = useState(null);
   const [confirmModal, setConfirmModal] = useState(null);
   const [showPointsInfo, setShowPointsInfo] = useState(false);
-  
-  // Gruppen-State
   const [groups, setGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [groupLeaderboard, setGroupLeaderboard] = useState([]);
@@ -58,7 +56,6 @@ export default function App() {
     return observer;
   }, []);
 
-  // FIX: Observer bei jedem Daten-Change neu aufsetzen
   useEffect(() => {
     if (view === 'tips') {
       const obs = setupObserver(cardsRef.current);
@@ -79,7 +76,7 @@ export default function App() {
         setUser(session.user);
         setView('tips');
         loadData(session.user.id);
-        loadGroups();
+        loadGroups(session.user.id);
       }
     });
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -87,7 +84,7 @@ export default function App() {
       if (session?.user) {
         setView('tips');
         loadData(session.user.id);
-        loadGroups();
+        loadGroups(session.user.id);
       }
     });
     return () => authListener.subscription.unsubscribe();
@@ -158,27 +155,58 @@ export default function App() {
     setMyFinishedGames(myGames);
   }
 
-  // Gruppen laden
-  async function loadGroups() {
-    const { data } = await supabase
-      .from('groups')
-      .select(`
-        *,
-        group_members!inner(user_id, is_admin)
-      `)
-      .or(`is_public.eq.true,created_by.eq.${user?.id}`);
-    
-    setGroups(data || []);
+  // FIX: Gruppen laden - vereinfachte Query
+  async function loadGroups(userId) {
+    try {
+      const uid = userId || user?.id;
+      if (!uid) return;
+
+      // Alle Gruppen laden, bei denen der User Mitglied ist ODER die öffentlich sind
+      const { data: memberGroups } = await supabase
+        .from('group_members')
+        .select('group_id')
+        .eq('user_id', uid);
+
+      const memberGroupIds = memberGroups?.map(m => m.group_id) || [];
+
+      let allGroups = [];
+
+      // Öffentliche Gruppen
+      const { data: publicGroups } = await supabase
+        .from('groups')
+        .select('*')
+        .eq('is_public', true);
+
+      if (publicGroups) allGroups = [...publicGroups];
+
+      // Private Gruppen, bei denen der User Mitglied ist
+      if (memberGroupIds.length > 0) {
+        const { data: privateGroups } = await supabase
+          .from('groups')
+          .select('*')
+          .in('id', memberGroupIds)
+          .eq('is_public', false);
+
+        if (privateGroups) allGroups = [...allGroups, ...privateGroups];
+      }
+
+      // Duplikate entfernen
+      const uniqueGroups = allGroups.filter((group, index, self) =>
+        index === self.findIndex((g) => g.id === group.id)
+      );
+
+      setGroups(uniqueGroups);
+    } catch (err) {
+      console.error('Fehler beim Laden der Gruppen:', err);
+    }
   }
 
-  // Gruppe erstellen
   async function createGroup() {
     if (!newGroupName.trim()) {
       showToast('Bitte Gruppennamen eingeben.', 'error');
       return;
     }
 
-    // Namen-Validierung
     const forbidden = ['admin', 'moderator', 'offiziell', 'tvn', 'verein'];
     if (forbidden.some(f => newGroupName.toLowerCase().includes(f))) {
       showToast('Dieser Name ist nicht erlaubt.', 'error');
@@ -202,7 +230,6 @@ export default function App() {
 
       if (error) throw error;
 
-      // Creator als Admin hinzufügen
       await supabase.from('group_members').insert({
         group_id: group.id,
         user_id: user.id,
@@ -212,13 +239,15 @@ export default function App() {
       showToast('Gruppe erstellt!', 'success');
       setShowCreateGroup(false);
       setNewGroupName('');
-      loadGroups();
+      setNewGroupIsPublic(false);
+      
+      // FIX: Gruppen sofort neu laden
+      await loadGroups(user.id);
     } catch (err) {
       showToast('Fehler: ' + err.message, 'error');
     }
   }
 
-  // Gruppe beitreten
   async function joinGroup() {
     if (!joinCode.trim()) {
       showToast('Bitte Beitrittscode eingeben.', 'error');
@@ -257,15 +286,16 @@ export default function App() {
 
       setShowJoinGroup(false);
       setJoinCode('');
-      loadGroups();
+      
+      // FIX: Gruppen sofort neu laden
+      await loadGroups(user.id);
     } catch (err) {
       showToast('Fehler: ' + err.message, 'error');
     }
   }
 
-  // Gruppe löschen
   async function deleteGroup(groupId) {
-    showConfirm('Gruppe wirklich löschen?', async () => {
+    showConfirm('Gruppe wirklich löschen? Dies kann nicht rückgängig gemacht werden.', async () => {
       try {
         const { error } = await supabase
           .from('groups')
@@ -276,7 +306,7 @@ export default function App() {
 
         showToast('Gruppe gelöscht!', 'success');
         setSelectedGroup(null);
-        loadGroups();
+        await loadGroups(user.id);
       } catch (err) {
         showToast('Fehler: ' + err.message, 'error');
       }
@@ -284,7 +314,6 @@ export default function App() {
     });
   }
 
-  // Mitglied entfernen
   async function removeMember(groupId, userId) {
     showConfirm('Mitglied wirklich entfernen?', async () => {
       try {
@@ -305,7 +334,6 @@ export default function App() {
     });
   }
 
-  // Admin-Rechte vergeben
   async function toggleAdmin(groupId, userId, currentIsAdmin) {
     try {
       const { error } = await supabase
@@ -323,7 +351,6 @@ export default function App() {
     }
   }
 
-  // Gruppendetails laden
   async function loadGroupDetails(groupId) {
     const { data: group } = await supabase
       .from('groups')
@@ -335,10 +362,7 @@ export default function App() {
 
     const { data: members } = await supabase
       .from('group_members')
-      .select(`
-        *,
-        profiles(username)
-      `)
+      .select(`*, profiles(username)`)
       .eq('group_id', groupId);
 
     const { data: lb } = await supabase
@@ -370,9 +394,9 @@ export default function App() {
     setPassword('');
     setMyTips({});
     setTips({});
+    setGroups([]);
   }
 
-  // FIX: Tipp speichern mit echtem Upsert
   async function submitTip(gameId, homeScore, awayScore) {
     if (!homeScore || !awayScore) {
       showToast('Bitte beide Ergebnisse eingeben.', 'error');
@@ -380,7 +404,6 @@ export default function App() {
     }
 
     try {
-      // Erst prüfen ob Tipp existiert
       const { data: existing } = await supabase
         .from('predictions')
         .select('id')
@@ -389,7 +412,6 @@ export default function App() {
         .single();
 
       if (existing) {
-        // Update
         const { error } = await supabase
           .from('predictions')
           .update({
@@ -400,7 +422,6 @@ export default function App() {
 
         if (error) throw error;
       } else {
-        // Insert
         const { error } = await supabase
           .from('predictions')
           .insert({
@@ -420,7 +441,6 @@ export default function App() {
     }
   }
 
-  // FIX: Tipp wirklich löschen
   async function deleteTip(gameId) {
     showConfirm('Tipp wirklich löschen?', async () => {
       try {
@@ -432,15 +452,18 @@ export default function App() {
 
         if (error) throw error;
 
-        // State aktualisieren
-        const newTips = { ...tips };
-        delete newTips[gameId + 'h'];
-        delete newTips[gameId + 'a'];
-        setTips(newTips);
+        setTips(prev => {
+          const newTips = { ...prev };
+          delete newTips[gameId + 'h'];
+          delete newTips[gameId + 'a'];
+          return newTips;
+        });
 
-        const newMyTips = { ...myTips };
-        delete newMyTips[gameId];
-        setMyTips(newMyTips);
+        setMyTips(prev => {
+          const newMyTips = { ...prev };
+          delete newMyTips[gameId];
+          return newMyTips;
+        });
 
         showToast('Tipp gelöscht!', 'success');
       } catch (err) {
@@ -499,7 +522,6 @@ export default function App() {
     return 0;
   }
 
-  // LOGIN VIEW
   if (!user) {
     return (
       <div className="min-h-screen bg-tvn-beige flex items-center justify-center p-4">
@@ -527,10 +549,8 @@ export default function App() {
     );
   }
 
-  // MAIN VIEW
   return (
     <div className="min-h-screen bg-tvn-beige">
-      {/* Toast */}
       {toast && (
         <div className={`toast ${toast.type === 'success' ? 'toast-success' : toast.type === 'error' ? 'toast-error' : 'toast-info'}`}>
           <div className="px-6 py-4 rounded-card shadow-card-hover font-body font-semibold">
@@ -539,7 +559,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Confirm Modal */}
       {confirmModal && (
         <div className="modal-overlay" onClick={() => setConfirmModal(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -559,7 +578,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Points Info Modal */}
       {showPointsInfo && (
         <div className="modal-overlay" onClick={() => setShowPointsInfo(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -602,7 +620,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Create Group Modal */}
       {showCreateGroup && (
         <div className="modal-overlay" onClick={() => setShowCreateGroup(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -630,7 +647,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Join Group Modal */}
       {showJoinGroup && (
         <div className="modal-overlay" onClick={() => setShowJoinGroup(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -653,7 +669,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Moderner Header */}
       <header className="bg-gradient-to-r from-tvn-navy via-tvn-navy-dark to-tvn-navy text-white shadow-lg sticky top-0 z-50 backdrop-blur-sm bg-opacity-95">
         <div className="max-w-6xl mx-auto px-4 py-3">
           <div className="flex justify-between items-center">
@@ -687,7 +702,6 @@ export default function App() {
       </header>
 
       <main className="max-w-6xl mx-auto p-4 md:p-6">
-        {/* SPIELE VIEW */}
         {view === 'tips' && (
           <div>
             <h2 className="text-2xl font-heading font-bold text-tvn-text mb-2">Kommende Spiele</h2>
@@ -774,7 +788,6 @@ export default function App() {
           </div>
         )}
 
-        {/* ERGEBNISSE VIEW */}
         {view === 'results' && (
           <div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
@@ -862,7 +875,6 @@ export default function App() {
           </div>
         )}
 
-        {/* GRUPPEN VIEW */}
         {view === 'groups' && !selectedGroup && (
           <div>
             <div className="flex justify-between items-center mb-6">
@@ -908,7 +920,6 @@ export default function App() {
           </div>
         )}
 
-        {/* GRUPPE DETAIL VIEW */}
         {view === 'groups' && selectedGroup && (
           <div>
             <button onClick={() => setSelectedGroup(null)}
@@ -924,10 +935,12 @@ export default function App() {
                     {selectedGroup.is_public ? 'ÖFFENTLICH' : 'PRIVAT'}
                   </span>
                 </div>
-                <button onClick={() => deleteGroup(selectedGroup.id)}
-                  className="btn-ripple bg-red-600 text-white px-4 py-2 rounded-button font-heading font-semibold hover:bg-red-700 transition">
-                  Gruppe löschen
-                </button>
+                {selectedGroup.created_by === user.id && (
+                  <button onClick={() => deleteGroup(selectedGroup.id)}
+                    className="btn-ripple bg-red-600 text-white px-4 py-2 rounded-button font-heading font-semibold hover:bg-red-700 transition">
+                    Gruppe löschen
+                  </button>
+                )}
               </div>
               {!selectedGroup.is_public && (
                 <div className="bg-tvn-navy-dark p-4 rounded-input border border-tvn-beige-border">
@@ -955,13 +968,15 @@ export default function App() {
                       <td className="p-4 text-right font-mono font-bold text-tvn-gold">{row.total_points}</td>
                     </tr>
                   ))}
+                  {groupLeaderboard.length === 0 && (
+                    <tr><td colSpan="3" className="p-8 text-center text-gray-400 font-body">Noch keine gewerteten Spiele.</td></tr>
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
         )}
 
-        {/* LEADERBOARD VIEW */}
         {view === 'leaderboard' && (
           <div className="card-gradient rounded-card shadow-card overflow-hidden">
             <div className="p-6 border-b border-tvn-beige-border flex justify-between items-center">
