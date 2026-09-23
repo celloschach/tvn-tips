@@ -18,9 +18,9 @@ function extractAgeGroup(competition) {
   return '';
 }
 
-// Funktion: Spielstand sicher extrahieren (vermeidet Verwechslung mit Uhrzeiten!)
+// Funktion: Spielstand sicher extrahieren
 function extractScore(summary, description) {
-  // 1. Priorität: Das explizite "✅ ERGEBNIS:" in der Beschreibung (am sichersten)
+  // 1. Priorität: Das explizite "✅ ERGEBNIS:" in der Beschreibung
   const descMatch = description.match(/✅\s*ERGEBNIS:\s*(\d{1,3})\s*:\s*(\d{1,3})/i);
   if (descMatch) {
     return { home: parseInt(descMatch[1], 10), away: parseInt(descMatch[2], 10) };
@@ -28,13 +28,12 @@ function extractScore(summary, description) {
 
   // 2. Fallback: Suche im Summary (z.B. "Hürther BC 58:83 TV Neunkirchen")
   // Wir suchen nach Zahlen:Zahlen, die von Leerzeichen umgeben sind.
-  // Zusätzlich prüfen wir, ob NICHT "vs." im Text steht (was auf ein zukünftiges Spiel hindeutet).
   const sumMatch = summary.match(/\s(\d{1,3})\s*:\s*(\d{1,3})\s/);
   if (sumMatch && !summary.toLowerCase().includes(" vs. ")) {
     return { home: parseInt(sumMatch[1], 10), away: parseInt(sumMatch[2], 10) };
   }
 
-  return null; // Kein Ergebnis gefunden (Spiel liegt in der Zukunft)
+  return null; // Kein Ergebnis gefunden
 }
 
 async function sync() {
@@ -59,9 +58,11 @@ async function sync() {
         const ageGroup = extractAgeGroup(wettbewerb);
         const isCancelled = summary.includes('AUSGEFALLEN') || summary.includes('ABGESAGT');
 
-        // --- Spielstand extrahieren ---
+        // Spielstand extrahieren
         const score = extractScore(summary, desc);
         
+        // WICHTIG: home_score und away_score sind HIER bereits definiert (als null)
+        // Damit haben ALLE Objekte im Array exakt die gleichen Schlüssel!
         const gameData = {
           id: event.uid,
           summary: summary,
@@ -71,11 +72,12 @@ async function sync() {
           away_team: gastTeam,
           start_time: event.start ? event.start.toISOString() : null,
           location: event.location || '',
-          is_cancelled: isCancelled
+          is_cancelled: isCancelled,
+          home_score: null, 
+          away_score: null
         };
 
-        // NUR wenn ein Ergebnis gefunden wurde, fügen wir es dem Objekt hinzu.
-        // So verhindern wir, dass zukünftige Spiele bestehende Ergebnisse in der DB überschreiben!
+        // Wenn ein Ergebnis gefunden wurde, überschreiben wir das null mit der Zahl
         if (score !== null) {
           gameData.home_score = score.home;
           gameData.away_score = score.away;
