@@ -8,6 +8,21 @@ if (!supabaseUrl || !supabaseKey) {
   process.exit(1);
 }
 
+// Funktion: Altersklasse aus dem Wettbewerb-Text extrahieren
+function extractAgeGroup(competition) {
+  if (!competition) return '';
+  
+  // Suche nach Mustern wie "U10", "U12", "U14", "U16", "U18", "U20"
+  const match = competition.match(/U\d+/i);
+  if (match) return match[0].toUpperCase();
+  
+  // Falls es Herren/Damen sind
+  if (competition.toLowerCase().includes('herren')) return 'Herren';
+  if (competition.toLowerCase().includes('damen')) return 'Damen';
+  
+  return '';
+}
+
 async function sync() {
   console.log('Starte ICS-Sync...');
   try {
@@ -19,7 +34,6 @@ async function sync() {
       if (event.type === 'VEVENT') {
         const desc = event.description || '';
         
-        // Neue Extraktion für den Wettbewerb
         const wettbewerbMatch = desc.match(/Wettbewerb:\s*([^\n]+)/);
         const heimMatch = desc.match(/Heim:\s*([^\n]+)/);
         const gastMatch = desc.match(/Gast:\s*([^\n]+)/);
@@ -27,12 +41,14 @@ async function sync() {
         const wettbewerb = wettbewerbMatch ? wettbewerbMatch[1].trim() : 'Unbekannt';
         const heimTeam = heimMatch ? heimMatch[1].trim() : 'Unbekannt';
         const gastTeam = gastMatch ? gastMatch[1].trim() : 'Unbekannt';
+        const ageGroup = extractAgeGroup(wettbewerb);
         const isCancelled = event.summary.includes('AUSGEFALLEN') || event.summary.includes('ABGESAGT');
 
         games.push({
           id: event.uid,
           summary: event.summary,
-          competition: wettbewerb, // <-- NEU
+          competition: wettbewerb,
+          age_group: ageGroup,
           home_team: heimTeam,
           away_team: gastTeam,
           start_time: event.start ? event.start.toISOString() : null,
