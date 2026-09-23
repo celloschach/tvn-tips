@@ -123,7 +123,6 @@ function getDisplayTime(startTime) {
   return new Date(new Date(startTime).getTime() - 2 * 60 * 60 * 1000);
 }
 
-// Badge-Definitionen
 const BADGE_DEFINITIONS = {
   rookie: { icon: '🏀', name: 'Rookie', desc: 'Erster Tipp abgegeben' },
   perfect_shooter: { icon: '🎯', name: 'Perfekter Schuss', desc: '5 exakte Tipps' },
@@ -164,25 +163,17 @@ export default function App() {
   const confirmResolveRef = useRef(null);
   const cardsRef = useRef([]);
   const finishedCardsRef = useRef([]);
-  
-  // Dark Mode State
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('tvn-dark-mode');
     return saved !== null ? JSON.parse(saved) : true;
   });
-  
-  // Badges State
   const [badges, setBadges] = useState([]);
   const [weeklyChampion, setWeeklyChampion] = useState(null);
-  
-  // Kalender State
   const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth());
   const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
   const [selectedDate, setSelectedDate] = useState(null);
   const [gamesOnDate, setGamesOnDate] = useState([]);
-    // ============================================
-  // HELPER FUNKTIONEN
-  // ============================================
+
   function showToast(message, type = 'success') {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
@@ -211,9 +202,6 @@ export default function App() {
     }
   }
 
-  // ============================================
-  // NOTIFICATIONS
-  // ============================================
   async function requestNotificationPermission() {
     if ('Notification' in window && Notification.permission === 'default') {
       await Notification.requestPermission();
@@ -222,17 +210,10 @@ export default function App() {
 
   function sendNotification(title, body) {
     if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification(title, {
-        body,
-        icon: '🏀',
-        badge: '🏀',
-      });
+      new Notification(title, { body, icon: '🏀' });
     }
   }
 
-  // ============================================
-  // SCROLL OBSERVER
-  // ============================================
   const setupObserver = useCallback((refs) => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -262,9 +243,6 @@ export default function App() {
     }
   }, [finishedGames, myFinishedGames, resultTab, view, setupObserver]);
 
-  // ============================================
-  // DARK MODE
-  // ============================================
   useEffect(() => {
     localStorage.setItem('tvn-dark-mode', JSON.stringify(darkMode));
     if (darkMode) {
@@ -274,9 +252,6 @@ export default function App() {
     }
   }, [darkMode]);
 
-  // ============================================
-  // AUTH & INITIAL LOAD
-  // ============================================
   async function loadUsername(userId) {
     const { data } = await supabase.from('profiles').select('username').eq('id', userId).single();
     if (data) setUsername(data.username);
@@ -320,9 +295,6 @@ export default function App() {
     return () => authListener.subscription.unsubscribe();
   }, []);
 
-  // ============================================
-  // DATA LOADING
-  // ============================================
   async function loadData(userId) {
     setLoading(true);
     try {
@@ -399,15 +371,9 @@ export default function App() {
     }
   }
 
-  // ============================================
-  // GROUP ACTIONS
-  // ============================================
   async function createGroup() {
     const nameCheck = isNameAllowed(newGroupName);
-    if (!nameCheck.ok) {
-      showToast(nameCheck.msg, 'error');
-      return;
-    }
+    if (!nameCheck.ok) { showToast(nameCheck.msg, 'error'); return; }
     try {
       const { data: codeData } = await supabase.rpc('generate_join_code');
       const code = codeData || Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -434,31 +400,22 @@ export default function App() {
   }
 
   async function joinGroupWithCode() {
-    if (!joinCode.trim()) {
-      showToast('Bitte Beitrittscode eingeben.', 'error');
-      return;
-    }
+    if (!joinCode.trim()) { showToast('Bitte Beitrittscode eingeben.', 'error'); return; }
     try {
       const { data: group, error: groupError } = await supabase
         .from('groups')
         .select('*')
         .eq('join_code', joinCode.toUpperCase())
         .single();
-      if (groupError || !group) {
-        showToast('Ungültiger Beitrittscode.', 'error');
-        return;
-      }
+      if (groupError || !group) { showToast('Ungültiger Beitrittscode.', 'error'); return; }
       const { error: memberError } = await supabase.from('group_members').insert({
         group_id: group.id,
         user_id: user.id,
         is_admin: false,
       });
       if (memberError) {
-        if (memberError.code === '23505') {
-          showToast('Du bist bereits Mitglied.', 'info');
-        } else {
-          throw memberError;
-        }
+        if (memberError.code === '23505') showToast('Du bist bereits Mitglied.', 'info');
+        else throw memberError;
       } else {
         showToast('Beigetreten! 🎉', 'success');
       }
@@ -478,11 +435,8 @@ export default function App() {
         is_admin: false,
       });
       if (error) {
-        if (error.code === '23505') {
-          showToast('Du bist bereits Mitglied.', 'info');
-        } else {
-          throw error;
-        }
+        if (error.code === '23505') showToast('Du bist bereits Mitglied.', 'info');
+        else throw error;
       } else {
         showToast('Beigetreten! 🎉', 'success');
       }
@@ -535,26 +489,19 @@ export default function App() {
     }
   }
 
-  // ============================================
-  // AUTH
-  // ============================================
   async function handleLogin(e) {
     e.preventDefault();
     setMsg('');
     if (isRegistering) {
       const nameCheck = isNameAllowed(regUsername);
-      if (!nameCheck.ok) {
-        setMsg(nameCheck.msg);
-        return;
-      }
+      if (!nameCheck.ok) { setMsg(nameCheck.msg); return; }
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: { data: { username: regUsername.trim() } },
       });
-      if (error) {
-        setMsg('Fehler: ' + error.message);
-      } else {
+      if (error) setMsg('Fehler: ' + error.message);
+      else {
         showToast('Registrierung erfolgreich!', 'success');
         setRegUsername('');
         setIsRegistering(false);
@@ -579,14 +526,8 @@ export default function App() {
     setBadges([]);
   }
 
-  // ============================================
-  // TIPS
-  // ============================================
   async function submitTip(gameId, homeScore, awayScore) {
-    if (!homeScore || !awayScore) {
-      showToast('Bitte beide Ergebnisse eingeben.', 'error');
-      return;
-    }
+    if (!homeScore || !awayScore) { showToast('Bitte beide Ergebnisse eingeben.', 'error'); return; }
     try {
       const { data: existing } = await supabase
         .from('predictions')
@@ -637,9 +578,6 @@ export default function App() {
     }
   }
 
-  // ============================================
-  // KALENDER
-  // ============================================
   async function loadCalendarGames(year, month) {
     const startDate = new Date(year, month, 1);
     const endDate = new Date(year, month + 1, 0, 23, 59, 59);
@@ -663,21 +601,18 @@ export default function App() {
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay();
+    let startingDayOfWeek = firstDay.getDay();
+    startingDayOfWeek = startingDayOfWeek === 0 ? 6 : startingDayOfWeek - 1;
     const days = [];
-    for (let i = 0; i < startingDayOfWeek; i++) {
-      days.push(null);
-    }
-    for (let i = 1; i <= daysInMonth; i++) {
-      days.push(i);
-    }
+    for (let i = 0; i < startingDayOfWeek; i++) days.push(null);
+    for (let i = 1; i <= daysInMonth; i++) days.push(i);
     return days;
   }
 
   function getGamesForDay(day) {
     if (!day) return [];
     return gamesOnDate.filter(game => {
-      const gameDate = new Date(game.start_time);
+      const gameDate = getDisplayTime(game.start_time);
       return gameDate.getDate() === day &&
              gameDate.getMonth() === calendarMonth &&
              gameDate.getFullYear() === calendarYear;
@@ -691,6 +626,7 @@ export default function App() {
     } else {
       setCalendarMonth(calendarMonth - 1);
     }
+    setSelectedDate(null);
   }
 
   function nextMonth() {
@@ -700,11 +636,9 @@ export default function App() {
     } else {
       setCalendarMonth(calendarMonth + 1);
     }
+    setSelectedDate(null);
   }
 
-  // ============================================
-  // GAME HELPERS
-  // ============================================
   function isGameStarted(startTime) {
     return new Date(new Date(startTime).getTime() - 2 * 60 * 60 * 1000) <= new Date();
   }
@@ -715,16 +649,9 @@ export default function App() {
     const tvnH = h.includes('neunkirchen') || h.includes('tvn');
     const tvnA = a.includes('neunkirchen') || a.includes('tvn');
     let w = false, l = false;
-    if (tvnH) {
-      w = game.home_score > game.away_score;
-      l = game.home_score < game.away_score;
-    } else if (tvnA) {
-      w = game.away_score > game.home_score;
-      l = game.away_score < game.home_score;
-    } else {
-      w = game.home_score > game.away_score;
-      l = game.home_score < game.away_score;
-    }
+    if (tvnH) { w = game.home_score > game.away_score; l = game.home_score < game.away_score; }
+    else if (tvnA) { w = game.away_score > game.home_score; l = game.away_score < game.home_score; }
+    else { w = game.home_score > game.away_score; l = game.home_score < game.away_score; }
     if (game.home_score === game.away_score) {
       return <span className="badge-draw text-xs px-3 py-1.5 rounded-button font-mono font-bold">UNENTSCHIEDEN</span>;
     }
@@ -763,7 +690,8 @@ export default function App() {
     const idx = leaderboard.findIndex(r => r.username === username);
     return idx >= 0 ? idx + 1 : null;
   }
-    // ==================== LOGIN VIEW ====================
+
+  // ==================== LOGIN ====================
   if (!user) {
     return (
       <div className="min-h-screen bg-dark-900 flex items-center justify-center p-4">
@@ -824,10 +752,9 @@ export default function App() {
     );
   }
 
-  // ==================== MAIN VIEW ====================
+  // ==================== MAIN ====================
   return (
     <div className="min-h-screen bg-dark-900">
-      {/* Toast Notification */}
       {toast && (
         <div className={`toast ${toast.type === 'success' ? 'toast-success' : toast.type === 'error' ? 'toast-error' : 'toast-info'}`}>
           <div className="px-6 py-4 rounded-card shadow-card font-body font-semibold flex items-center gap-2">
@@ -837,7 +764,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Confirm Modal */}
       {confirmModal && (
         <div className="modal-overlay" onClick={handleConfirmNo}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -858,52 +784,23 @@ export default function App() {
         </div>
       )}
 
-      {/* Points Info Modal */}
       {showPointsInfo && (
         <div className="modal-overlay" onClick={() => setShowPointsInfo(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-xl font-heading font-bold text-white mb-4">🏆 Punkte-System</h3>
             <div className="space-y-3 font-body text-gray-400">
-              <div className="flex items-start gap-3">
-                <span className="text-2xl">🎯</span>
-                <div>
-                  <div className="font-bold text-white">5 Punkte</div>
-                  <div className="text-sm">Exaktes Ergebnis</div>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-2xl">👍</span>
-                <div>
-                  <div className="font-bold text-white">3 Punkte</div>
-                  <div className="text-sm">Innerhalb von 10 Punkten Differenz</div>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-2xl">✓</span>
-                <div>
-                  <div className="font-bold text-white">1 Punkt</div>
-                  <div className="text-sm">Richtige Tendenz</div>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-2xl">❌</span>
-                <div>
-                  <div className="font-bold text-white">0 Punkte</div>
-                  <div className="text-sm">Falsch getippt</div>
-                </div>
-              </div>
+              <div className="flex items-start gap-3"><span className="text-2xl">🎯</span><div><div className="font-bold text-white">5 Punkte</div><div className="text-sm">Exaktes Ergebnis</div></div></div>
+              <div className="flex items-start gap-3"><span className="text-2xl">👍</span><div><div className="font-bold text-white">3 Punkte</div><div className="text-sm">Innerhalb von 10 Punkten Differenz</div></div></div>
+              <div className="flex items-start gap-3"><span className="text-2xl">✓</span><div><div className="font-bold text-white">1 Punkt</div><div className="text-sm">Richtige Tendenz</div></div></div>
+              <div className="flex items-start gap-3"><span className="text-2xl">❌</span><div><div className="font-bold text-white">0 Punkte</div><div className="text-sm">Falsch getippt</div></div></div>
             </div>
-            <button
-              onClick={() => setShowPointsInfo(false)}
-              className="mt-6 w-full glow-button bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 px-4 py-3 rounded-button font-heading font-bold hover:shadow-glow transition"
-            >
+            <button onClick={() => setShowPointsInfo(false)} className="mt-6 w-full glow-button bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 px-4 py-3 rounded-button font-heading font-bold hover:shadow-glow transition">
               Verstanden
             </button>
           </div>
         </div>
       )}
 
-      {/* Create Group Modal */}
       {showCreateGroup && (
         <div className="modal-overlay" onClick={() => setShowCreateGroup(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -917,12 +814,7 @@ export default function App() {
                 className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold outline-none font-body"
               />
               <label className="flex items-center gap-2 font-body text-gray-400">
-                <input
-                  type="checkbox"
-                  checked={newGroupIsPublic}
-                  onChange={(e) => setNewGroupIsPublic(e.target.checked)}
-                  className="w-5 h-5"
-                />
+                <input type="checkbox" checked={newGroupIsPublic} onChange={(e) => setNewGroupIsPublic(e.target.checked)} className="w-5 h-5" />
                 <span>Öffentliche Gruppe</span>
               </label>
               <div className="flex gap-3">
@@ -938,7 +830,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Join Group Modal */}
       {showJoinGroup && (
         <div className="modal-overlay" onClick={() => setShowJoinGroup(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -964,7 +855,7 @@ export default function App() {
         </div>
       )}
 
-      {/* SIDEBAR (Desktop) */}
+      {/* SIDEBAR */}
       <aside className="sidebar hidden lg:flex flex-col">
         <div className="p-6 border-b border-white/10">
           <button onClick={() => setView('tips')} className="flex items-center gap-2 hover:opacity-80 transition">
@@ -997,7 +888,6 @@ export default function App() {
           ))}
         </nav>
         <div className="p-4 border-t border-white/10 space-y-3">
-          {/* Badges */}
           {badges.length > 0 && (
             <div className="flex flex-wrap gap-1 mb-3">
               {badges.map((badge) => (
@@ -1007,7 +897,6 @@ export default function App() {
               ))}
             </div>
           )}
-          {/* Dark Mode Toggle */}
           <button
             onClick={() => setDarkMode(!darkMode)}
             className="w-full flex items-center justify-between px-4 py-2 rounded-button bg-dark-700 hover:bg-dark-600 transition"
@@ -1019,7 +908,6 @@ export default function App() {
               <div className={`w-4 h-4 rounded-full bg-white transition-transform ${darkMode ? 'translate-x-6' : 'translate-x-0'}`} />
             </div>
           </button>
-          {/* User Info */}
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-gradient-to-r from-neon-purple to-neon-pink flex items-center justify-center text-white font-bold">
               {username?.[0]?.toUpperCase() || 'U'}
@@ -1038,7 +926,7 @@ export default function App() {
         </div>
       </aside>
 
-      {/* HEADER (Mobile) */}
+      {/* HEADER MOBILE */}
       <header className="lg:hidden bg-dark-800 border-b border-white/10 p-4 sticky top-0 z-50">
         <div className="flex justify-between items-center">
           <button onClick={() => setView('tips')} className="flex items-center gap-2">
@@ -1063,10 +951,10 @@ export default function App() {
 
       {/* MAIN CONTENT */}
       <main className="lg:ml-60 p-4 md:p-6 pb-24 lg:pb-6">
+
         {/* ===== SPIELE ===== */}
         {view === 'tips' && (
           <div>
-            {/* Hero Section */}
             <div className="glass-card rounded-card p-6 mb-6 bg-gradient-to-r from-neon-purple/10 to-neon-pink/10">
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div>
@@ -1074,7 +962,6 @@ export default function App() {
                     Hallo {username}! 👋
                   </h1>
                   <p className="text-gray-400 font-body">Spiele der nächsten 7 Tage</p>
-                  {/* Badges */}
                   {badges.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-3">
                       {badges.map((badge) => (
@@ -1097,7 +984,7 @@ export default function App() {
                   </div>
                   {weeklyChampion && (
                     <div className="mt-2 text-xs bg-neon-gold/20 text-neon-gold px-2 py-1 rounded-button font-mono font-bold">
-                      👑 Champion: {weeklyChampion.username}
+                      👑 {weeklyChampion.username}
                     </div>
                   )}
                 </div>
@@ -1315,45 +1202,52 @@ export default function App() {
         {view === 'calendar' && (
           <div>
             <h2 className="text-xl font-heading font-bold text-white mb-4">📅 Spielkalender</h2>
-            <div className="glass-card rounded-card p-6 mb-6">
+            <div className="glass-card rounded-card p-4 md:p-6">
               <div className="flex justify-between items-center mb-4">
-                <button onClick={prevMonth} className="glow-button bg-dark-700 text-white px-4 py-2 rounded-button font-heading font-semibold hover:bg-dark-600 transition">
-                  ← Zurück
+                <button onClick={prevMonth} className="glow-button bg-dark-700 text-white px-3 py-1.5 rounded-button font-heading font-semibold hover:bg-dark-600 transition text-sm">
+                  ←
                 </button>
-                <h3 className="text-lg font-heading font-bold text-white">
+                <h3 className="text-base md:text-lg font-heading font-bold text-white capitalize">
                   {new Date(calendarYear, calendarMonth).toLocaleString('de-DE', { month: 'long', year: 'numeric' })}
                 </h3>
-                <button onClick={nextMonth} className="glow-button bg-dark-700 text-white px-4 py-2 rounded-button font-heading font-semibold hover:bg-dark-600 transition">
-                  Weiter →
+                <button onClick={nextMonth} className="glow-button bg-dark-700 text-white px-3 py-1.5 rounded-button font-heading font-semibold hover:bg-dark-600 transition text-sm">
+                  →
                 </button>
               </div>
-              {/* Wochentage Header */}
-              <div className="calendar-grid mb-2">
+
+              <div className="calendar-grid mb-1">
                 {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map((day) => (
-                  <div key={day} className="text-center text-xs font-mono font-bold text-gray-500 py-2">
+                  <div key={day} className="text-center text-xs font-mono font-bold text-gray-500 py-1">
                     {day}
                   </div>
                 ))}
               </div>
-              {/* Kalender Grid */}
+
               <div className="calendar-grid">
                 {getCalendarDays(calendarYear, calendarMonth).map((day, idx) => {
                   const dayGames = getGamesForDay(day);
                   const hasGames = dayGames.length > 0;
                   const isToday = day === new Date().getDate() && calendarMonth === new Date().getMonth() && calendarYear === new Date().getFullYear();
+                  const isSelected = selectedDate === day;
                   return (
                     <div
                       key={idx}
-                      onClick={() => day && hasGames && setSelectedDate(day)}
-                      className={`calendar-day ${hasGames ? 'has-games' : ''} ${isToday ? 'today' : ''} ${!day ? 'opacity-0' : ''}`}
+                      onClick={() => {
+                        if (day && hasGames) {
+                          setSelectedDate(isSelected ? null : day);
+                        }
+                      }}
+                      className={`calendar-day ${hasGames ? 'has-games' : ''} ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''} ${!day ? 'opacity-0 pointer-events-none' : ''}`}
                     >
                       {day && (
                         <>
-                          <span className="text-sm font-body text-white">{day}</span>
+                          <span className={`text-sm font-body ${isSelected ? 'text-neon-gold font-bold' : 'text-white'}`}>
+                            {day}
+                          </span>
                           {hasGames && (
-                            <div className="flex gap-0.5 mt-1">
+                            <div className="flex gap-0.5 mt-0.5">
                               {dayGames.slice(0, 3).map((_, i) => (
-                                <div key={i} className="w-1.5 h-1.5 rounded-full bg-neon-gold" />
+                                <div key={i} className={`w-1 h-1 rounded-full ${isSelected ? 'bg-white' : 'bg-neon-gold'}`} />
                               ))}
                             </div>
                           )}
@@ -1365,40 +1259,57 @@ export default function App() {
               </div>
             </div>
 
-            {/* Spiele am ausgewählten Tag */}
-            {selectedDate && (
-              <div className="glass-card rounded-card p-6">
-                <h3 className="text-lg font-heading font-bold text-white mb-4">
-                  Spiele am {selectedDate}. {new Date(calendarYear, calendarMonth).toLocaleString('de-DE', { month: 'long' })}
-                </h3>
-                <div className="space-y-3">
+            {selectedDate && getGamesForDay(selectedDate).length > 0 && (
+              <div className="glass-card rounded-card p-4 mt-4">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="text-sm font-heading font-bold text-neon-gold">
+                    📅 {selectedDate}. {new Date(calendarYear, calendarMonth).toLocaleString('de-DE', { month: 'long' })}
+                  </h3>
+                  <button onClick={() => setSelectedDate(null)} className="text-gray-500 hover:text-white transition text-lg">
+                    ✕
+                  </button>
+                </div>
+                <div className="space-y-2">
                   {getGamesForDay(selectedDate).map((game) => {
                     const hD = game.age_group ? `${game.age_group} ${game.home_team}` : game.home_team;
                     const aD = game.age_group ? `${game.age_group} ${game.away_team}` : game.away_team;
                     const dT = getDisplayTime(game.start_time);
+                    const hasResult = game.home_score !== null;
                     return (
-                      <div key={game.id} className="bg-dark-700 p-4 rounded-button border border-white/5">
-                        <div className="text-xs text-gray-500 mb-2 font-body">
-                          🕐 {dT.toLocaleString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr
+                      <div key={game.id} className="bg-dark-700 rounded-button border border-white/5 overflow-hidden">
+                        <div className="px-3 py-1.5 bg-dark-800 flex justify-between items-center">
+                          <span className="text-xs text-gray-500 font-body">
+                            🕐 {dT.toLocaleString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr
+                          </span>
+                          <span className="text-xs font-mono text-neon-gold">{game.competition || 'Liga'}</span>
                         </div>
-                        <div className="flex justify-between items-center text-white">
-                          <span className="font-heading font-bold">{hD}</span>
-                          <span className="text-neon-gold px-2">vs</span>
-                          <span className="font-heading font-bold">{aD}</span>
+                        <div className="calendar-game">
+                          <span className="team-left text-sm font-heading font-bold text-white">
+                            {hD}
+                          </span>
+                          <span className="vs-score">
+                            {hasResult ? (
+                              <span className="text-neon-gold font-mono font-bold text-sm">
+                                {game.home_score}:{game.away_score}
+                              </span>
+                            ) : (
+                              <span className="text-gray-500 font-heading text-xs">vs</span>
+                            )}
+                          </span>
+                          <span className="team-right text-sm font-heading font-bold text-white">
+                            {aD}
+                          </span>
                         </div>
                       </div>
                     );
                   })}
                 </div>
-                <button onClick={() => setSelectedDate(null)} className="mt-4 text-neon-gold hover:text-neon-pink font-heading font-semibold transition">
-                  ← Zurück zum Kalender
-                </button>
               </div>
             )}
           </div>
         )}
 
-        {/* ===== GRUPPEN LISTE ===== */}
+        {/* ===== GRUPPEN ===== */}
         {view === 'groups' && !selectedGroup && (
           <div>
             <div className="flex justify-between items-center mb-6">
@@ -1439,7 +1350,6 @@ export default function App() {
           </div>
         )}
 
-        {/* ===== GRUPPE DETAIL ===== */}
         {view === 'groups' && selectedGroup && (
           <div>
             <button onClick={() => setSelectedGroup(null)} className="mb-4 text-neon-gold hover:text-neon-pink font-heading font-semibold transition">
@@ -1454,7 +1364,6 @@ export default function App() {
                   </span>
                 </div>
                 <div className="flex gap-2 flex-wrap">
-                  {/* Beitreten-Button für öffentliche Gruppen */}
                   {selectedGroup.is_public && selectedGroup.created_by !== user.id && !groupMembers.some((m) => m.user_id === user.id) && (
                     <button
                       onClick={() => joinPublicGroup(selectedGroup.id)}
@@ -1478,7 +1387,6 @@ export default function App() {
               )}
             </div>
 
-            {/* Mitglieder */}
             <div className="glass-card rounded-card overflow-hidden mb-6">
               <h3 className="text-lg font-heading font-bold p-4 border-b border-white/10 text-white flex items-center gap-2">
                 <span>👥</span> Mitglieder
@@ -1517,7 +1425,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Gruppen Leaderboard */}
             <div className="glass-card rounded-card overflow-hidden">
               <h3 className="text-lg font-heading font-bold p-4 border-b border-white/10 text-white">🏆 Leaderboard</h3>
               <table className="w-full text-left">
@@ -1559,7 +1466,6 @@ export default function App() {
                 ℹ️ Punkte
               </button>
             </div>
-            {/* Wochen-Champion */}
             {weeklyChampion && (
               <div className="p-4 bg-gradient-to-r from-neon-gold/20 to-neon-pink/20 border-b border-white/10">
                 <div className="flex items-center gap-3">
@@ -1607,7 +1513,7 @@ export default function App() {
         )}
       </main>
 
-      {/* BOTTOM NAVIGATION (Mobile) */}
+      {/* BOTTOM NAV MOBILE */}
       <nav className="bottom-nav lg:hidden">
         <div className="flex justify-around items-center">
           {[
