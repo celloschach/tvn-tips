@@ -1,7 +1,11 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 
+// ============================================
+// NAMENSFILTER - Nur exakte Matches
+// ============================================
 const BLOCKED_WORDS = [
+  // Deutsch
   'arsch', 'arschloch', 'scheisse', 'scheiße', 'fick', 'ficken', 'ficker',
   'hure', 'hurensohn', 'wichser', 'wixer', 'spast', 'spasti', 'mongo',
   'behindert', 'idiot', 'depp', 'trottel', 'vollidiot', 'miststück',
@@ -9,26 +13,31 @@ const BLOCKED_WORDS = [
   'schlampe', 'fotze', 'muschi', 'schwanz', 'dödel', 'sack', 'eier', 'titten',
   'bumsen', 'vögeln', 'kotzen', 'pisse', 'kacke', 'kacken', 'scheissen', 'furz',
   'nazi', 'hitler', 'faschist', 'terrorist',
+  // Englisch
   'ass', 'asshole', 'bastard', 'bitch', 'bloody', 'bollocks', 'bullshit',
   'cock', 'cunt', 'damn', 'dick', 'douche', 'dumbass', 'fag', 'fuck', 'fucking',
   'fucker', 'fucked', 'goddamn', 'hell', 'jackass', 'jerk', 'motherfucker',
   'nigger', 'nigga', 'piss', 'prick', 'pussy', 'retard', 'shit', 'shitty',
   'slut', 'twat', 'wanker', 'whore', 'penis', 'vagina', 'porn', 'sex', 'nude',
   'kill', 'murder', 'suicide', 'die', 'death', 'dead',
+  // Russisch (transliteriert + Kyrillisch)
   'blyat', 'blya', 'suka', 'suki', 'pizda', 'pizdec', 'хуй', 'хуя',
   'hui', 'huya', 'ebat', 'ebal', 'yebat', 'yebal', 'govno', 'govnoed',
   'mudak', 'mudaki', 'zalupa', 'blin', 'dermo', 'svinja', 'svinya',
   'блять', 'бля', 'сука', 'пизда', 'пиздец', 'ебать', 'ебал', 'говно',
   'мудак', 'залупа', 'свинья',
+  // Türkisch
   'siktir', 'sikerim', 'sik', 'siki', 'sikik', 'orospu', 'orospu cocugu',
   'cocugu', 'piç', 'pic', 'yarrak', 'göt', 'got', 'amcik', 'amcık',
   'pezevenk', 'şerefsiz', 'serefsiz', 'haysiyetsiz', 'alçak', 'alcak',
   'gerizekalı', 'gerizekali', 'geri zekalı', 'mal', 'dangalak',
   'kevaşe', 'kevase', 'fahişe', 'fahise',
+  // Weitere Sprachen
   'puta', 'mierda', 'culo', 'cabron', 'maricon', 'pendejo',
   'merde', 'connard', 'salaud', 'pute', 'bordel', 'encule',
   'cazzo', 'merda', 'stronzo', 'vaffanculo', 'porco',
   'kurwa', 'pierdolic', 'jebac', 'chuj', 'dupa',
+  // System-Namen
   'admin', 'administrator', 'moderator', 'mod', 'system', 'root',
   'official', 'offiziell', 'tvn', 'verein', 'staff', 'support',
   'help', 'hilfe', 'bot', 'robot', 'null', 'undefined', 'test',
@@ -41,41 +50,24 @@ const BLOCKED_WORDS = [
   'meth', 'crack', 'pille', 'pill',
 ];
 
-function normalizeText(text) {
-  if (!text) return '';
-  let n = text.toLowerCase();
-  const leetMap = { '0':'o','1':'i','3':'e','4':'a','5':'s','7':'t','8':'b','@':'a','$':'s','!':'i','+':'t' };
-  n = n.replace(/[0134578@\$!+]/g, c => leetMap[c] || c);
-  const sim = {
-    'ä':'a','ö':'o','ü':'u','ß':'ss','é':'e','è':'e','ê':'e','ë':'e',
-    'á':'a','à':'a','â':'a','å':'a','í':'i','ì':'i','î':'i','ï':'i',
-    'ó':'o','ò':'o','ô':'o','ø':'o','ú':'u','ù':'u','û':'u','ñ':'n','ç':'c',
-    'к':'k','р':'p','о':'o','а':'a','е':'e','с':'c','т':'t','у':'y','х':'h',
-    'д':'d','л':'l','м':'m','н':'n','з':'z','г':'g','ш':'sh','щ':'sh',
-    'ф':'f','в':'v','б':'b','п':'p','й':'y','ц':'ts','ч':'ch','ж':'zh',
-  };
-  n = n.replace(/[äöüßéèêëáàâåíìîïóòôøúùûñçк-я]/g, c => sim[c] || c);
-  n = n.replace(/(.)\1+/g, '$1');
-  n = n.replace(/[^a-z]/g, '');
-  return n;
-}
-
-// Nur exakte Matches, keine Ähnlichkeitsprüfung
+// Einfache Prüfung: Nur exakte Matches
 function isNameAllowed(name) {
-  if (!name || name.trim().length < 2) return { ok: false, msg: 'Name muss mindestens 2 Zeichen haben.' };
-  if (name.trim().length > 20) return { ok: false, msg: 'Name darf maximal 20 Zeichen haben.' };
-  if (!/^[a-zA-Z0-9äöüÄÖÜßéèêëáàâåíìîïóòôøúùûñçа-яА-Я_.\- ]+$/.test(name)) {
-    return { ok: false, msg: 'Unerlaubte Zeichen im Namen.' };
+  if (!name || name.trim().length < 2) {
+    return { ok: false, msg: 'Name muss mindestens 2 Zeichen haben.' };
   }
+  if (name.trim().length > 20) {
+    return { ok: false, msg: 'Name darf maximal 20 Zeichen haben.' };
+  }
+  
   const lower = name.toLowerCase().trim();
-  const normalized = normalizeText(lower);
+  
   for (const word of BLOCKED_WORDS) {
-    const wl = word.toLowerCase();
-    const wn = normalizeText(wl);
-    if (lower.includes(wl) || normalized.includes(wn)) {
+    // Nur exaktes Match (als ganzes Wort oder exakter Teilstring)
+    if (lower === word || lower.includes(word)) {
       return { ok: false, msg: 'Dieser Name ist nicht erlaubt.' };
     }
   }
+  
   return { ok: true, msg: '' };
 }
 
@@ -85,6 +77,7 @@ const BADGE_DEFS = {
   perfect_shooter: { icon: '🎯', name: 'Perfekter Schuss', desc: '5 exakte Tipps' },
   century: { icon: '💯', name: 'Centurion', desc: '100 Punkte erreicht' },
 };
+
 
 export default function App() {
   const [user, setUser] = useState(null);
