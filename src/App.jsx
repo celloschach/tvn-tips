@@ -60,22 +60,6 @@ function normalizeText(text) {
   return n;
 }
 
-function calculateSimilarity(s1, s2) {
-  if (s1 === s2) return 1;
-  if (!s1 || !s2) return 0;
-  const l1 = s1.length, l2 = s2.length;
-  const m = Array(l2+1).fill(null).map(() => Array(l1+1).fill(0));
-  for (let i = 0; i <= l1; i++) m[0][i] = i;
-  for (let j = 0; j <= l2; j++) m[j][0] = j;
-  for (let j = 1; j <= l2; j++) {
-    for (let i = 1; i <= l1; i++) {
-      const c = s1[i-1] === s2[j-1] ? 0 : 1;
-      m[j][i] = Math.min(m[j][i-1]+1, m[j-1][i]+1, m[j-1][i-1]+c);
-    }
-  }
-  return 1 - m[l2][l1] / Math.max(l1, l2);
-}
-
 function isNameAllowed(name) {
   if (!name || name.trim().length < 2) return { ok: false, msg: 'Name muss mindestens 2 Zeichen haben.' };
   if (name.trim().length > 20) return { ok: false, msg: 'Name darf maximal 20 Zeichen haben.' };
@@ -87,8 +71,7 @@ function isNameAllowed(name) {
   for (const word of BLOCKED_WORDS) {
     const wl = word.toLowerCase();
     const wn = normalizeText(wl);
-    if (lower.includes(wl) || normalized.includes(wn)) return { ok: false, msg: 'Dieser Name ist nicht erlaubt.' };
-    if (normalized.length > 3 && wn.length > 3 && calculateSimilarity(normalized, wn) > 0.8) {
+    if (lower.includes(wl) || normalized.includes(wn)) {
       return { ok: false, msg: 'Dieser Name ist nicht erlaubt.' };
     }
   }
@@ -202,7 +185,7 @@ export default function App() {
 
   async function loadBadges(uid) {
     const { data } = await supabase.from('badges').select('*').eq('user_id', uid);
-    setBadges(data || []);
+    setBadges((data || []).filter(b => BADGE_DEFS[b.badge_type]));
   }
 
   async function loadWeeklyChampion() {
@@ -497,59 +480,39 @@ export default function App() {
   function getBadgeName(t) { return BADGE_DEFS[t]?.name || t; }
   function getMyPoints() { return leaderboard.find(r => r.username === username)?.total_points || 0; }
   function getMyRank() { const i = leaderboard.findIndex(r => r.username === username); return i >= 0 ? i+1 : null; }
-    // ==================== LOGIN ====================
+
+  function hasTipChanged(gameId) {
+    const currentTip = myTips[gameId];
+    const currentH = tips[gameId + 'h'];
+    const currentA = tips[gameId + 'a'];
+    if (!currentTip) return currentH !== '' && currentA !== '';
+    return currentH !== currentTip.predicted_home_score?.toString() || currentA !== currentTip.predicted_away_score?.toString();
+  }
+
   if (!user) {
     return (
       <div className="min-h-screen bg-dark-900 flex items-center justify-center p-4">
         <div className="glass-card p-8 rounded-card shadow-card max-w-md w-full">
           <div className="text-center mb-6">
             <div className="text-5xl mb-3">🏀</div>
-            <h1 className="text-3xl font-heading font-bold bg-gradient-to-r from-neon-gold to-neon-pink bg-clip-text text-transparent">
-              TVN Tipp-Spiel
-            </h1>
-            <p className="text-gray-400 font-body mt-2">
-              {isRegistering ? 'Erstelle deinen Account' : 'Willkommen zurück'}
-            </p>
+            <h1 className="text-3xl font-heading font-bold bg-gradient-to-r from-neon-gold to-neon-pink bg-clip-text text-transparent">TVN Tipp-Spiel</h1>
+            <p className="text-gray-400 font-body mt-2">{isRegistering ? 'Erstelle deinen Account' : 'Willkommen zurück'}</p>
           </div>
           <form onSubmit={handleLogin} className="space-y-4">
             {isRegistering && (
-              <input
-                type="text"
-                placeholder="Benutzername"
-                value={regUsername}
-                onChange={(e) => setRegUsername(e.target.value)}
-                className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold focus:ring-2 focus:ring-neon-gold/20 outline-none font-body transition"
-                required
-              />
+              <input type="text" placeholder="Benutzername" value={regUsername} onChange={(e) => setRegUsername(e.target.value)}
+                className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold focus:ring-2 focus:ring-neon-gold/20 outline-none font-body transition" required />
             )}
-            <input
-              type="email"
-              placeholder="E-Mail-Adresse"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold focus:ring-2 focus:ring-neon-gold/20 outline-none font-body transition"
-              required
-            />
-            <input
-              type="password"
-              placeholder="Passwort"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold focus:ring-2 focus:ring-neon-gold/20 outline-none font-body transition"
-              required
-              minLength={6}
-            />
-            <button
-              type="submit"
-              className="glow-button w-full bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 p-3 rounded-button font-heading font-bold hover:shadow-glow transition"
-            >
+            <input type="email" placeholder="E-Mail-Adresse" value={email} onChange={(e) => setEmail(e.target.value)}
+              className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold focus:ring-2 focus:ring-neon-gold/20 outline-none font-body transition" required />
+            <input type="password" placeholder="Passwort" value={password} onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold focus:ring-2 focus:ring-neon-gold/20 outline-none font-body transition" required minLength={6} />
+            <button type="submit" className="glow-button w-full bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 p-3 rounded-button font-heading font-bold hover:shadow-glow transition">
               {isRegistering ? 'Registrieren' : 'Anmelden'}
             </button>
           </form>
-          <button
-            onClick={() => { setIsRegistering(!isRegistering); setMsg(''); }}
-            className="w-full mt-4 text-neon-gold hover:text-neon-pink text-sm font-medium font-body transition"
-          >
+          <button onClick={() => { setIsRegistering(!isRegistering); setMsg(''); }}
+            className="w-full mt-4 text-neon-gold hover:text-neon-pink text-sm font-medium font-body transition">
             {isRegistering ? 'Zurück zum Login' : 'Noch keinen Account? Registrieren'}
           </button>
           {msg && <p className="mt-4 text-sm text-center text-neon-red font-medium font-body">{msg}</p>}
@@ -558,7 +521,6 @@ export default function App() {
     );
   }
 
-  // ==================== MAIN ====================
   return (
     <div className="min-h-screen bg-dark-900">
       {toast && (
@@ -579,12 +541,8 @@ export default function App() {
             </div>
             <p className="text-gray-400 font-body mb-6 text-center">{confirmModal.message}</p>
             <div className="flex gap-3">
-              <button onClick={handleConfirmNo} className="flex-1 glow-button bg-dark-700 text-white px-4 py-3 rounded-button font-heading font-semibold hover:bg-dark-600 transition">
-                Abbrechen
-              </button>
-              <button onClick={handleConfirmYes} className="flex-1 glow-button bg-neon-red text-white px-4 py-3 rounded-button font-heading font-semibold hover:bg-red-700 transition">
-                Bestätigen
-              </button>
+              <button onClick={handleConfirmNo} className="flex-1 glow-button bg-dark-700 text-white px-4 py-3 rounded-button font-heading font-semibold hover:bg-dark-600 transition">Abbrechen</button>
+              <button onClick={handleConfirmYes} className="flex-1 glow-button bg-neon-red text-white px-4 py-3 rounded-button font-heading font-semibold hover:bg-red-700 transition">Bestätigen</button>
             </div>
           </div>
         </div>
@@ -597,12 +555,10 @@ export default function App() {
             <div className="space-y-3 font-body text-gray-400">
               <div className="flex items-start gap-3"><span className="text-2xl">🎯</span><div><div className="font-bold text-white">10 Punkte</div><div className="text-sm">Exaktes Ergebnis</div></div></div>
               <div className="flex items-start gap-3"><span className="text-2xl">👍</span><div><div className="font-bold text-white">5 Punkte</div><div className="text-sm">Innerhalb von 20 Punkten Differenz</div></div></div>
-              <div className="flex items-start gap-3"><span className="text-2xl">✓</span><div><div className="font-bold text-white">3 Punkte</div><div className="text-sm">Richtige Tendenz (Sieg/Niederlage/Unentschieden)</div></div></div>
-              <div className="flex items-start gap-3"><span className="text-2xl">🏀</span><div><div className="font-bold text-white">1 Punkt</div><div className="text-sm">Teilnahme (Tipp abgegeben)</div></div></div>
+              <div className="flex items-start gap-3"><span className="text-2xl">✓</span><div><div className="font-bold text-white">3 Punkte</div><div className="text-sm">Richtige Tendenz</div></div></div>
+              <div className="flex items-start gap-3"><span className="text-2xl">🏀</span><div><div className="font-bold text-white">1 Punkt</div><div className="text-sm">Teilnahme</div></div></div>
             </div>
-            <button onClick={() => setShowPointsInfo(false)} className="mt-6 w-full glow-button bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 px-4 py-3 rounded-button font-heading font-bold hover:shadow-glow transition">
-              Verstanden
-            </button>
+            <button onClick={() => setShowPointsInfo(false)} className="mt-6 w-full glow-button bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 px-4 py-3 rounded-button font-heading font-bold hover:shadow-glow transition">Verstanden</button>
           </div>
         </div>
       )}
@@ -612,24 +568,15 @@ export default function App() {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-xl font-heading font-bold text-white mb-4">Gruppe erstellen</h3>
             <div className="space-y-4">
-              <input
-                type="text"
-                placeholder="Gruppenname"
-                value={newGroupName}
-                onChange={(e) => setNewGroupName(e.target.value)}
-                className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold outline-none font-body"
-              />
+              <input type="text" placeholder="Gruppenname" value={newGroupName} onChange={(e) => setNewGroupName(e.target.value)}
+                className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold outline-none font-body" />
               <label className="flex items-center gap-2 font-body text-gray-400">
                 <input type="checkbox" checked={newGroupIsPublic} onChange={(e) => setNewGroupIsPublic(e.target.checked)} className="w-5 h-5" />
                 <span>Öffentliche Gruppe</span>
               </label>
               <div className="flex gap-3">
-                <button onClick={() => setShowCreateGroup(false)} className="flex-1 glow-button bg-dark-700 text-white px-4 py-3 rounded-button font-heading font-semibold hover:bg-dark-600 transition">
-                  Abbrechen
-                </button>
-                <button onClick={createGroup} className="flex-1 glow-button bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 px-4 py-3 rounded-button font-heading font-bold hover:shadow-glow transition">
-                  Erstellen
-                </button>
+                <button onClick={() => setShowCreateGroup(false)} className="flex-1 glow-button bg-dark-700 text-white px-4 py-3 rounded-button font-heading font-semibold hover:bg-dark-600 transition">Abbrechen</button>
+                <button onClick={createGroup} className="flex-1 glow-button bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 px-4 py-3 rounded-button font-heading font-bold hover:shadow-glow transition">Erstellen</button>
               </div>
             </div>
           </div>
@@ -641,141 +588,80 @@ export default function App() {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-xl font-heading font-bold text-white mb-4">Gruppe beitreten</h3>
             <div className="space-y-4">
-              <input
-                type="text"
-                placeholder="Beitrittscode"
-                value={joinCode}
-                onChange={(e) => setJoinCode(e.target.value)}
-                className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold outline-none font-body uppercase"
-              />
+              <input type="text" placeholder="Beitrittscode" value={joinCode} onChange={(e) => setJoinCode(e.target.value)}
+                className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold outline-none font-body uppercase" />
               <div className="flex gap-3">
-                <button onClick={() => setShowJoinGroup(false)} className="flex-1 glow-button bg-dark-700 text-white px-4 py-3 rounded-button font-heading font-semibold hover:bg-dark-600 transition">
-                  Abbrechen
-                </button>
-                <button onClick={joinGroupWithCode} className="flex-1 glow-button bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 px-4 py-3 rounded-button font-heading font-bold hover:shadow-glow transition">
-                  Beitreten
-                </button>
+                <button onClick={() => setShowJoinGroup(false)} className="flex-1 glow-button bg-dark-700 text-white px-4 py-3 rounded-button font-heading font-semibold hover:bg-dark-600 transition">Abbrechen</button>
+                <button onClick={joinGroupWithCode} className="flex-1 glow-button bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 px-4 py-3 rounded-button font-heading font-bold hover:shadow-glow transition">Beitreten</button>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* SIDEBAR */}
       <aside className="sidebar hidden lg:flex flex-col">
         <div className="p-6 border-b border-white/10">
           <button onClick={() => setView('tips')} className="flex items-center gap-2 hover:opacity-80 transition">
             <span className="text-3xl">🏀</span>
-            <span className="text-xl font-heading font-bold bg-gradient-to-r from-neon-gold to-neon-pink bg-clip-text text-transparent">
-              TVN Tipps
-            </span>
+            <span className="text-xl font-heading font-bold bg-gradient-to-r from-neon-gold to-neon-pink bg-clip-text text-transparent">TVN Tipps</span>
           </button>
         </div>
         <nav className="flex-1 p-4 space-y-2">
-          {[
-            { id: 'tips', label: 'Spiele', icon: '⚽' },
-            { id: 'results', label: 'Ergebnisse', icon: '📊' },
-            { id: 'calendar', label: 'Kalender', icon: '📅' },
-            { id: 'groups', label: 'Gruppen', icon: '👥' },
-            { id: 'leaderboard', label: 'Tabelle', icon: '🏆' },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setView(tab.id)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-button font-heading font-semibold transition ${
-                view === tab.id
-                  ? 'bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 shadow-glow'
-                  : 'text-gray-400 hover:text-white hover:bg-dark-700'
-              }`}
-            >
-              <span className="text-xl">{tab.icon}</span>
-              <span>{tab.label}</span>
+          {[{ id: 'tips', label: 'Spiele', icon: '⚽' }, { id: 'results', label: 'Ergebnisse', icon: '📊' }, { id: 'calendar', label: 'Kalender', icon: '📅' }, { id: 'groups', label: 'Gruppen', icon: '👥' }, { id: 'leaderboard', label: 'Tabelle', icon: '🏆' }].map(tab => (
+            <button key={tab.id} onClick={() => setView(tab.id)}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-button font-heading font-semibold transition ${view === tab.id ? 'bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 shadow-glow' : 'text-gray-400 hover:text-white hover:bg-dark-700'}`}>
+              <span className="text-xl">{tab.icon}</span><span>{tab.label}</span>
             </button>
           ))}
         </nav>
         <div className="p-4 border-t border-white/10 space-y-3">
           {badges.length > 0 && (
             <div className="flex flex-wrap gap-1 mb-3">
-              {badges.map((badge) => (
-                <div key={badge.id} className="text-xl" title={getBadgeName(badge.badge_type)}>
-                  {getBadgeIcon(badge.badge_type)}
-                </div>
-              ))}
+              {badges.map(badge => <div key={badge.id} className="text-xl" title={getBadgeName(badge.badge_type)}>{getBadgeIcon(badge.badge_type)}</div>)}
             </div>
           )}
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className="w-full flex items-center justify-between px-4 py-2 rounded-button bg-dark-700 hover:bg-dark-600 transition"
-          >
-            <span className="text-sm font-body text-gray-400">
-              {darkMode ? '🌙 Dark' : '☀️ Light'}
-            </span>
+          <button onClick={() => setDarkMode(!darkMode)} className="w-full flex items-center justify-between px-4 py-2 rounded-button bg-dark-700 hover:bg-dark-600 transition">
+            <span className="text-sm font-body text-gray-400">{darkMode ? '🌙 Dark' : '☀️ Light'}</span>
             <div className={`w-12 h-6 rounded-full p-1 transition ${darkMode ? 'bg-neon-gold' : 'bg-gray-600'}`}>
               <div className={`w-4 h-4 rounded-full bg-white transition-transform ${darkMode ? 'translate-x-6' : 'translate-x-0'}`} />
             </div>
           </button>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-neon-purple to-neon-pink flex items-center justify-center text-white font-bold">
-              {username?.[0]?.toUpperCase() || 'U'}
-            </div>
+            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-neon-purple to-neon-pink flex items-center justify-center text-white font-bold">{username?.[0]?.toUpperCase() || 'U'}</div>
             <div className="flex-1 min-w-0">
               <div className="text-sm font-heading font-bold text-white truncate">{username}</div>
               <div className="text-xs text-gray-500 font-body">Online</div>
             </div>
           </div>
-          <button
-            onClick={handleLogout}
-            className="w-full glow-button bg-neon-red/20 text-neon-red px-4 py-2 rounded-button font-heading font-semibold hover:bg-neon-red/30 transition"
-          >
-            Logout
-          </button>
+          <button onClick={handleLogout} className="w-full glow-button bg-neon-red/20 text-neon-red px-4 py-2 rounded-button font-heading font-semibold hover:bg-neon-red/30 transition">Logout</button>
         </div>
       </aside>
 
-      {/* HEADER MOBILE */}
       <header className="lg:hidden bg-dark-800 border-b border-white/10 p-4 sticky top-0 z-50">
         <div className="flex justify-between items-center">
           <button onClick={() => setView('tips')} className="flex items-center gap-2">
             <span className="text-2xl">🏀</span>
-            <span className="text-lg font-heading font-bold bg-gradient-to-r from-neon-gold to-neon-pink bg-clip-text text-transparent">
-              TVN Tipps
-            </span>
+            <span className="text-lg font-heading font-bold bg-gradient-to-r from-neon-gold to-neon-pink bg-clip-text text-transparent">TVN Tipps</span>
           </button>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className="w-8 h-8 rounded-full bg-dark-700 flex items-center justify-center text-lg hover:bg-dark-600 transition"
-            >
-              {darkMode ? '☀️' : '🌙'}
-            </button>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-neon-purple to-neon-pink flex items-center justify-center text-white text-sm font-bold">
-              {username?.[0]?.toUpperCase() || 'U'}
-            </div>
+            <button onClick={() => setDarkMode(!darkMode)} className="w-8 h-8 rounded-full bg-dark-700 flex items-center justify-center text-lg hover:bg-dark-600 transition">{darkMode ? '☀️' : '🌙'}</button>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-neon-purple to-neon-pink flex items-center justify-center text-white text-sm font-bold">{username?.[0]?.toUpperCase() || 'U'}</div>
           </div>
         </div>
       </header>
 
-      {/* MAIN CONTENT */}
       <main className="lg:ml-60 p-4 md:p-6 pb-24 lg:pb-6">
-
-        {/* ===== SPIELE ===== */}
         {view === 'tips' && (
           <div>
             <div className="glass-card rounded-card p-6 mb-6 bg-gradient-to-r from-neon-purple/10 to-neon-pink/10">
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div>
-                  <h1 className="text-2xl md:text-3xl font-heading font-bold text-white mb-2">
-                    Hallo {username}! 👋
-                  </h1>
+                  <h1 className="text-2xl md:text-3xl font-heading font-bold text-white mb-2">Hallo {username}! 👋</h1>
                   <p className="text-gray-400 font-body">Spiele der nächsten 7 Tage</p>
                   {badges.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-3">
-                      {badges.map((badge) => (
-                        <div
-                          key={badge.id}
-                          className="flex items-center gap-1 bg-dark-700 px-2 py-1 rounded-button"
-                          title={BADGE_DEFS[badge.badge_type]?.desc}
-                        >
+                      {badges.map(badge => (
+                        <div key={badge.id} className="flex items-center gap-1 bg-dark-700 px-2 py-1 rounded-button" title={BADGE_DEFS[badge.badge_type]?.desc}>
                           <span className="text-lg">{getBadgeIcon(badge.badge_type)}</span>
                           <span className="text-xs font-body text-gray-300">{getBadgeName(badge.badge_type)}</span>
                         </div>
@@ -785,32 +671,16 @@ export default function App() {
                 </div>
                 <div className="text-right">
                   <div className="text-3xl font-heading font-bold text-neon-gold">{getMyPoints()}</div>
-                  <div className="text-sm text-gray-400 font-body">
-                    {getMyRank() ? `Platz ${getMyRank()}` : 'Noch kein Rang'}
-                  </div>
-                  {weeklyChampion && (
-                    <div className="mt-2 text-xs bg-neon-gold/20 text-neon-gold px-2 py-1 rounded-button font-mono font-bold">
-                      👑 {weeklyChampion.username}
-                    </div>
-                  )}
+                  <div className="text-sm text-gray-400 font-body">{getMyRank() ? `Platz ${getMyRank()}` : 'Noch kein Rang'}</div>
+                  {weeklyChampion && <div className="mt-2 text-xs bg-neon-gold/20 text-neon-gold px-2 py-1 rounded-button font-mono font-bold">👑 {weeklyChampion.username}</div>}
                 </div>
               </div>
             </div>
 
             <h2 className="text-xl font-heading font-bold text-white mb-4">Kommende Spiele</h2>
 
-            {loading && (
-              <div className="text-center py-12 text-gray-500 font-body">
-                <div className="text-4xl mb-4 animate-pulse">🏀</div>
-                Lade Spiele...
-              </div>
-            )}
-
-            {!loading && games.length === 0 && (
-              <div className="glass-card rounded-card p-8 text-center text-gray-500 font-body">
-                Keine Spiele in den nächsten 7 Tagen.
-              </div>
-            )}
+            {loading && <div className="text-center py-12 text-gray-500 font-body"><div className="text-4xl mb-4 animate-pulse">🏀</div>Lade Spiele...</div>}
+            {!loading && games.length === 0 && <div className="glass-card rounded-card p-8 text-center text-gray-500 font-body">Keine Spiele in den nächsten 7 Tagen.</div>}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {games.map((game, index) => {
@@ -819,77 +689,45 @@ export default function App() {
                 const started = isGameStarted(game.start_time);
                 const hasTip = myTips[game.id];
                 const dT = getDisplayTime(game.start_time);
+                const tipChanged = hasTipChanged(game.id);
                 return (
-                  <div
-                    key={game.id}
-                    ref={(el) => (cardsRef.current[index] = el)}
-                    className="card-reveal hover-lift glass-card rounded-card overflow-hidden"
-                  >
+                  <div key={game.id} ref={el => cardsRef.current[index] = el} className="card-reveal hover-lift glass-card rounded-card overflow-hidden">
                     <div className="game-card-content p-5">
                       <div className="flex items-center justify-between mb-3">
-                        <div className="text-xs font-mono font-semibold text-neon-gold uppercase tracking-wide">
-                          {game.competition || 'Liga'}
-                        </div>
-                        {hasTip && (
-                          <div className="text-xs bg-neon-green/20 text-neon-green px-2 py-1 rounded-button font-mono font-bold">
-                            ✓ Getippt
-                          </div>
-                        )}
+                        <div className="text-xs font-mono font-semibold text-neon-gold uppercase tracking-wide">{game.competition || 'Liga'}</div>
+                        {hasTip && <div className="text-xs bg-neon-green/20 text-neon-green px-2 py-1 rounded-button font-mono font-bold">✓ Getippt</div>}
                       </div>
-                      <div className="text-xs text-gray-500 mb-4 font-body">
-                        📅 {dT.toLocaleString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} Uhr
-                      </div>
+                      <div className="text-xs text-gray-500 mb-4 font-body">📅 {dT.toLocaleString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} Uhr</div>
                       <div className="team-names-row flex justify-between items-center text-base font-heading font-bold mb-4 text-white">
                         <span className="text-right flex-1 team-name-clamp pr-2">{hD}</span>
                         <span className="text-neon-gold px-3 text-sm font-normal flex-shrink-0">vs</span>
                         <span className="text-left flex-1 team-name-clamp pl-2">{aD}</span>
                       </div>
-                      {started ? (
-                        <div className="bg-dark-700 p-3 rounded-button border border-white/5 text-center">
-                          <span className="text-gray-500 font-body text-sm">⏰ Tipp-Sperre aktiv</span>
-                          {hasTip && (
-                            <div className="mt-2 text-neon-gold font-mono font-bold">
-                              Dein Tipp: {hasTip.predicted_home_score} : {hasTip.predicted_away_score}
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div>
-                          <div className="flex items-center gap-2 bg-dark-700 p-3 rounded-button border border-white/5">
-                            <input
-                              type="number"
-                              min="0"
-                              placeholder="H"
-                              className="w-16 p-2 bg-dark-800 border border-white/10 rounded-button text-center font-mono font-bold text-white focus:border-neon-gold outline-none"
-                              value={tips[game.id + 'h'] || ''}
-                              onChange={(e) => setTips({ ...tips, [game.id + 'h']: e.target.value })}
-                            />
-                            <span className="font-bold text-neon-gold">:</span>
-                            <input
-                              type="number"
-                              min="0"
-                              placeholder="G"
-                              className="w-16 p-2 bg-dark-800 border border-white/10 rounded-button text-center font-mono font-bold text-white focus:border-neon-gold outline-none"
-                              value={tips[game.id + 'a'] || ''}
-                              onChange={(e) => setTips({ ...tips, [game.id + 'a']: e.target.value })}
-                            />
-                            <button
-                              className="glow-button ml-auto bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 px-4 py-2 rounded-button font-heading font-bold hover:shadow-glow transition flex-shrink-0"
-                              onClick={() => submitTip(game.id, tips[game.id + 'h'], tips[game.id + 'a'])}
-                            >
-                              {hasTip ? 'Ändern' : 'Tippen'}
-                            </button>
+                      <div className="mt-auto">
+                        {started ? (
+                          <div className="bg-dark-700 p-3 rounded-button border border-white/5 text-center">
+                            <span className="text-gray-500 font-body text-sm">⏰ Tipp-Sperre aktiv</span>
+                            {hasTip && <div className="mt-2 text-neon-gold font-mono font-bold">Dein Tipp: {hasTip.predicted_home_score} : {hasTip.predicted_away_score}</div>}
                           </div>
-                          {hasTip && (
-                            <button
-                              onClick={() => deleteTip(game.id)}
-                              className="mt-2 w-full text-xs text-neon-red hover:text-red-400 font-body transition"
-                            >
-                              🗑️ Tipp löschen
-                            </button>
-                          )}
-                        </div>
-                      )}
+                        ) : (
+                          <div>
+                            <div className="flex items-center gap-2 bg-dark-700 p-3 rounded-button border border-white/5">
+                              <input type="number" min="0" placeholder="H" className="w-14 p-2 bg-dark-800 border border-white/10 rounded-button text-center font-mono font-bold text-white focus:border-neon-gold outline-none text-sm"
+                                value={tips[game.id + 'h'] || ''} onChange={(e) => setTips({ ...tips, [game.id + 'h']: e.target.value })} />
+                              <span className="font-bold text-neon-gold">:</span>
+                              <input type="number" min="0" placeholder="G" className="w-14 p-2 bg-dark-800 border border-white/10 rounded-button text-center font-mono font-bold text-white focus:border-neon-gold outline-none text-sm"
+                                value={tips[game.id + 'a'] || ''} onChange={(e) => setTips({ ...tips, [game.id + 'a']: e.target.value })} />
+                              <button className="glow-button ml-auto bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 px-3 py-2 rounded-button font-heading font-bold hover:shadow-glow transition text-sm"
+                                onClick={() => submitTip(game.id, tips[game.id + 'h'], tips[game.id + 'a'])}>
+                                {tipChanged ? 'Ändern' : 'Tippen'}
+                              </button>
+                            </div>
+                            {hasTip && (
+                              <button onClick={() => deleteTip(game.id)} className="mt-2 w-full text-xs text-neon-red hover:text-red-400 font-body transition">🗑️ Tipp löschen</button>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
@@ -898,51 +736,19 @@ export default function App() {
           </div>
         )}
 
-        {/* ===== ERGEBNISSE ===== */}
         {view === 'results' && (
           <div>
             <h2 className="text-xl font-heading font-bold text-white mb-4">Ergebnisse</h2>
             <div className="flex gap-2 mb-4">
-              <button
-                onClick={() => setResultTab('all')}
-                className={`glow-button px-4 py-2 rounded-button text-sm font-heading font-semibold transition ${
-                  resultTab === 'all' ? 'bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 shadow-glow' : 'bg-dark-700 text-gray-400 hover:text-white'
-                }`}
-              >
-                Alle
-              </button>
-              <button
-                onClick={() => setResultTab('my')}
-                className={`glow-button px-4 py-2 rounded-button text-sm font-heading font-semibold transition ${
-                  resultTab === 'my' ? 'bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 shadow-glow' : 'bg-dark-700 text-gray-400 hover:text-white'
-                }`}
-              >
-                Meine Tipps
-              </button>
+              <button onClick={() => setResultTab('all')} className={`glow-button px-4 py-2 rounded-button text-sm font-heading font-semibold transition ${resultTab === 'all' ? 'bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 shadow-glow' : 'bg-dark-700 text-gray-400 hover:text-white'}`}>Alle</button>
+              <button onClick={() => setResultTab('my')} className={`glow-button px-4 py-2 rounded-button text-sm font-heading font-semibold transition ${resultTab === 'my' ? 'bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 shadow-glow' : 'bg-dark-700 text-gray-400 hover:text-white'}`}>Meine Tipps</button>
             </div>
             <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-              {[
-                { label: '7 Tage', value: '7' },
-                { label: '30 Tage', value: '30' },
-                { label: '90 Tage', value: '90' },
-                { label: 'Alle', value: 'all' },
-              ].map((f) => (
-                <button
-                  key={f.value}
-                  onClick={() => loadFinishedGames(f.value)}
-                  className={`glow-button px-3 py-1.5 rounded-button text-xs font-heading font-semibold transition whitespace-nowrap ${
-                    resultFilter === f.value ? 'bg-dark-700 text-white border border-neon-gold' : 'bg-dark-800 text-gray-500 hover:text-white'
-                  }`}
-                >
-                  {f.label}
-                </button>
+              {[{ label: '7 Tage', value: '7' }, { label: '30 Tage', value: '30' }, { label: '90 Tage', value: '90' }, { label: 'Alle', value: 'all' }].map(f => (
+                <button key={f.value} onClick={() => loadFinishedGames(f.value)} className={`glow-button px-3 py-1.5 rounded-button text-xs font-heading font-semibold transition whitespace-nowrap ${resultFilter === f.value ? 'bg-dark-700 text-white border border-neon-gold' : 'bg-dark-800 text-gray-500 hover:text-white'}`}>{f.label}</button>
               ))}
             </div>
-            {(resultTab === 'all' ? finishedGames : myFinishedGames).length === 0 && (
-              <div className="glass-card rounded-card p-8 text-center text-gray-500 font-body">
-                {resultTab === 'all' ? 'Keine Ergebnisse.' : 'Keine Tipps in diesem Zeitraum.'}
-              </div>
-            )}
+            {(resultTab === 'all' ? finishedGames : myFinishedGames).length === 0 && <div className="glass-card rounded-card p-8 text-center text-gray-500 font-body">{resultTab === 'all' ? 'Keine Ergebnisse.' : 'Keine Tipps in diesem Zeitraum.'}</div>}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {(resultTab === 'all' ? finishedGames : myFinishedGames).map((game, index) => {
                 const hD = game.age_group ? `${game.age_group} ${game.home_team}` : game.home_team;
@@ -951,52 +757,33 @@ export default function App() {
                 const points = getTipPoints(tip, game);
                 const dT = getDisplayTime(game.start_time);
                 return (
-                  <div
-                    key={game.id}
-                    ref={(el) => (finishedCardsRef.current[index] = el)}
-                    className="card-reveal hover-lift glass-card rounded-card overflow-hidden"
-                  >
+                  <div key={game.id} ref={el => finishedCardsRef.current[index] = el} className="card-reveal hover-lift glass-card rounded-card overflow-hidden">
                     <div className="game-card-content p-5">
                       <div className="flex justify-between items-start mb-3">
-                        <div className="text-xs font-mono font-semibold text-neon-gold uppercase tracking-wide">
-                          {game.competition || 'Liga'}
-                        </div>
+                        <div className="text-xs font-mono font-semibold text-neon-gold uppercase tracking-wide">{game.competition || 'Liga'}</div>
                         {getResultBadge(game)}
                       </div>
-                      <div className="text-xs text-gray-500 mb-4 font-body">
-                        📅 {dT.toLocaleString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} Uhr
-                      </div>
-                      {/* Mobile: Unterinander, Desktop: Nebeneinander */}
+                      <div className="text-xs text-gray-500 mb-4 font-body">📅 {dT.toLocaleString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} Uhr</div>
                       <div className="result-teams flex justify-between items-center mb-3 text-white">
                         <span className="team-name team-left text-right flex-1 font-heading font-bold team-name-clamp pr-2">{hD}</span>
-                        <span className="vs-score-mobile text-neon-gold font-mono font-bold text-xl px-3 flex-shrink-0">
-                          {game.home_score} : {game.away_score}
-                        </span>
+                        <span className="vs-score-mobile text-neon-gold font-mono font-bold text-xl px-3 flex-shrink-0">{game.home_score} : {game.away_score}</span>
                         <span className="team-name team-right text-left flex-1 font-heading font-bold team-name-clamp pl-2">{aD}</span>
                       </div>
                       {tip && (
-                        <div className="mt-3 bg-dark-700 p-3 rounded-button border border-white/5">
+                        <div className="mt-auto bg-dark-700 p-3 rounded-button border border-white/5">
                           <div className="flex justify-between items-center">
                             <span className="text-gray-500 text-xs font-body">Dein Tipp:</span>
-                            <span className="text-white font-mono font-bold">
-                              {tip.predicted_home_score} : {tip.predicted_away_score}
-                            </span>
+                            <span className="text-white font-mono font-bold">{tip.predicted_home_score} : {tip.predicted_away_score}</span>
                           </div>
                           <div className="flex justify-between items-center mt-1">
                             <span className="text-gray-500 text-xs font-body">Punkte:</span>
-                            <span
-                              className={`font-mono font-bold ${
-                                points === 10 ? 'text-neon-green' : points === 5 ? 'text-neon-gold' : points === 3 ? 'text-neon-purple' : 'text-gray-400'
-                              }`}
-                            >
+                            <span className={`font-mono font-bold ${points === 10 ? 'text-neon-green' : points === 5 ? 'text-neon-gold' : points === 3 ? 'text-neon-purple' : 'text-gray-400'}`}>
                               {points === 10 ? '🎯 10' : points === 5 ? '👍 5' : points === 3 ? '✓ 3' : '🏀 1'}
                             </span>
                           </div>
                         </div>
                       )}
-                      {!tip && resultTab === 'all' && (
-                        <div className="mt-3 text-center text-gray-600 text-xs font-body">Kein Tipp abgegeben</div>
-                      )}
+                      {!tip && resultTab === 'all' && <div className="mt-auto text-center text-gray-600 text-xs font-body">Kein Tipp abgegeben</div>}
                     </div>
                   </div>
                 );
@@ -1005,31 +792,18 @@ export default function App() {
           </div>
         )}
 
-        {/* ===== KALENDER ===== */}
         {view === 'calendar' && (
           <div>
             <h2 className="text-xl font-heading font-bold text-white mb-4">📅 Spielkalender</h2>
             <div className="glass-card rounded-card p-3 md:p-6">
               <div className="flex justify-between items-center mb-3">
-                <button onClick={prevMonth} className="glow-button bg-dark-700 text-white px-3 py-1.5 rounded-button font-heading font-semibold hover:bg-dark-600 transition text-sm">
-                  ←
-                </button>
-                <h3 className="text-sm md:text-lg font-heading font-bold text-white capitalize">
-                  {new Date(calendarYear, calendarMonth).toLocaleString('de-DE', { month: 'long', year: 'numeric' })}
-                </h3>
-                <button onClick={nextMonth} className="glow-button bg-dark-700 text-white px-3 py-1.5 rounded-button font-heading font-semibold hover:bg-dark-600 transition text-sm">
-                  →
-                </button>
+                <button onClick={prevMonth} className="glow-button bg-dark-700 text-white px-3 py-1.5 rounded-button font-heading font-semibold hover:bg-dark-600 transition text-sm">←</button>
+                <h3 className="text-sm md:text-lg font-heading font-bold text-white capitalize">{new Date(calendarYear, calendarMonth).toLocaleString('de-DE', { month: 'long', year: 'numeric' })}</h3>
+                <button onClick={nextMonth} className="glow-button bg-dark-700 text-white px-3 py-1.5 rounded-button font-heading font-semibold hover:bg-dark-600 transition text-sm">→</button>
               </div>
-
               <div className="calendar-grid mb-1">
-                {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map((day) => (
-                  <div key={day} className="text-center text-xs font-mono font-bold text-gray-500 py-1">
-                    {day}
-                  </div>
-                ))}
+                {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(day => <div key={day} className="text-center text-xs font-mono font-bold text-gray-500 py-1">{day}</div>)}
               </div>
-
               <div className="calendar-grid">
                 {getCalendarDays(calendarYear, calendarMonth).map((day, idx) => {
                   const dayGames = getGamesForDay(day);
@@ -1037,27 +811,12 @@ export default function App() {
                   const isToday = day === new Date().getDate() && calendarMonth === new Date().getMonth() && calendarYear === new Date().getFullYear();
                   const isSelected = selectedDate === day;
                   return (
-                    <div
-                      key={idx}
-                      onClick={() => {
-                        if (day && hasGames) {
-                          setSelectedDate(isSelected ? null : day);
-                        }
-                      }}
-                      className={`calendar-day ${hasGames ? 'has-games' : ''} ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''} ${!day ? 'opacity-0 pointer-events-none' : ''}`}
-                    >
+                    <div key={idx} onClick={() => { if (day && hasGames) setSelectedDate(isSelected ? null : day); }}
+                      className={`calendar-day ${hasGames ? 'has-games' : ''} ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''} ${!day ? 'opacity-0 pointer-events-none' : ''}`}>
                       {day && (
                         <>
-                          <span className={`text-xs md:text-sm font-body ${isSelected ? 'text-neon-gold font-bold' : 'text-white'}`}>
-                            {day}
-                          </span>
-                          {hasGames && (
-                            <div className="flex gap-0.5 mt-0.5">
-                              {dayGames.slice(0, 3).map((_, i) => (
-                                <div key={i} className={`w-1 h-1 rounded-full ${isSelected ? 'bg-white' : 'bg-neon-gold'}`} />
-                              ))}
-                            </div>
-                          )}
+                          <span className={`text-xs md:text-sm font-body ${isSelected ? 'text-neon-gold font-bold' : 'text-white'}`}>{day}</span>
+                          {hasGames && <div className="flex gap-0.5 mt-0.5">{dayGames.slice(0, 3).map((_, i) => <div key={i} className={`w-1 h-1 rounded-full ${isSelected ? 'bg-white' : 'bg-neon-gold'}`} />)}</div>}
                         </>
                       )}
                     </div>
@@ -1065,19 +824,14 @@ export default function App() {
                 })}
               </div>
             </div>
-
             {selectedDate && getGamesForDay(selectedDate).length > 0 && (
               <div className="glass-card rounded-card p-4 mt-4">
                 <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-sm font-heading font-bold text-neon-gold">
-                    📅 {selectedDate}. {new Date(calendarYear, calendarMonth).toLocaleString('de-DE', { month: 'long' })}
-                  </h3>
-                  <button onClick={() => setSelectedDate(null)} className="text-gray-500 hover:text-white transition text-lg">
-                    ✕
-                  </button>
+                  <h3 className="text-sm font-heading font-bold text-neon-gold">📅 {selectedDate}. {new Date(calendarYear, calendarMonth).toLocaleString('de-DE', { month: 'long' })}</h3>
+                  <button onClick={() => setSelectedDate(null)} className="text-gray-500 hover:text-white transition text-lg">✕</button>
                 </div>
                 <div className="space-y-2">
-                  {getGamesForDay(selectedDate).map((game) => {
+                  {getGamesForDay(selectedDate).map(game => {
                     const hD = game.age_group ? `${game.age_group} ${game.home_team}` : game.home_team;
                     const aD = game.age_group ? `${game.age_group} ${game.away_team}` : game.away_team;
                     const dT = getDisplayTime(game.start_time);
@@ -1085,27 +839,13 @@ export default function App() {
                     return (
                       <div key={game.id} className="bg-dark-700 rounded-button border border-white/5 overflow-hidden">
                         <div className="px-3 py-1.5 bg-dark-800 flex justify-between items-center">
-                          <span className="text-xs text-gray-500 font-body">
-                            🕐 {dT.toLocaleString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr
-                          </span>
+                          <span className="text-xs text-gray-500 font-body">🕐 {dT.toLocaleString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr</span>
                           <span className="text-xs font-mono text-neon-gold">{game.competition || 'Liga'}</span>
                         </div>
                         <div className="calendar-game">
-                          <span className="team-left text-sm font-heading font-bold text-white">
-                            {hD}
-                          </span>
-                          <span className="vs-score">
-                            {hasResult ? (
-                              <span className="text-neon-gold font-mono font-bold text-sm">
-                                {game.home_score}:{game.away_score}
-                              </span>
-                            ) : (
-                              <span className="text-gray-500 font-heading text-xs">vs</span>
-                            )}
-                          </span>
-                          <span className="team-right text-sm font-heading font-bold text-white">
-                            {aD}
-                          </span>
+                          <span className="team-left text-sm font-heading font-bold text-white">{hD}</span>
+                          <span className="vs-score">{hasResult ? <span className="text-neon-gold font-mono font-bold text-sm">{game.home_score}:{game.away_score}</span> : <span className="text-gray-500 font-heading text-xs">vs</span>}</span>
+                          <span className="team-right text-sm font-heading font-bold text-white">{aD}</span>
                         </div>
                       </div>
                     );
@@ -1116,38 +856,23 @@ export default function App() {
           </div>
         )}
 
-        {/* ===== GRUPPEN ===== */}
         {view === 'groups' && !selectedGroup && (
           <div>
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-heading font-bold text-white">Meine Gruppen</h2>
               <div className="flex gap-2">
-                <button onClick={() => setShowJoinGroup(true)} className="glow-button bg-dark-700 text-gray-400 hover:text-white px-4 py-2 rounded-button font-heading font-semibold transition">
-                  Beitreten
-                </button>
-                <button onClick={() => setShowCreateGroup(true)} className="glow-button bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 px-4 py-2 rounded-button font-heading font-bold hover:shadow-glow transition">
-                  + Erstellen
-                </button>
+                <button onClick={() => setShowJoinGroup(true)} className="glow-button bg-dark-700 text-gray-400 hover:text-white px-4 py-2 rounded-button font-heading font-semibold transition">Beitreten</button>
+                <button onClick={() => setShowCreateGroup(true)} className="glow-button bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 px-4 py-2 rounded-button font-heading font-bold hover:shadow-glow transition">+ Erstellen</button>
               </div>
             </div>
-            {groups.length === 0 && (
-              <div className="glass-card rounded-card p-8 text-center text-gray-500 font-body">
-                Du bist noch in keiner Gruppe.
-              </div>
-            )}
+            {groups.length === 0 && <div className="glass-card rounded-card p-8 text-center text-gray-500 font-body">Du bist noch in keiner Gruppe.</div>}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {groups.map((group) => (
-                <div
-                  key={group.id}
-                  onClick={() => loadGroupDetails(group.id)}
-                  className="hover-lift glass-card rounded-card overflow-hidden cursor-pointer"
-                >
+              {groups.map(group => (
+                <div key={group.id} onClick={() => loadGroupDetails(group.id)} className="hover-lift glass-card rounded-card overflow-hidden cursor-pointer">
                   <div className="p-5">
                     <div className="flex justify-between items-start mb-3">
                       <h3 className="text-lg font-heading font-bold text-white">{group.name}</h3>
-                      <span className={`text-xs px-2 py-1 rounded-button font-mono font-bold ${group.is_public ? 'bg-neon-green/20 text-neon-green' : 'bg-neon-purple/20 text-neon-purple'}`}>
-                        {group.is_public ? 'ÖFFENTLICH' : 'PRIVAT'}
-                      </span>
+                      <span className={`text-xs px-2 py-1 rounded-button font-mono font-bold ${group.is_public ? 'bg-neon-green/20 text-neon-green' : 'bg-neon-purple/20 text-neon-purple'}`}>{group.is_public ? 'ÖFFENTLICH' : 'PRIVAT'}</span>
                     </div>
                     {!group.is_public && <div className="text-sm text-gray-500 font-mono">Code: {group.join_code}</div>}
                   </div>
@@ -1159,41 +884,22 @@ export default function App() {
 
         {view === 'groups' && selectedGroup && (
           <div>
-            <button onClick={() => setSelectedGroup(null)} className="mb-4 text-neon-gold hover:text-neon-pink font-heading font-semibold transition">
-              ← Zurück
-            </button>
+            <button onClick={() => setSelectedGroup(null)} className="mb-4 text-neon-gold hover:text-neon-pink font-heading font-semibold transition">← Zurück</button>
             <div className="glass-card rounded-card p-6 mb-6">
               <div className="flex justify-between items-start mb-4 flex-wrap gap-3">
                 <div>
                   <h2 className="text-2xl font-heading font-bold text-white mb-2">{selectedGroup.name}</h2>
-                  <span className={`text-xs px-2 py-1 rounded-button font-mono font-bold ${selectedGroup.is_public ? 'bg-neon-green/20 text-neon-green' : 'bg-neon-purple/20 text-neon-purple'}`}>
-                    {selectedGroup.is_public ? 'ÖFFENTLICH' : 'PRIVAT'}
-                  </span>
+                  <span className={`text-xs px-2 py-1 rounded-button font-mono font-bold ${selectedGroup.is_public ? 'bg-neon-green/20 text-neon-green' : 'bg-neon-purple/20 text-neon-purple'}`}>{selectedGroup.is_public ? 'ÖFFENTLICH' : 'PRIVAT'}</span>
                 </div>
                 <div className="flex gap-2 flex-wrap">
-                  {/* Beitreten-Button für öffentliche Gruppen */}
-                  {selectedGroup.is_public && selectedGroup.created_by !== user.id && !groupMembers.some((m) => m.user_id === user.id) && (
-                    <button
-                      onClick={() => joinPublicGroup(selectedGroup.id)}
-                      className="glow-button bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 px-4 py-2 rounded-button font-heading font-bold hover:shadow-glow transition"
-                    >
-                      Beitreten
-                    </button>
+                  {selectedGroup.is_public && selectedGroup.created_by !== user.id && !groupMembers.some(m => m.user_id === user.id) && (
+                    <button onClick={() => joinPublicGroup(selectedGroup.id)} className="glow-button bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 px-4 py-2 rounded-button font-heading font-bold hover:shadow-glow transition">Beitreten</button>
                   )}
-                  {/* Verlassen-Button für Mitglieder (nicht Creator) */}
-                  {groupMembers.some((m) => m.user_id === user.id) && selectedGroup.created_by !== user.id && (
-                    <button
-                      onClick={() => leaveGroup(selectedGroup.id)}
-                      className="glow-button bg-dark-700 text-gray-400 hover:text-white px-4 py-2 rounded-button font-heading font-semibold transition"
-                    >
-                      Verlassen
-                    </button>
+                  {groupMembers.some(m => m.user_id === user.id) && selectedGroup.created_by !== user.id && (
+                    <button onClick={() => leaveGroup(selectedGroup.id)} className="glow-button bg-dark-700 text-gray-400 hover:text-white px-4 py-2 rounded-button font-heading font-semibold transition">Verlassen</button>
                   )}
-                  {/* Löschen-Button für Creator */}
                   {selectedGroup.created_by === user.id && (
-                    <button onClick={() => deleteGroup(selectedGroup.id)} className="glow-button bg-neon-red/20 text-neon-red px-4 py-2 rounded-button font-heading font-semibold hover:bg-neon-red/30 transition">
-                      Gruppe löschen
-                    </button>
+                    <button onClick={() => deleteGroup(selectedGroup.id)} className="glow-button bg-neon-red/20 text-neon-red px-4 py-2 rounded-button font-heading font-semibold hover:bg-neon-red/30 transition">Gruppe löschen</button>
                   )}
                 </div>
               </div>
@@ -1204,150 +910,87 @@ export default function App() {
                 </div>
               )}
             </div>
-
             <div className="glass-card rounded-card overflow-hidden mb-6">
-              <h3 className="text-lg font-heading font-bold p-4 border-b border-white/10 text-white flex items-center gap-2">
-                <span>👥</span> Mitglieder
-              </h3>
+              <h3 className="text-lg font-heading font-bold p-4 border-b border-white/10 text-white flex items-center gap-2"><span>👥</span> Mitglieder</h3>
               <div className="divide-y divide-white/5">
-                {groupMembers.length > 0 ? (
-                  groupMembers.map((member) => {
-                    const isMe = member.user_id === user.id;
-                    const canRemove = selectedGroup.created_by === user.id && !isMe;
-                    return (
-                      <div key={member.id} className="p-4 flex items-center justify-between hover:bg-dark-800 transition">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-neon-purple to-neon-pink flex items-center justify-center text-white font-bold">
-                            {member.profiles?.username?.[0]?.toUpperCase() || 'U'}
+                {groupMembers.length > 0 ? groupMembers.map(member => {
+                  const isMe = member.user_id === user.id;
+                  const canRemove = selectedGroup.created_by === user.id && !isMe;
+                  return (
+                    <div key={member.id} className="p-4 flex items-center justify-between hover:bg-dark-800 transition">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-neon-purple to-neon-pink flex items-center justify-center text-white font-bold">{member.profiles?.username?.[0]?.toUpperCase() || 'U'}</div>
+                        <div>
+                          <div className="font-heading font-semibold text-white flex items-center gap-2">
+                            {member.profiles?.username || 'Unbekannt'}
+                            {isMe && <span className="text-xs bg-neon-gold text-dark-900 px-2 py-0.5 rounded-button font-bold">Du</span>}
+                            {member.is_admin && !isMe && <span className="text-xs bg-neon-purple/20 text-neon-purple px-2 py-0.5 rounded-button font-semibold">Admin</span>}
                           </div>
-                          <div>
-                            <div className="font-heading font-semibold text-white flex items-center gap-2">
-                              {member.profiles?.username || 'Unbekannt'}
-                              {isMe && <span className="text-xs bg-neon-gold text-dark-900 px-2 py-0.5 rounded-button font-bold">Du</span>}
-                              {member.is_admin && !isMe && <span className="text-xs bg-neon-purple/20 text-neon-purple px-2 py-0.5 rounded-button font-semibold">Admin</span>}
-                            </div>
-                            <div className="text-xs text-gray-500 font-body">{member.is_admin ? 'Gruppen-Admin' : 'Mitglied'}</div>
-                          </div>
+                          <div className="text-xs text-gray-500 font-body">{member.is_admin ? 'Gruppen-Admin' : 'Mitglied'}</div>
                         </div>
-                        {canRemove && (
-                          <button onClick={() => removeMember(selectedGroup.id, member.user_id)} className="glow-button bg-neon-red/20 text-neon-red px-3 py-1.5 rounded-button text-sm font-heading font-semibold hover:bg-neon-red/30 transition">
-                            Entfernen
-                          </button>
-                        )}
                       </div>
-                    );
-                  })
-                ) : (
-                  <div className="p-6 text-center text-gray-500 font-body">Keine Mitglieder.</div>
-                )}
+                      {canRemove && <button onClick={() => removeMember(selectedGroup.id, member.user_id)} className="glow-button bg-neon-red/20 text-neon-red px-3 py-1.5 rounded-button text-sm font-heading font-semibold hover:bg-neon-red/30 transition">Entfernen</button>}
+                    </div>
+                  );
+                }) : <div className="p-6 text-center text-gray-500 font-body">Keine Mitglieder.</div>}
               </div>
             </div>
-
             <div className="glass-card rounded-card overflow-hidden">
               <h3 className="text-lg font-heading font-bold p-4 border-b border-white/10 text-white">🏆 Leaderboard</h3>
               <table className="w-full text-left">
-                <thead className="bg-dark-800 text-gray-500 text-sm font-mono">
-                  <tr>
-                    <th className="p-4">Platz</th>
-                    <th className="p-4">Name</th>
-                    <th className="p-4 text-right">Punkte</th>
-                  </tr>
-                </thead>
+                <thead className="bg-dark-800 text-gray-500 text-sm font-mono"><tr><th className="p-4">Platz</th><th className="p-4">Name</th><th className="p-4 text-right">Punkte</th></tr></thead>
                 <tbody className="text-white font-body">
                   {groupLeaderboard.map((row, index) => (
                     <tr key={row.username} className={`border-t border-white/5 ${row.username === username ? 'bg-neon-gold/10 font-bold' : ''}`}>
                       <td className="p-4 text-neon-gold font-mono">{index + 1}.</td>
-                      <td className="p-4">
-                        {row.username}
-                        {row.username === username && <span className="ml-2 text-xs bg-neon-gold text-dark-900 px-2 py-1 rounded-button font-semibold">Du</span>}
-                      </td>
+                      <td className="p-4">{row.username}{row.username === username && <span className="ml-2 text-xs bg-neon-gold text-dark-900 px-2 py-1 rounded-button font-semibold">Du</span>}</td>
                       <td className="p-4 text-right font-mono font-bold text-neon-gold">{row.total_points}</td>
                     </tr>
                   ))}
-                  {groupLeaderboard.length === 0 && (
-                    <tr>
-                      <td colSpan="3" className="p-8 text-center text-gray-600 font-body">Noch keine gewerteten Spiele.</td>
-                    </tr>
-                  )}
+                  {groupLeaderboard.length === 0 && <tr><td colSpan="3" className="p-8 text-center text-gray-600 font-body">Noch keine gewerteten Spiele.</td></tr>}
                 </tbody>
               </table>
             </div>
           </div>
         )}
 
-        {/* ===== LEADERBOARD ===== */}
         {view === 'leaderboard' && (
           <div className="glass-card rounded-card overflow-hidden">
             <div className="p-6 border-b border-white/10 flex justify-between items-center">
               <h2 className="text-xl font-heading font-bold text-white">🏆 All-Time Leaderboard</h2>
-              <button onClick={() => setShowPointsInfo(true)} className="glow-button bg-neon-gold/20 text-neon-gold px-4 py-2 rounded-button text-sm font-heading font-semibold hover:bg-neon-gold/30 transition">
-                ℹ️ Punkte
-              </button>
+              <button onClick={() => setShowPointsInfo(true)} className="glow-button bg-neon-gold/20 text-neon-gold px-4 py-2 rounded-button text-sm font-heading font-semibold hover:bg-neon-gold/30 transition">ℹ️ Punkte</button>
             </div>
             {weeklyChampion && (
               <div className="p-4 bg-gradient-to-r from-neon-gold/20 to-neon-pink/20 border-b border-white/10">
                 <div className="flex items-center gap-3">
                   <span className="text-3xl">👑</span>
-                  <div>
-                    <div className="text-xs text-gray-400 font-body">Wochen-Champion</div>
-                    <div className="text-lg font-heading font-bold text-white">{weeklyChampion.username}</div>
-                  </div>
-                  <div className="ml-auto text-right">
-                    <div className="text-2xl font-heading font-bold text-neon-gold">{weeklyChampion.weekly_points}</div>
-                    <div className="text-xs text-gray-400 font-body">Punkte diese Woche</div>
-                  </div>
+                  <div><div className="text-xs text-gray-400 font-body">Wochen-Champion</div><div className="text-lg font-heading font-bold text-white">{weeklyChampion.username}</div></div>
+                  <div className="ml-auto text-right"><div className="text-2xl font-heading font-bold text-neon-gold">{weeklyChampion.weekly_points}</div><div className="text-xs text-gray-400 font-body">Punkte diese Woche</div></div>
                 </div>
               </div>
             )}
             <table className="w-full text-left">
-              <thead className="bg-dark-800 text-gray-500 text-sm font-mono">
-                <tr>
-                  <th className="p-4">Platz</th>
-                  <th className="p-4">Name</th>
-                  <th className="p-4 text-right">Punkte</th>
-                </tr>
-              </thead>
+              <thead className="bg-dark-800 text-gray-500 text-sm font-mono"><tr><th className="p-4">Platz</th><th className="p-4">Name</th><th className="p-4 text-right">Punkte</th></tr></thead>
               <tbody className="text-white font-body">
                 {leaderboard.map((row, index) => (
                   <tr key={row.username} className={`border-t border-white/5 ${row.username === username ? 'bg-neon-gold/10 font-bold' : 'hover:bg-dark-800'}`}>
-                    <td className="p-4 text-neon-gold font-mono">
-                      {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`}
-                    </td>
-                    <td className="p-4">
-                      {row.username}
-                      {row.username === username && <span className="ml-2 text-xs bg-neon-gold text-dark-900 px-2 py-1 rounded-button font-semibold">Du</span>}
-                    </td>
+                    <td className="p-4 text-neon-gold font-mono">{index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`}</td>
+                    <td className="p-4">{row.username}{row.username === username && <span className="ml-2 text-xs bg-neon-gold text-dark-900 px-2 py-1 rounded-button font-semibold">Du</span>}</td>
                     <td className="p-4 text-right font-mono font-bold text-neon-gold">{row.total_points}</td>
                   </tr>
                 ))}
-                {leaderboard.length === 0 && (
-                  <tr>
-                    <td colSpan="3" className="p-8 text-center text-gray-600 font-body">Noch keine registrierten Nutzer.</td>
-                  </tr>
-                )}
+                {leaderboard.length === 0 && <tr><td colSpan="3" className="p-8 text-center text-gray-600 font-body">Noch keine registrierten Nutzer.</td></tr>}
               </tbody>
             </table>
           </div>
         )}
       </main>
 
-      {/* BOTTOM NAV MOBILE */}
       <nav className="bottom-nav lg:hidden">
         <div className="flex justify-around items-center">
-          {[
-            { id: 'tips', label: 'Spiele', icon: '⚽' },
-            { id: 'results', label: 'Ergebnisse', icon: '📊' },
-            { id: 'calendar', label: 'Kalender', icon: '📅' },
-            { id: 'groups', label: 'Gruppen', icon: '👥' },
-            { id: 'leaderboard', label: 'Tabelle', icon: '🏆' },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setView(tab.id)}
-              className={`flex flex-col items-center gap-1 px-3 py-2 transition ${view === tab.id ? 'text-neon-gold' : 'text-gray-500 hover:text-gray-300'}`}
-            >
-              <span className="text-xl">{tab.icon}</span>
-              <span className="text-xs font-heading font-semibold">{tab.label}</span>
+          {[{ id: 'tips', label: 'Spiele', icon: '⚽' }, { id: 'results', label: 'Ergebnisse', icon: '📊' }, { id: 'calendar', label: 'Kalender', icon: '📅' }, { id: 'groups', label: 'Gruppen', icon: '👥' }, { id: 'leaderboard', label: 'Tabelle', icon: '🏆' }].map(tab => (
+            <button key={tab.id} onClick={() => setView(tab.id)} className={`flex flex-col items-center gap-1 px-3 py-2 transition ${view === tab.id ? 'text-neon-gold' : 'text-gray-500 hover:text-gray-300'}`}>
+              <span className="text-xl">{tab.icon}</span><span className="text-xs font-heading font-semibold">{tab.label}</span>
             </button>
           ))}
         </div>
