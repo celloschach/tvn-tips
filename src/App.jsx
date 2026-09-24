@@ -60,6 +60,7 @@ function normalizeText(text) {
   return n;
 }
 
+// Nur exakte Matches, keine Ähnlichkeitsprüfung
 function isNameAllowed(name) {
   if (!name || name.trim().length < 2) return { ok: false, msg: 'Name muss mindestens 2 Zeichen haben.' };
   if (name.trim().length > 20) return { ok: false, msg: 'Name darf maximal 20 Zeichen haben.' };
@@ -71,6 +72,7 @@ function isNameAllowed(name) {
   for (const word of BLOCKED_WORDS) {
     const wl = word.toLowerCase();
     const wn = normalizeText(wl);
+    // Nur exakte Matches
     if (lower.includes(wl) || normalized.includes(wn)) {
       return { ok: false, msg: 'Dieser Name ist nicht erlaubt.' };
     }
@@ -481,11 +483,12 @@ export default function App() {
   function getMyPoints() { return leaderboard.find(r => r.username === username)?.total_points || 0; }
   function getMyRank() { const i = leaderboard.findIndex(r => r.username === username); return i >= 0 ? i+1 : null; }
 
+  // FIX: Korrekte Logik für Button-Text
   function hasTipChanged(gameId) {
     const currentTip = myTips[gameId];
     const currentH = tips[gameId + 'h'];
     const currentA = tips[gameId + 'a'];
-    if (!currentTip) return currentH !== '' && currentA !== '';
+    if (!currentTip) return false; // Noch kein Tipp vorhanden
     return currentH !== currentTip.predicted_home_score?.toString() || currentA !== currentTip.predicted_away_score?.toString();
   }
 
@@ -717,9 +720,10 @@ export default function App() {
                               <span className="font-bold text-neon-gold">:</span>
                               <input type="number" min="0" placeholder="G" className="w-14 p-2 bg-dark-800 border border-white/10 rounded-button text-center font-mono font-bold text-white focus:border-neon-gold outline-none text-sm"
                                 value={tips[game.id + 'a'] || ''} onChange={(e) => setTips({ ...tips, [game.id + 'a']: e.target.value })} />
+                              {/* FIX: Korrekte Button-Logik */}
                               <button className="glow-button ml-auto bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 px-3 py-2 rounded-button font-heading font-bold hover:shadow-glow transition text-sm"
                                 onClick={() => submitTip(game.id, tips[game.id + 'h'], tips[game.id + 'a'])}>
-                                {tipChanged ? 'Ändern' : 'Tippen'}
+                                {hasTip && tipChanged ? 'Ändern' : 'Tippen'}
                               </button>
                             </div>
                             {hasTip && (
