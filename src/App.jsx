@@ -1,9 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 
-// ============================================
-// NAMENSFILTER
-// ============================================
 const BLOCKED_WORDS = [
   'arsch', 'arschloch', 'scheisse', 'scheiße', 'fick', 'ficken', 'ficker',
   'hure', 'hurensohn', 'wichser', 'wixer', 'spast', 'spasti', 'mongo',
@@ -46,53 +43,37 @@ const BLOCKED_WORDS = [
 
 function normalizeText(text) {
   if (!text) return '';
-  let normalized = text.toLowerCase();
-  const leetMap = {
-    '0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's', '7': 't', '8': 'b',
-    '@': 'a', '$': 's', '!': 'i', '+': 't',
+  let n = text.toLowerCase();
+  const leetMap = { '0':'o','1':'i','3':'e','4':'a','5':'s','7':'t','8':'b','@':'a','$':'s','!':'i','+':'t' };
+  n = n.replace(/[0134578@\$!+]/g, c => leetMap[c] || c);
+  const sim = {
+    'ä':'a','ö':'o','ü':'u','ß':'ss','é':'e','è':'e','ê':'e','ë':'e',
+    'á':'a','à':'a','â':'a','å':'a','í':'i','ì':'i','î':'i','ï':'i',
+    'ó':'o','ò':'o','ô':'o','ø':'o','ú':'u','ù':'u','û':'u','ñ':'n','ç':'c',
+    'к':'k','р':'p','о':'o','а':'a','е':'e','с':'c','т':'t','у':'y','х':'h',
+    'д':'d','л':'l','м':'m','н':'n','з':'z','г':'g','ш':'sh','щ':'sh',
+    'ф':'f','в':'v','б':'b','п':'p','й':'y','ц':'ts','ч':'ch','ж':'zh',
   };
-  normalized = normalized.replace(/[0134578@\$!+]/g, (char) => leetMap[char] || char);
-  const similarChars = {
-    'ä': 'a', 'ö': 'o', 'ü': 'u', 'ß': 'ss',
-    'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
-    'á': 'a', 'à': 'a', 'â': 'a', 'å': 'a',
-    'í': 'i', 'ì': 'i', 'î': 'i', 'ï': 'i',
-    'ó': 'o', 'ò': 'o', 'ô': 'o', 'ø': 'o',
-    'ú': 'u', 'ù': 'u', 'û': 'u',
-    'ñ': 'n', 'ç': 'c',
-    'к': 'k', 'р': 'p', 'о': 'o', 'а': 'a', 'е': 'e',
-    'с': 'c', 'т': 't', 'у': 'y', 'х': 'h', 'д': 'd',
-    'л': 'l', 'м': 'm', 'н': 'n', 'з': 'z', 'г': 'g',
-    'ш': 'sh', 'щ': 'sh', 'ф': 'f', 'в': 'v', 'б': 'b',
-    'п': 'p', 'й': 'y', 'ц': 'ts', 'ч': 'ch', 'ж': 'zh',
-  };
-  normalized = normalized.replace(/[äöüßéèêëáàâåíìîïóòôøúùûñçк-я]/g, (char) => similarChars[char] || char);
-  normalized = normalized.replace(/(.)\1+/g, '$1');
-  normalized = normalized.replace(/[^a-z]/g, '');
-  return normalized;
+  n = n.replace(/[äöüßéèêëáàâåíìîïóòôøúùûñçк-я]/g, c => sim[c] || c);
+  n = n.replace(/(.)\1+/g, '$1');
+  n = n.replace(/[^a-z]/g, '');
+  return n;
 }
 
-function calculateSimilarity(str1, str2) {
-  if (str1 === str2) return 1;
-  if (!str1 || !str2) return 0;
-  const len1 = str1.length;
-  const len2 = str2.length;
-  const matrix = Array(len2 + 1).fill(null).map(() => Array(len1 + 1).fill(0));
-  for (let i = 0; i <= len1; i++) matrix[0][i] = i;
-  for (let j = 0; j <= len2; j++) matrix[j][0] = j;
-  for (let j = 1; j <= len2; j++) {
-    for (let i = 1; i <= len1; i++) {
-      const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
-      matrix[j][i] = Math.min(
-        matrix[j][i - 1] + 1,
-        matrix[j - 1][i] + 1,
-        matrix[j - 1][i - 1] + cost
-      );
+function calculateSimilarity(s1, s2) {
+  if (s1 === s2) return 1;
+  if (!s1 || !s2) return 0;
+  const l1 = s1.length, l2 = s2.length;
+  const m = Array(l2+1).fill(null).map(() => Array(l1+1).fill(0));
+  for (let i = 0; i <= l1; i++) m[0][i] = i;
+  for (let j = 0; j <= l2; j++) m[j][0] = j;
+  for (let j = 1; j <= l2; j++) {
+    for (let i = 1; i <= l1; i++) {
+      const c = s1[i-1] === s2[j-1] ? 0 : 1;
+      m[j][i] = Math.min(m[j][i-1]+1, m[j-1][i]+1, m[j-1][i-1]+c);
     }
   }
-  const distance = matrix[len2][len1];
-  const maxLen = Math.max(len1, len2);
-  return 1 - distance / maxLen;
+  return 1 - m[l2][l1] / Math.max(l1, l2);
 }
 
 function isNameAllowed(name) {
@@ -104,30 +85,21 @@ function isNameAllowed(name) {
   const lower = name.toLowerCase().trim();
   const normalized = normalizeText(lower);
   for (const word of BLOCKED_WORDS) {
-    const wordLower = word.toLowerCase();
-    const wordNormalized = normalizeText(wordLower);
-    if (lower.includes(wordLower) || normalized.includes(wordNormalized)) {
+    const wl = word.toLowerCase();
+    const wn = normalizeText(wl);
+    if (lower.includes(wl) || normalized.includes(wn)) return { ok: false, msg: 'Dieser Name ist nicht erlaubt.' };
+    if (normalized.length > 3 && wn.length > 3 && calculateSimilarity(normalized, wn) > 0.8) {
       return { ok: false, msg: 'Dieser Name ist nicht erlaubt.' };
-    }
-    if (normalized.length > 3 && wordNormalized.length > 3) {
-      const similarity = calculateSimilarity(normalized, wordNormalized);
-      if (similarity > 0.8) {
-        return { ok: false, msg: 'Dieser Name ist nicht erlaubt.' };
-      }
     }
   }
   return { ok: true, msg: '' };
 }
 
-function getDisplayTime(startTime) {
-  return new Date(new Date(startTime).getTime() - 2 * 60 * 60 * 1000);
-}
+function getDisplayTime(t) { return new Date(new Date(t).getTime() - 2*60*60*1000); }
 
-const BADGE_DEFINITIONS = {
-  rookie: { icon: '🏀', name: 'Rookie', desc: 'Erster Tipp abgegeben' },
+const BADGE_DEFS = {
   perfect_shooter: { icon: '🎯', name: 'Perfekter Schuss', desc: '5 exakte Tipps' },
   century: { icon: '💯', name: 'Centurion', desc: '100 Punkte erreicht' },
-  weekly_champion: { icon: '👑', name: 'Wochen-Champion', desc: 'Bester Tipper der Woche' },
 };
 
 export default function App() {
@@ -164,8 +136,8 @@ export default function App() {
   const cardsRef = useRef([]);
   const finishedCardsRef = useRef([]);
   const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem('tvn-dark-mode');
-    return saved !== null ? JSON.parse(saved) : true;
+    const s = localStorage.getItem('tvn-dark-mode');
+    return s !== null ? JSON.parse(s) : true;
   });
   const [badges, setBadges] = useState([]);
   const [weeklyChampion, setWeeklyChampion] = useState(null);
@@ -180,7 +152,7 @@ export default function App() {
   }
 
   function askConfirm(message) {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       confirmResolveRef.current = resolve;
       setConfirmModal({ message });
     });
@@ -188,18 +160,12 @@ export default function App() {
 
   function handleConfirmYes() {
     setConfirmModal(null);
-    if (confirmResolveRef.current) {
-      confirmResolveRef.current(true);
-      confirmResolveRef.current = null;
-    }
+    if (confirmResolveRef.current) { confirmResolveRef.current(true); confirmResolveRef.current = null; }
   }
 
   function handleConfirmNo() {
     setConfirmModal(null);
-    if (confirmResolveRef.current) {
-      confirmResolveRef.current(false);
-      confirmResolveRef.current = null;
-    }
+    if (confirmResolveRef.current) { confirmResolveRef.current(false); confirmResolveRef.current = null; }
   }
 
   async function requestNotificationPermission() {
@@ -208,57 +174,34 @@ export default function App() {
     }
   }
 
-  function sendNotification(title, body) {
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification(title, { body, icon: '🏀' });
-    }
-  }
-
-  const setupObserver = useCallback((refs) => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry, index) => {
-          if (entry.isIntersecting) {
-            setTimeout(() => entry.target.classList.add('revealed'), index * 50);
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-    refs.forEach((card) => { if (card) observer.observe(card); });
-    return observer;
+  const setupObserver = useCallback(refs => {
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach((e, i) => { if (e.isIntersecting) setTimeout(() => e.target.classList.add('revealed'), i*50); });
+    }, { threshold: 0.1 });
+    refs.forEach(c => { if (c) obs.observe(c); });
+    return obs;
   }, []);
 
   useEffect(() => {
-    if (view === 'tips') {
-      const obs = setupObserver(cardsRef.current);
-      return () => obs.disconnect();
-    }
+    if (view === 'tips') { const o = setupObserver(cardsRef.current); return () => o.disconnect(); }
   }, [games, view, setupObserver]);
 
   useEffect(() => {
-    if (view === 'results') {
-      const obs = setupObserver(finishedCardsRef.current);
-      return () => obs.disconnect();
-    }
+    if (view === 'results') { const o = setupObserver(finishedCardsRef.current); return () => o.disconnect(); }
   }, [finishedGames, myFinishedGames, resultTab, view, setupObserver]);
 
   useEffect(() => {
     localStorage.setItem('tvn-dark-mode', JSON.stringify(darkMode));
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    document.documentElement.classList.toggle('dark', darkMode);
   }, [darkMode]);
 
-  async function loadUsername(userId) {
-    const { data } = await supabase.from('profiles').select('username').eq('id', userId).single();
+  async function loadUsername(uid) {
+    const { data } = await supabase.from('profiles').select('username').eq('id', uid).single();
     if (data) setUsername(data.username);
   }
 
-  async function loadBadges(userId) {
-    const { data } = await supabase.from('badges').select('*').eq('user_id', userId);
+  async function loadBadges(uid) {
+    const { data } = await supabase.from('badges').select('*').eq('user_id', uid);
     setBadges(data || []);
   }
 
@@ -280,7 +223,7 @@ export default function App() {
         loadGroups(session.user.id);
       }
     });
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: al } = supabase.auth.onAuthStateChange((_e, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
         loadUsername(session.user.id);
@@ -292,220 +235,154 @@ export default function App() {
         loadGroups(session.user.id);
       }
     });
-    return () => authListener.subscription.unsubscribe();
+    return () => al.subscription.unsubscribe();
   }, []);
 
-  async function loadData(userId) {
+  async function loadData(uid) {
     setLoading(true);
     try {
       const now = new Date();
-      const in7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-      const { data: gamesData } = await supabase
-        .from('games')
-        .select('*')
-        .eq('is_cancelled', false)
-        .gte('start_time', now.toISOString())
-        .lte('start_time', in7Days.toISOString())
+      const in7 = new Date(now.getTime() + 7*24*60*60*1000);
+      const { data: gd } = await supabase.from('games').select('*').eq('is_cancelled', false)
+        .gte('start_time', now.toISOString()).lte('start_time', in7.toISOString())
         .order('start_time', { ascending: true });
-      setGames(gamesData || []);
+      setGames(gd || []);
       await loadFinishedGames('7');
-      const { data: lbData } = await supabase.from('leaderboard').select('*');
-      setLeaderboard(lbData || []);
-      if (userId) {
-        const { data: tipsData } = await supabase.from('predictions').select('*').eq('user_id', userId);
-        if (tipsData) {
-          const tipsMap = {};
-          tipsData.forEach(t => { tipsMap[t.game_id] = t; });
-          setMyTips(tipsMap);
-          const tipsState = {};
-          tipsData.forEach(t => {
-            tipsState[t.game_id + 'h'] = t.predicted_home_score?.toString() || '';
-            tipsState[t.game_id + 'a'] = t.predicted_away_score?.toString() || '';
-          });
-          setTips(tipsState);
+      const { data: ld } = await supabase.from('leaderboard').select('*');
+      setLeaderboard(ld || []);
+      if (uid) {
+        const { data: td } = await supabase.from('predictions').select('*').eq('user_id', uid);
+        if (td) {
+          const tm = {}; td.forEach(t => tm[t.game_id] = t); setMyTips(tm);
+          const ts = {}; td.forEach(t => {
+            ts[t.game_id+'h'] = t.predicted_home_score?.toString() || '';
+            ts[t.game_id+'a'] = t.predicted_away_score?.toString() || '';
+          }); setTips(ts);
         }
       }
-    } catch (err) {
-      console.error('Fehler:', err);
-    }
+    } catch (e) { console.error(e); }
     setLoading(false);
   }
 
   async function loadFinishedGames(days) {
     setResultFilter(days);
-    let query = supabase
-      .from('games')
-      .select('*')
-      .eq('is_cancelled', false)
-      .not('home_score', 'is', null)
-      .order('start_time', { ascending: false });
+    let q = supabase.from('games').select('*').eq('is_cancelled', false)
+      .not('home_score', 'is', null).order('start_time', { ascending: false });
     if (days !== 'all') {
-      const since = new Date(Date.now() - parseInt(days) * 24 * 60 * 60 * 1000);
-      query = query.gte('start_time', since.toISOString());
+      const s = new Date(Date.now() - parseInt(days)*24*60*60*1000);
+      q = q.gte('start_time', s.toISOString());
     }
-    const { data } = await query;
+    const { data } = await q;
     setFinishedGames(data || []);
-    setMyFinishedGames(data.filter(game => myTips[game.id]));
+    setMyFinishedGames(data.filter(g => myTips[g.id]));
   }
 
-  async function loadGroups(userId) {
+  async function loadGroups(uid) {
     try {
-      const uid = userId || user?.id;
-      if (!uid) return;
-      const { data: memberGroups } = await supabase.from('group_members').select('group_id').eq('user_id', uid);
-      const memberGroupIds = memberGroups?.map(m => m.group_id) || [];
-      let allGroups = [];
-      const { data: publicGroups } = await supabase.from('groups').select('*').eq('is_public', true);
-      if (publicGroups) allGroups = [...publicGroups];
-      if (memberGroupIds.length > 0) {
-        const { data: privateGroups } = await supabase
-          .from('groups')
-          .select('*')
-          .in('id', memberGroupIds)
-          .eq('is_public', false);
-        if (privateGroups) allGroups = [...allGroups, ...privateGroups];
+      const u = uid || user?.id; if (!u) return;
+      const { data: mg } = await supabase.from('group_members').select('group_id').eq('user_id', u);
+      const ids = mg?.map(m => m.group_id) || [];
+      let ag = [];
+      const { data: pg } = await supabase.from('groups').select('*').eq('is_public', true);
+      if (pg) ag = [...pg];
+      if (ids.length > 0) {
+        const { data: prg } = await supabase.from('groups').select('*').in('id', ids).eq('is_public', false);
+        if (prg) ag = [...ag, ...prg];
       }
-      setGroups(allGroups.filter((group, index, self) => index === self.findIndex((g) => g.id === group.id)));
-    } catch (err) {
-      console.error('Fehler beim Laden der Gruppen:', err);
-    }
+      setGroups(ag.filter((g,i,s) => i === s.findIndex(x => x.id === g.id)));
+    } catch (e) { console.error(e); }
   }
 
   async function createGroup() {
-    const nameCheck = isNameAllowed(newGroupName);
-    if (!nameCheck.ok) { showToast(nameCheck.msg, 'error'); return; }
+    const nc = isNameAllowed(newGroupName);
+    if (!nc.ok) { showToast(nc.msg, 'error'); return; }
     try {
-      const { data: codeData } = await supabase.rpc('generate_join_code');
-      const code = codeData || Math.random().toString(36).substring(2, 8).toUpperCase();
+      const { data: cd } = await supabase.rpc('generate_join_code');
+      const code = cd || Math.random().toString(36).substring(2, 8).toUpperCase();
       const { data: group, error } = await supabase.from('groups').insert({
-        name: newGroupName.trim(),
-        is_public: newGroupIsPublic,
-        join_code: newGroupIsPublic ? null : code,
-        created_by: user.id,
+        name: newGroupName.trim(), is_public: newGroupIsPublic,
+        join_code: newGroupIsPublic ? null : code, created_by: user.id
       }).select().single();
       if (error) throw error;
-      await supabase.from('group_members').insert({
-        group_id: group.id,
-        user_id: user.id,
-        is_admin: true,
-      });
+      await supabase.from('group_members').insert({ group_id: group.id, user_id: user.id, is_admin: true });
       showToast('Gruppe erstellt! 🎉', 'success');
-      setShowCreateGroup(false);
-      setNewGroupName('');
-      setNewGroupIsPublic(false);
+      setShowCreateGroup(false); setNewGroupName(''); setNewGroupIsPublic(false);
       await loadGroups(user.id);
-    } catch (err) {
-      showToast('Fehler: ' + err.message, 'error');
-    }
+    } catch (e) { showToast('Fehler: ' + e.message, 'error'); }
   }
 
   async function joinGroupWithCode() {
-    if (!joinCode.trim()) { showToast('Bitte Beitrittscode eingeben.', 'error'); return; }
+    if (!joinCode.trim()) { showToast('Bitte Code eingeben.', 'error'); return; }
     try {
-      const { data: group, error: groupError } = await supabase
-        .from('groups')
-        .select('*')
-        .eq('join_code', joinCode.toUpperCase())
-        .single();
-      if (groupError || !group) { showToast('Ungültiger Beitrittscode.', 'error'); return; }
-      const { error: memberError } = await supabase.from('group_members').insert({
-        group_id: group.id,
-        user_id: user.id,
-        is_admin: false,
-      });
-      if (memberError) {
-        if (memberError.code === '23505') showToast('Du bist bereits Mitglied.', 'info');
-        else throw memberError;
-      } else {
-        showToast('Beigetreten! 🎉', 'success');
-      }
-      setShowJoinGroup(false);
-      setJoinCode('');
-      await loadGroups(user.id);
-    } catch (err) {
-      showToast('Fehler: ' + err.message, 'error');
-    }
+      const { data: group, error: ge } = await supabase.from('groups').select('*').eq('join_code', joinCode.toUpperCase()).single();
+      if (ge || !group) { showToast('Ungültiger Code.', 'error'); return; }
+      const { error: me } = await supabase.from('group_members').insert({ group_id: group.id, user_id: user.id, is_admin: false });
+      if (me) {
+        if (me.code === '23505') showToast('Bereits Mitglied.', 'info'); else throw me;
+      } else showToast('Beigetreten! 🎉', 'success');
+      setShowJoinGroup(false); setJoinCode(''); await loadGroups(user.id);
+    } catch (e) { showToast('Fehler: ' + e.message, 'error'); }
   }
 
-  async function joinPublicGroup(groupId) {
+  async function joinPublicGroup(gid) {
     try {
-      const { error } = await supabase.from('group_members').insert({
-        group_id: groupId,
-        user_id: user.id,
-        is_admin: false,
-      });
+      const { error } = await supabase.from('group_members').insert({ group_id: gid, user_id: user.id, is_admin: false });
       if (error) {
-        if (error.code === '23505') showToast('Du bist bereits Mitglied.', 'info');
-        else throw error;
-      } else {
-        showToast('Beigetreten! 🎉', 'success');
-      }
-      await loadGroupDetails(groupId);
-    } catch (err) {
-      showToast('Fehler: ' + err.message, 'error');
-    }
+        if (error.code === '23505') showToast('Bereits Mitglied.', 'info'); else throw error;
+      } else showToast('Beigetreten! 🎉', 'success');
+      await loadGroupDetails(gid);
+    } catch (e) { showToast('Fehler: ' + e.message, 'error'); }
   }
 
-  async function deleteGroup(groupId) {
-    const confirmed = await askConfirm('Gruppe wirklich löschen? Dies kann nicht rückgängig gemacht werden.');
-    if (!confirmed) return;
+  async function leaveGroup(gid) {
+    const ok = await askConfirm('Gruppe wirklich verlassen?');
+    if (!ok) return;
     try {
-      const { error } = await supabase.from('groups').delete().eq('id', groupId);
+      const { error } = await supabase.from('group_members').delete().eq('group_id', gid).eq('user_id', user.id);
+      if (error) throw error;
+      showToast('Gruppe verlassen!', 'success');
+      setSelectedGroup(null); await loadGroups(user.id);
+    } catch (e) { showToast('Fehler: ' + e.message, 'error'); }
+  }
+
+  async function deleteGroup(gid) {
+    const ok = await askConfirm('Gruppe wirklich löschen?');
+    if (!ok) return;
+    try {
+      const { error } = await supabase.from('groups').delete().eq('id', gid);
       if (error) throw error;
       showToast('Gruppe gelöscht!', 'success');
-      setSelectedGroup(null);
-      await loadGroups(user.id);
-    } catch (err) {
-      showToast('Fehler: ' + err.message, 'error');
-    }
+      setSelectedGroup(null); await loadGroups(user.id);
+    } catch (e) { showToast('Fehler: ' + e.message, 'error'); }
   }
 
-  async function loadGroupDetails(groupId) {
-    const { data: group } = await supabase.from('groups').select('*').eq('id', groupId).single();
-    setSelectedGroup(group);
-    const { data: members } = await supabase
-      .from('group_members')
-      .select(`*, profiles(username)`)
-      .eq('group_id', groupId);
-    setGroupMembers(members || []);
-    const { data: lb } = await supabase.from('group_leaderboard').select('*').eq('group_id', groupId);
+  async function loadGroupDetails(gid) {
+    const { data: g } = await supabase.from('groups').select('*').eq('id', gid).single();
+    setSelectedGroup(g);
+    const { data: m } = await supabase.from('group_members').select('*, profiles(username)').eq('group_id', gid);
+    setGroupMembers(m || []);
+    const { data: lb } = await supabase.from('group_leaderboard').select('*').eq('group_id', gid);
     setGroupLeaderboard(lb || []);
   }
 
-  async function removeMember(groupId, userId) {
-    const confirmed = await askConfirm('Dieses Mitglied wirklich aus der Gruppe entfernen?');
-    if (!confirmed) return;
+  async function removeMember(gid, uid) {
+    const ok = await askConfirm('Mitglied entfernen?');
+    if (!ok) return;
     try {
-      const { error } = await supabase
-        .from('group_members')
-        .delete()
-        .eq('group_id', groupId)
-        .eq('user_id', userId);
+      const { error } = await supabase.from('group_members').delete().eq('group_id', gid).eq('user_id', uid);
       if (error) throw error;
-      showToast('Mitglied entfernt!', 'success');
-      await loadGroupDetails(groupId);
-    } catch (err) {
-      showToast('Fehler: ' + err.message, 'error');
-    }
+      showToast('Entfernt!', 'success'); await loadGroupDetails(gid);
+    } catch (e) { showToast('Fehler: ' + e.message, 'error'); }
   }
 
   async function handleLogin(e) {
-    e.preventDefault();
-    setMsg('');
+    e.preventDefault(); setMsg('');
     if (isRegistering) {
-      const nameCheck = isNameAllowed(regUsername);
-      if (!nameCheck.ok) { setMsg(nameCheck.msg); return; }
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { username: regUsername.trim() } },
-      });
+      const nc = isNameAllowed(regUsername);
+      if (!nc.ok) { setMsg(nc.msg); return; }
+      const { error } = await supabase.auth.signUp({ email, password, options: { data: { username: regUsername.trim() } } });
       if (error) setMsg('Fehler: ' + error.message);
-      else {
-        showToast('Registrierung erfolgreich!', 'success');
-        setRegUsername('');
-        setIsRegistering(false);
-      }
+      else { showToast('Registrierung erfolgreich!', 'success'); setRegUsername(''); setIsRegistering(false); }
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) setMsg('Fehler: ' + error.message);
@@ -514,184 +391,113 @@ export default function App() {
 
   async function handleLogout() {
     await supabase.auth.signOut();
-    setUser(null);
-    setUsername('');
-    setView('login');
-    setEmail('');
-    setPassword('');
-    setRegUsername('');
-    setMyTips({});
-    setTips({});
-    setGroups([]);
-    setBadges([]);
+    setUser(null); setUsername(''); setView('login');
+    setEmail(''); setPassword(''); setRegUsername('');
+    setMyTips({}); setTips({}); setGroups([]); setBadges([]);
   }
 
-  async function submitTip(gameId, homeScore, awayScore) {
-    if (!homeScore || !awayScore) { showToast('Bitte beide Ergebnisse eingeben.', 'error'); return; }
+  async function submitTip(gid, hs, as) {
+    if (!hs || !as) { showToast('Beide Ergebnisse eingeben.', 'error'); return; }
     try {
-      const { data: existing } = await supabase
-        .from('predictions')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('game_id', gameId)
-        .single();
-      if (existing) {
-        const { error } = await supabase
-          .from('predictions')
-          .update({
-            predicted_home_score: parseInt(homeScore),
-            predicted_away_score: parseInt(awayScore),
-          })
-          .eq('id', existing.id);
+      const { data: ex } = await supabase.from('predictions').select('id').eq('user_id', user.id).eq('game_id', gid).single();
+      if (ex) {
+        const { error } = await supabase.from('predictions').update({ predicted_home_score: parseInt(hs), predicted_away_score: parseInt(as) }).eq('id', ex.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('predictions').insert({
-          user_id: user.id,
-          game_id: gameId,
-          predicted_home_score: parseInt(homeScore),
-          predicted_away_score: parseInt(awayScore),
-        });
+        const { error } = await supabase.from('predictions').insert({ user_id: user.id, game_id: gid, predicted_home_score: parseInt(hs), predicted_away_score: parseInt(as) });
         if (error) throw error;
       }
       showToast('Tipp gespeichert! 🏀', 'success');
-      await loadData(user.id);
-      await loadBadges(user.id);
-    } catch (err) {
-      showToast('Fehler: ' + err.message, 'error');
-    }
+      await loadData(user.id); await loadBadges(user.id);
+    } catch (e) { showToast('Fehler: ' + e.message, 'error'); }
   }
 
-  async function deleteTip(gameId) {
-    const confirmed = await askConfirm('Tipp wirklich löschen?');
-    if (!confirmed) return;
+  async function deleteTip(gid) {
+    const ok = await askConfirm('Tipp löschen?');
+    if (!ok) return;
     try {
-      const { error } = await supabase
-        .from('predictions')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('game_id', gameId);
+      const { error } = await supabase.from('predictions').delete().eq('user_id', user.id).eq('game_id', gid);
       if (error) throw error;
-      showToast('Tipp gelöscht!', 'success');
-      await loadData(user.id);
-    } catch (err) {
-      showToast('Fehler: ' + err.message, 'error');
-    }
+      showToast('Tipp gelöscht!', 'success'); await loadData(user.id);
+    } catch (e) { showToast('Fehler: ' + e.message, 'error'); }
   }
 
-  async function loadCalendarGames(year, month) {
-    const startDate = new Date(year, month, 1);
-    const endDate = new Date(year, month + 1, 0, 23, 59, 59);
-    const { data } = await supabase
-      .from('games')
-      .select('*')
-      .eq('is_cancelled', false)
-      .gte('start_time', startDate.toISOString())
-      .lte('start_time', endDate.toISOString())
+  async function loadCalendarGames(y, m) {
+    const s = new Date(y, m, 1);
+    const e = new Date(y, m+1, 0, 23, 59, 59);
+    const { data } = await supabase.from('games').select('*').eq('is_cancelled', false)
+      .gte('start_time', s.toISOString()).lte('start_time', e.toISOString())
       .order('start_time', { ascending: true });
     setGamesOnDate(data || []);
   }
 
-  useEffect(() => {
-    if (view === 'calendar') {
-      loadCalendarGames(calendarYear, calendarMonth);
-    }
-  }, [calendarYear, calendarMonth, view]);
+  useEffect(() => { if (view === 'calendar') loadCalendarGames(calendarYear, calendarMonth); }, [calendarYear, calendarMonth, view]);
 
-  function getCalendarDays(year, month) {
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    let startingDayOfWeek = firstDay.getDay();
-    startingDayOfWeek = startingDayOfWeek === 0 ? 6 : startingDayOfWeek - 1;
-    const days = [];
-    for (let i = 0; i < startingDayOfWeek; i++) days.push(null);
-    for (let i = 1; i <= daysInMonth; i++) days.push(i);
-    return days;
+  function getCalendarDays(y, m) {
+    const fd = new Date(y, m, 1);
+    const ld = new Date(y, m+1, 0).getDate();
+    let sd = fd.getDay(); sd = sd === 0 ? 6 : sd - 1;
+    const d = [];
+    for (let i = 0; i < sd; i++) d.push(null);
+    for (let i = 1; i <= ld; i++) d.push(i);
+    return d;
   }
 
   function getGamesForDay(day) {
     if (!day) return [];
-    return gamesOnDate.filter(game => {
-      const gameDate = getDisplayTime(game.start_time);
-      return gameDate.getDate() === day &&
-             gameDate.getMonth() === calendarMonth &&
-             gameDate.getFullYear() === calendarYear;
+    return gamesOnDate.filter(g => {
+      const gd = getDisplayTime(g.start_time);
+      return gd.getDate() === day && gd.getMonth() === calendarMonth && gd.getFullYear() === calendarYear;
     });
   }
 
   function prevMonth() {
-    if (calendarMonth === 0) {
-      setCalendarMonth(11);
-      setCalendarYear(calendarYear - 1);
-    } else {
-      setCalendarMonth(calendarMonth - 1);
-    }
+    if (calendarMonth === 0) { setCalendarMonth(11); setCalendarYear(calendarYear-1); }
+    else setCalendarMonth(calendarMonth-1);
     setSelectedDate(null);
   }
 
   function nextMonth() {
-    if (calendarMonth === 11) {
-      setCalendarMonth(0);
-      setCalendarYear(calendarYear + 1);
-    } else {
-      setCalendarMonth(calendarMonth + 1);
-    }
+    if (calendarMonth === 11) { setCalendarMonth(0); setCalendarYear(calendarYear+1); }
+    else setCalendarMonth(calendarMonth+1);
     setSelectedDate(null);
   }
 
-  function isGameStarted(startTime) {
-    return new Date(new Date(startTime).getTime() - 2 * 60 * 60 * 1000) <= new Date();
-  }
+  function isGameStarted(t) { return new Date(new Date(t).getTime() - 2*60*60*1000) <= new Date(); }
 
-  function getResultBadge(game) {
-    const h = game.home_team.toLowerCase();
-    const a = game.away_team.toLowerCase();
+  function getResultBadge(g) {
+    const h = g.home_team.toLowerCase(), a = g.away_team.toLowerCase();
     const tvnH = h.includes('neunkirchen') || h.includes('tvn');
     const tvnA = a.includes('neunkirchen') || a.includes('tvn');
     let w = false, l = false;
-    if (tvnH) { w = game.home_score > game.away_score; l = game.home_score < game.away_score; }
-    else if (tvnA) { w = game.away_score > game.home_score; l = game.away_score < game.home_score; }
-    else { w = game.home_score > game.away_score; l = game.home_score < game.away_score; }
-    if (game.home_score === game.away_score) {
-      return <span className="badge-draw text-xs px-3 py-1.5 rounded-button font-mono font-bold">UNENTSCHIEDEN</span>;
-    }
+    if (tvnH) { w = g.home_score > g.away_score; l = g.home_score < g.away_score; }
+    else if (tvnA) { w = g.away_score > g.home_score; l = g.away_score < g.home_score; }
+    else { w = g.home_score > g.away_score; l = g.home_score < g.away_score; }
+    if (g.home_score === g.away_score) return <span className="badge-draw text-xs px-3 py-1.5 rounded-button font-mono font-bold">UNENTSCHIEDEN</span>;
     if (w) return <span className="badge-win text-xs px-3 py-1.5 rounded-button font-mono font-bold">SIEG</span>;
     if (l) return <span className="badge-loss text-xs px-3 py-1.5 rounded-button font-mono font-bold">NIEDERLAGE</span>;
     return null;
   }
 
-  function getTipPoints(tip, game) {
-    if (!tip || game.home_score === null) return null;
-    if (tip.predicted_home_score === game.home_score && tip.predicted_away_score === game.away_score) return 5;
-    if (Math.abs((tip.predicted_home_score - tip.predicted_away_score) - (game.home_score - game.away_score)) <= 10) return 3;
+  function getTipPoints(tip, g) {
+    if (!tip || g.home_score === null) return null;
+    if (tip.predicted_home_score === g.home_score && tip.predicted_away_score === g.away_score) return 10;
+    if (Math.abs((tip.predicted_home_score - tip.predicted_away_score) - (g.home_score - g.away_score)) <= 20) return 5;
     const tH = tip.predicted_home_score > tip.predicted_away_score;
     const tA = tip.predicted_home_score < tip.predicted_away_score;
     const tD = tip.predicted_home_score === tip.predicted_away_score;
-    const gH = game.home_score > game.away_score;
-    const gA = game.home_score < game.away_score;
-    const gD = game.home_score === game.away_score;
-    if ((tH && gH) || (tA && gA) || (tD && gD)) return 1;
-    return 0;
+    const gH = g.home_score > g.away_score;
+    const gA = g.home_score < g.away_score;
+    const gD = g.home_score === g.away_score;
+    if ((tH && gH) || (tA && gA) || (tD && gD)) return 3;
+    return 1;
   }
 
-  function getBadgeIcon(badgeType) {
-    return BADGE_DEFINITIONS[badgeType]?.icon || '🏅';
-  }
-
-  function getBadgeName(badgeType) {
-    return BADGE_DEFINITIONS[badgeType]?.name || badgeType;
-  }
-
-  function getMyPoints() {
-    return leaderboard.find(r => r.username === username)?.total_points || 0;
-  }
-
-  function getMyRank() {
-    const idx = leaderboard.findIndex(r => r.username === username);
-    return idx >= 0 ? idx + 1 : null;
-  }
-
-  // ==================== LOGIN ====================
+  function getBadgeIcon(t) { return BADGE_DEFS[t]?.icon || '🏅'; }
+  function getBadgeName(t) { return BADGE_DEFS[t]?.name || t; }
+  function getMyPoints() { return leaderboard.find(r => r.username === username)?.total_points || 0; }
+  function getMyRank() { const i = leaderboard.findIndex(r => r.username === username); return i >= 0 ? i+1 : null; }
+    // ==================== LOGIN ====================
   if (!user) {
     return (
       <div className="min-h-screen bg-dark-900 flex items-center justify-center p-4">
@@ -777,7 +583,7 @@ export default function App() {
                 Abbrechen
               </button>
               <button onClick={handleConfirmYes} className="flex-1 glow-button bg-neon-red text-white px-4 py-3 rounded-button font-heading font-semibold hover:bg-red-700 transition">
-                Löschen
+                Bestätigen
               </button>
             </div>
           </div>
@@ -789,10 +595,10 @@ export default function App() {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-xl font-heading font-bold text-white mb-4">🏆 Punkte-System</h3>
             <div className="space-y-3 font-body text-gray-400">
-              <div className="flex items-start gap-3"><span className="text-2xl">🎯</span><div><div className="font-bold text-white">5 Punkte</div><div className="text-sm">Exaktes Ergebnis</div></div></div>
-              <div className="flex items-start gap-3"><span className="text-2xl">👍</span><div><div className="font-bold text-white">3 Punkte</div><div className="text-sm">Innerhalb von 10 Punkten Differenz</div></div></div>
-              <div className="flex items-start gap-3"><span className="text-2xl">✓</span><div><div className="font-bold text-white">1 Punkt</div><div className="text-sm">Richtige Tendenz</div></div></div>
-              <div className="flex items-start gap-3"><span className="text-2xl">❌</span><div><div className="font-bold text-white">0 Punkte</div><div className="text-sm">Falsch getippt</div></div></div>
+              <div className="flex items-start gap-3"><span className="text-2xl">🎯</span><div><div className="font-bold text-white">10 Punkte</div><div className="text-sm">Exaktes Ergebnis</div></div></div>
+              <div className="flex items-start gap-3"><span className="text-2xl">👍</span><div><div className="font-bold text-white">5 Punkte</div><div className="text-sm">Innerhalb von 20 Punkten Differenz</div></div></div>
+              <div className="flex items-start gap-3"><span className="text-2xl">✓</span><div><div className="font-bold text-white">3 Punkte</div><div className="text-sm">Richtige Tendenz (Sieg/Niederlage/Unentschieden)</div></div></div>
+              <div className="flex items-start gap-3"><span className="text-2xl">🏀</span><div><div className="font-bold text-white">1 Punkt</div><div className="text-sm">Teilnahme (Tipp abgegeben)</div></div></div>
             </div>
             <button onClick={() => setShowPointsInfo(false)} className="mt-6 w-full glow-button bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 px-4 py-3 rounded-button font-heading font-bold hover:shadow-glow transition">
               Verstanden
@@ -912,8 +718,8 @@ export default function App() {
             <div className="w-10 h-10 rounded-full bg-gradient-to-r from-neon-purple to-neon-pink flex items-center justify-center text-white font-bold">
               {username?.[0]?.toUpperCase() || 'U'}
             </div>
-            <div className="flex-1">
-              <div className="text-sm font-heading font-bold text-white">{username}</div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-heading font-bold text-white truncate">{username}</div>
               <div className="text-xs text-gray-500 font-body">Online</div>
             </div>
           </div>
@@ -968,7 +774,7 @@ export default function App() {
                         <div
                           key={badge.id}
                           className="flex items-center gap-1 bg-dark-700 px-2 py-1 rounded-button"
-                          title={BADGE_DEFINITIONS[badge.badge_type]?.desc}
+                          title={BADGE_DEFS[badge.badge_type]?.desc}
                         >
                           <span className="text-lg">{getBadgeIcon(badge.badge_type)}</span>
                           <span className="text-xs font-body text-gray-300">{getBadgeName(badge.badge_type)}</span>
@@ -1019,7 +825,7 @@ export default function App() {
                     ref={(el) => (cardsRef.current[index] = el)}
                     className="card-reveal hover-lift glass-card rounded-card overflow-hidden"
                   >
-                    <div className="p-5">
+                    <div className="game-card-content p-5">
                       <div className="flex items-center justify-between mb-3">
                         <div className="text-xs font-mono font-semibold text-neon-gold uppercase tracking-wide">
                           {game.competition || 'Liga'}
@@ -1033,10 +839,10 @@ export default function App() {
                       <div className="text-xs text-gray-500 mb-4 font-body">
                         📅 {dT.toLocaleString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} Uhr
                       </div>
-                      <div className="flex justify-between items-center text-base font-heading font-bold mb-4 text-white">
-                        <span className="text-right flex-1">{hD}</span>
-                        <span className="text-neon-gold px-3 text-sm font-normal">vs</span>
-                        <span className="text-left flex-1">{aD}</span>
+                      <div className="team-names-row flex justify-between items-center text-base font-heading font-bold mb-4 text-white">
+                        <span className="text-right flex-1 team-name-clamp pr-2">{hD}</span>
+                        <span className="text-neon-gold px-3 text-sm font-normal flex-shrink-0">vs</span>
+                        <span className="text-left flex-1 team-name-clamp pl-2">{aD}</span>
                       </div>
                       {started ? (
                         <div className="bg-dark-700 p-3 rounded-button border border-white/5 text-center">
@@ -1068,7 +874,7 @@ export default function App() {
                               onChange={(e) => setTips({ ...tips, [game.id + 'a']: e.target.value })}
                             />
                             <button
-                              className="glow-button ml-auto bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 px-4 py-2 rounded-button font-heading font-bold hover:shadow-glow transition"
+                              className="glow-button ml-auto bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 px-4 py-2 rounded-button font-heading font-bold hover:shadow-glow transition flex-shrink-0"
                               onClick={() => submitTip(game.id, tips[game.id + 'h'], tips[game.id + 'a'])}
                             >
                               {hasTip ? 'Ändern' : 'Tippen'}
@@ -1150,7 +956,7 @@ export default function App() {
                     ref={(el) => (finishedCardsRef.current[index] = el)}
                     className="card-reveal hover-lift glass-card rounded-card overflow-hidden"
                   >
-                    <div className="p-5">
+                    <div className="game-card-content p-5">
                       <div className="flex justify-between items-start mb-3">
                         <div className="text-xs font-mono font-semibold text-neon-gold uppercase tracking-wide">
                           {game.competition || 'Liga'}
@@ -1160,12 +966,13 @@ export default function App() {
                       <div className="text-xs text-gray-500 mb-4 font-body">
                         📅 {dT.toLocaleString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} Uhr
                       </div>
-                      <div className="flex justify-between items-center mb-3 text-white">
-                        <span className="text-right flex-1 font-heading font-bold">{hD}</span>
-                        <span className="text-neon-gold font-mono font-bold text-xl px-3">
+                      {/* Mobile: Unterinander, Desktop: Nebeneinander */}
+                      <div className="result-teams flex justify-between items-center mb-3 text-white">
+                        <span className="team-name team-left text-right flex-1 font-heading font-bold team-name-clamp pr-2">{hD}</span>
+                        <span className="vs-score-mobile text-neon-gold font-mono font-bold text-xl px-3 flex-shrink-0">
                           {game.home_score} : {game.away_score}
                         </span>
-                        <span className="text-left flex-1 font-heading font-bold">{aD}</span>
+                        <span className="team-name team-right text-left flex-1 font-heading font-bold team-name-clamp pl-2">{aD}</span>
                       </div>
                       {tip && (
                         <div className="mt-3 bg-dark-700 p-3 rounded-button border border-white/5">
@@ -1179,10 +986,10 @@ export default function App() {
                             <span className="text-gray-500 text-xs font-body">Punkte:</span>
                             <span
                               className={`font-mono font-bold ${
-                                points === 5 ? 'text-neon-green' : points === 3 ? 'text-neon-gold' : points === 1 ? 'text-neon-purple' : 'text-neon-red'
+                                points === 10 ? 'text-neon-green' : points === 5 ? 'text-neon-gold' : points === 3 ? 'text-neon-purple' : 'text-gray-400'
                               }`}
                             >
-                              {points === 5 ? '🎯 5' : points === 3 ? '👍 3' : points === 1 ? '✓ 1' : '❌ 0'}
+                              {points === 10 ? '🎯 10' : points === 5 ? '👍 5' : points === 3 ? '✓ 3' : '🏀 1'}
                             </span>
                           </div>
                         </div>
@@ -1202,12 +1009,12 @@ export default function App() {
         {view === 'calendar' && (
           <div>
             <h2 className="text-xl font-heading font-bold text-white mb-4">📅 Spielkalender</h2>
-            <div className="glass-card rounded-card p-4 md:p-6">
-              <div className="flex justify-between items-center mb-4">
+            <div className="glass-card rounded-card p-3 md:p-6">
+              <div className="flex justify-between items-center mb-3">
                 <button onClick={prevMonth} className="glow-button bg-dark-700 text-white px-3 py-1.5 rounded-button font-heading font-semibold hover:bg-dark-600 transition text-sm">
                   ←
                 </button>
-                <h3 className="text-base md:text-lg font-heading font-bold text-white capitalize">
+                <h3 className="text-sm md:text-lg font-heading font-bold text-white capitalize">
                   {new Date(calendarYear, calendarMonth).toLocaleString('de-DE', { month: 'long', year: 'numeric' })}
                 </h3>
                 <button onClick={nextMonth} className="glow-button bg-dark-700 text-white px-3 py-1.5 rounded-button font-heading font-semibold hover:bg-dark-600 transition text-sm">
@@ -1241,7 +1048,7 @@ export default function App() {
                     >
                       {day && (
                         <>
-                          <span className={`text-sm font-body ${isSelected ? 'text-neon-gold font-bold' : 'text-white'}`}>
+                          <span className={`text-xs md:text-sm font-body ${isSelected ? 'text-neon-gold font-bold' : 'text-white'}`}>
                             {day}
                           </span>
                           {hasGames && (
@@ -1364,6 +1171,7 @@ export default function App() {
                   </span>
                 </div>
                 <div className="flex gap-2 flex-wrap">
+                  {/* Beitreten-Button für öffentliche Gruppen */}
                   {selectedGroup.is_public && selectedGroup.created_by !== user.id && !groupMembers.some((m) => m.user_id === user.id) && (
                     <button
                       onClick={() => joinPublicGroup(selectedGroup.id)}
@@ -1372,6 +1180,16 @@ export default function App() {
                       Beitreten
                     </button>
                   )}
+                  {/* Verlassen-Button für Mitglieder (nicht Creator) */}
+                  {groupMembers.some((m) => m.user_id === user.id) && selectedGroup.created_by !== user.id && (
+                    <button
+                      onClick={() => leaveGroup(selectedGroup.id)}
+                      className="glow-button bg-dark-700 text-gray-400 hover:text-white px-4 py-2 rounded-button font-heading font-semibold transition"
+                    >
+                      Verlassen
+                    </button>
+                  )}
+                  {/* Löschen-Button für Creator */}
                   {selectedGroup.created_by === user.id && (
                     <button onClick={() => deleteGroup(selectedGroup.id)} className="glow-button bg-neon-red/20 text-neon-red px-4 py-2 rounded-button font-heading font-semibold hover:bg-neon-red/30 transition">
                       Gruppe löschen
