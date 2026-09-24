@@ -46,9 +46,7 @@ function isNameAllowed(name) {
   if (name.trim().length > 20) return { ok: false, msg: 'Name darf maximal 20 Zeichen haben.' };
   const lower = name.toLowerCase().trim();
   for (const word of BLOCKED_WORDS) {
-    if (lower === word || lower.includes(word)) {
-      return { ok: false, msg: 'Dieser Name ist nicht erlaubt.' };
-    }
+    if (lower === word || lower.includes(word)) return { ok: false, msg: 'Dieser Name ist nicht erlaubt.' };
   }
   return { ok: true, msg: '' };
 }
@@ -94,8 +92,10 @@ export default function App() {
   const cardsRef = useRef([]);
   const finishedCardsRef = useRef([]);
   const [darkMode, setDarkMode] = useState(() => {
-    const s = localStorage.getItem('tvn-dark-mode');
-    return s !== null ? JSON.parse(s) : true;
+    try {
+      const s = localStorage.getItem('tvn-dark-mode');
+      return s !== null ? JSON.parse(s) : true;
+    } catch { return true; }
   });
   const [badges, setBadges] = useState([]);
   const [weeklyChampion, setWeeklyChampion] = useState(null);
@@ -104,6 +104,7 @@ export default function App() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [gamesOnDate, setGamesOnDate] = useState([]);
   const [showResendButton, setShowResendButton] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   function showToast(message, type = 'success') {
     setToast({ message, type });
@@ -128,9 +129,11 @@ export default function App() {
   }
 
   async function requestNotificationPermission() {
-    if ('Notification' in window && Notification.permission === 'default') {
-      await Notification.requestPermission();
-    }
+    try {
+      if ('Notification' in window && Notification.permission === 'default') {
+        await Notification.requestPermission();
+      }
+    } catch (e) { /* ignore */ }
   }
 
   const setupObserver = useCallback(refs => {
@@ -150,71 +153,82 @@ export default function App() {
   }, [finishedGames, myFinishedGames, resultTab, view, setupObserver]);
 
   useEffect(() => {
-    localStorage.setItem('tvn-dark-mode', JSON.stringify(darkMode));
+    try {
+      localStorage.setItem('tvn-dark-mode', JSON.stringify(darkMode));
+    } catch (e) { /* ignore */ }
     document.documentElement.classList.toggle('dark', darkMode);
   }, [darkMode]);
 
   async function loadUsername(uid) {
-    const { data, error } = await supabase.from('profiles').select('username').eq('id', uid).single();
-    if (error || !data) {
-      console.warn('User nicht gefunden, Session wird gelöscht');
-      await supabase.auth.signOut();
-      setUser(null);
-      setUsername('');
-      setView('login');
-      setEmail('');
-      setPassword('');
-      setMyTips({});
-      setTips({});
-      setGroups([]);
-      setBadges([]);
+    try {
+      const { data, error } = await supabase.from('profiles').select('username').eq('id', uid).single();
+      if (error || !data) {
+        await supabase.auth.signOut();
+        setUser(null); setUsername(''); setView('login');
+        setEmail(''); setPassword('');
+        setMyTips({}); setTips({}); setGroups([]); setBadges([]);
+        return false;
+      }
+      setUsername(data.username);
+      return true;
+    } catch (e) {
       return false;
     }
-    setUsername(data.username);
-    return true;
   }
 
   async function loadBadges(uid) {
-    const { data } = await supabase.from('badges').select('*').eq('user_id', uid);
-    setBadges((data || []).filter(b => BADGE_DEFS[b.badge_type]));
+    try {
+      const { data } = await supabase.from('badges').select('*').eq('user_id', uid);
+      setBadges((data || []).filter(b => BADGE_DEFS[b.badge_type]));
+    } catch (e) { /* ignore */ }
   }
 
   async function loadWeeklyChampion() {
-    const { data } = await supabase.from('weekly_champion').select('*');
-    setWeeklyChampion(data?.[0] || null);
+    try {
+      const { data } = await supabase.from('weekly_champion').select('*');
+      setWeeklyChampion(data?.[0] || null);
+    } catch (e) { /* ignore */ }
   }
 
   useEffect(() => {
     async function initSession() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const userExists = await loadUsername(session.user.id);
-        if (!userExists) return;
-        setUser(session.user);
-        loadBadges(session.user.id);
-        loadWeeklyChampion();
-        requestNotificationPermission();
-        setView('tips');
-        loadData(session.user.id);
-        loadGroups(session.user.id);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const userExists = await loadUsername(session.user.id);
+          if (!userExists) return;
+          setUser(session.user);
+          loadBadges(session.user.id);
+          loadWeeklyChampion();
+          requestNotificationPermission();
+          setView('tips');
+          loadData(session.user.id);
+          loadGroups(session.user.id);
+        }
+      } catch (e) {
+        console.error('Session-Fehler:', e);
       }
     }
     initSession();
 
     const { data: al } = supabase.auth.onAuthStateChange(async (_e, session) => {
-      if (session?.user) {
-        const userExists = await loadUsername(session.user.id);
-        if (!userExists) return;
-        setUser(session.user);
-        loadBadges(session.user.id);
-        loadWeeklyChampion();
-        requestNotificationPermission();
-        setView('tips');
-        loadData(session.user.id);
-        loadGroups(session.user.id);
-      } else {
-        setUser(null);
-        setView('login');
+      try {
+        if (session?.user) {
+          const userExists = await loadUsername(session.user.id);
+          if (!userExists) return;
+          setUser(session.user);
+          loadBadges(session.user.id);
+          loadWeeklyChampion();
+          requestNotificationPermission();
+          setView('tips');
+          loadData(session.user.id);
+          loadGroups(session.user.id);
+        } else {
+          setUser(null);
+          setView('login');
+        }
+      } catch (e) {
+        console.error('Auth-Fehler:', e);
       }
     });
     return () => al.subscription.unsubscribe();
@@ -357,47 +371,69 @@ export default function App() {
     } catch (e) { showToast('Fehler: ' + e.message, 'error'); }
   }
 
+  // FIX: Robuste Login/Registrierung für alle Handys
   async function handleLogin(e) {
     e.preventDefault();
     setMsg('');
-    if (isRegistering) {
-      const nc = isNameAllowed(regUsername);
-      if (!nc.ok) { setMsg(nc.msg); return; }
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { username: regUsername.trim() },
-          emailRedirectTo: window.location.origin
+    setShowResendButton(false);
+    setSubmitting(true);
+
+    try {
+      if (isRegistering) {
+        const nc = isNameAllowed(regUsername);
+        if (!nc.ok) {
+          setMsg(nc.msg);
+          setSubmitting(false);
+          return;
         }
-      });
-      if (error) {
-        setMsg('Fehler: ' + error.message);
-      } else {
-        showToast('📧 Bestätigungs-E-Mail wurde gesendet!', 'success');
-        setMsg('✅ Registrierung erfolgreich! Bitte bestätige deine E-Mail-Adresse.');
-        setRegUsername('');
-        setIsRegistering(false);
-      }
-    } else {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        if (error.message.includes('Email not confirmed') || error.message.includes('not confirmed')) {
-          setMsg('⚠️ E-Mail nicht bestätigt. Prüfe dein Postfach!');
-          setShowResendButton(true);
+
+        const { data, error } = await supabase.auth.signUp({
+          email: email.trim(),
+          password: password,
+          options: {
+            data: { username: regUsername.trim() }
+          }
+        });
+
+        if (error) {
+          setMsg('❌ ' + error.message);
         } else {
-          setMsg('Fehler: ' + error.message);
-          setShowResendButton(false);
+          setMsg('✅ Registrierung erfolgreich! Bitte prüfe deine E-Mails und bestätige deinen Account. Danach kannst du dich einloggen.');
+          showToast('📧 Bestätigungs-E-Mail gesendet!', 'success');
+          setRegUsername('');
+          setEmail('');
+          setPassword('');
+          setIsRegistering(false);
         }
-      } else if (data.user && !data.user.email_confirmed_at) {
-        setMsg('⚠️ Bitte bestätige zuerst deine E-Mail-Adresse.');
-        setShowResendButton(true);
+      } else {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password: password
+        });
+
+        if (error) {
+          if (error.message.toLowerCase().includes('not confirmed') || error.message.toLowerCase().includes('email not confirmed')) {
+            setMsg('⚠️ E-Mail nicht bestätigt. Prüfe dein Postfach!');
+            setShowResendButton(true);
+          } else {
+            setMsg('❌ ' + error.message);
+          }
+        } else if (data.user && !data.user.email_confirmed_at) {
+          setMsg('⚠️ Bitte bestätige zuerst deine E-Mail-Adresse.');
+          setShowResendButton(true);
+        }
       }
+    } catch (err) {
+      setMsg('❌ Fehler: ' + (err.message || 'Unbekannter Fehler'));
     }
+
+    setSubmitting(false);
   }
 
   async function handleLogout() {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (e) { /* ignore */ }
     setUser(null); setUsername(''); setView('login');
     setEmail(''); setPassword(''); setRegUsername('');
     setMyTips({}); setTips({}); setGroups([]); setBadges([]);
@@ -517,7 +553,7 @@ export default function App() {
   if (!user) {
     return (
       <div className="min-h-screen bg-dark-900 flex items-center justify-center p-4">
-        <div className="glass-card p-8 rounded-card shadow-card max-w-md w-full">
+        <div className="glass-card p-6 md:p-8 rounded-card shadow-card max-w-md w-full">
           <div className="text-center mb-6">
             <div className="text-5xl mb-3">🏀</div>
             <h1 className="text-3xl font-heading font-bold bg-gradient-to-r from-neon-gold to-neon-pink bg-clip-text text-transparent">TVN Tipp-Spiel</h1>
@@ -529,30 +565,43 @@ export default function App() {
                 className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold focus:ring-2 focus:ring-neon-gold/20 outline-none font-body transition" required />
             )}
             <input type="email" placeholder="E-Mail-Adresse" value={email} onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold focus:ring-2 focus:ring-neon-gold/20 outline-none font-body transition" required />
+              className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold focus:ring-2 focus:ring-neon-gold/20 outline-none font-body transition" required
+              autoComplete="email" inputMode="email" />
             <input type="password" placeholder="Passwort" value={password} onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold focus:ring-2 focus:ring-neon-gold/20 outline-none font-body transition" required minLength={6} />
+              className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold focus:ring-2 focus:ring-neon-gold/20 outline-none font-body transition" required minLength={6}
+              autoComplete={isRegistering ? 'new-password' : 'current-password'} />
             {showResendButton && (
               <button type="button"
                 onClick={async () => {
                   if (!email) { setMsg('Bitte erst E-Mail eingeben.'); return; }
-                  const { error } = await supabase.auth.resend({ type: 'signup', email: email });
-                  if (error) setMsg('Fehler: ' + error.message);
-                  else { showToast('📧 Bestätigungs-E-Mail erneut gesendet!', 'success'); setShowResendButton(false); }
+                  try {
+                    const { error } = await supabase.auth.resend({ type: 'signup', email: email.trim() });
+                    if (error) setMsg('❌ ' + error.message);
+                    else { showToast('📧 E-Mail erneut gesendet!', 'success'); setShowResendButton(false); }
+                  } catch (err) { setMsg('❌ ' + err.message); }
                 }}
                 className="w-full text-neon-gold hover:text-neon-pink text-sm font-medium font-body transition">
                 📧 Bestätigungs-E-Mail erneut senden
               </button>
             )}
-            <button type="submit" className="glow-button w-full bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 p-3 rounded-button font-heading font-bold hover:shadow-glow transition">
-              {isRegistering ? 'Registrieren' : 'Anmelden'}
+            <button type="submit" disabled={submitting}
+              className={`glow-button w-full bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 p-3 rounded-button font-heading font-bold hover:shadow-glow transition ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}>
+              {submitting ? '⏳ Bitte warten...' : (isRegistering ? 'Registrieren' : 'Anmelden')}
             </button>
           </form>
           <button onClick={() => { setIsRegistering(!isRegistering); setMsg(''); setShowResendButton(false); }}
             className="w-full mt-4 text-neon-gold hover:text-neon-pink text-sm font-medium font-body transition">
             {isRegistering ? 'Zurück zum Login' : 'Noch keinen Account? Registrieren'}
           </button>
-          {msg && <p className="mt-4 text-sm text-center text-neon-red font-medium font-body">{msg}</p>}
+          {msg && (
+            <div className={`mt-4 p-3 rounded-button text-sm text-center font-body ${
+              msg.includes('✅') ? 'bg-neon-green/20 text-neon-green' :
+              msg.includes('⚠️') ? 'bg-yellow-500/20 text-yellow-400' :
+              'bg-neon-red/20 text-neon-red'
+            }`}>
+              {msg}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -674,6 +723,7 @@ export default function App() {
         </div>
       </aside>
 
+      {/* HEADER MOBILE - MIT LOGOUT BUTTON */}
       <header className="lg:hidden bg-dark-800 border-b border-white/10 p-4 sticky top-0 z-50">
         <div className="flex justify-between items-center">
           <button onClick={() => setView('tips')} className="flex items-center gap-2">
@@ -683,6 +733,9 @@ export default function App() {
           <div className="flex items-center gap-2">
             <button onClick={() => setDarkMode(!darkMode)} className="w-8 h-8 rounded-full bg-dark-700 flex items-center justify-center text-lg hover:bg-dark-600 transition">{darkMode ? '☀️' : '🌙'}</button>
             <div className="w-8 h-8 rounded-full bg-gradient-to-r from-neon-purple to-neon-pink flex items-center justify-center text-white text-sm font-bold">{username?.[0]?.toUpperCase() || 'U'}</div>
+            <button onClick={handleLogout} className="glow-button bg-neon-red/20 text-neon-red px-3 py-1.5 rounded-button text-xs font-heading font-semibold hover:bg-neon-red/30 transition">
+              Logout
+            </button>
           </div>
         </div>
       </header>
@@ -713,12 +766,9 @@ export default function App() {
                 </div>
               </div>
             </div>
-
             <h2 className="text-xl font-heading font-bold text-white mb-4">Kommende Spiele</h2>
-
             {loading && <div className="text-center py-12 text-gray-500 font-body"><div className="text-4xl mb-4 animate-pulse">🏀</div>Lade Spiele...</div>}
             {!loading && games.length === 0 && <div className="glass-card rounded-card p-8 text-center text-gray-500 font-body">Keine Spiele in den nächsten 7 Tagen.</div>}
-
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {games.map((game, index) => {
                 const hD = game.age_group ? `${game.age_group} ${game.home_team}` : game.home_team;
@@ -759,9 +809,7 @@ export default function App() {
                                 {hasTip && tipChanged ? 'Ändern' : 'Tippen'}
                               </button>
                             </div>
-                            {hasTip && (
-                              <button onClick={() => deleteTip(game.id)} className="mt-2 w-full text-xs text-neon-red hover:text-red-400 font-body transition">🗑️ Tipp löschen</button>
-                            )}
+                            {hasTip && <button onClick={() => deleteTip(game.id)} className="mt-2 w-full text-xs text-neon-red hover:text-red-400 font-body transition">🗑️ Tipp löschen</button>}
                           </div>
                         )}
                       </div>
@@ -796,10 +844,7 @@ export default function App() {
                 return (
                   <div key={game.id} ref={el => finishedCardsRef.current[index] = el} className="card-reveal hover-lift glass-card rounded-card overflow-hidden">
                     <div className="game-card-content p-5">
-                      <div className="flex justify-between items-start mb-3">
-                        <div className="text-xs font-mono font-semibold text-neon-gold uppercase tracking-wide">{game.competition || 'Liga'}</div>
-                        {getResultBadge(game)}
-                      </div>
+                      <div className="flex justify-between items-start mb-3"><div className="text-xs font-mono font-semibold text-neon-gold uppercase tracking-wide">{game.competition || 'Liga'}</div>{getResultBadge(game)}</div>
                       <div className="text-xs text-gray-500 mb-4 font-body">📅 {dT.toLocaleString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} Uhr</div>
                       <div className="result-teams flex justify-between items-center mb-3 text-white">
                         <span className="team-name team-left text-right flex-1 font-heading font-bold team-name-clamp pr-2">{hD}</span>
@@ -808,16 +853,8 @@ export default function App() {
                       </div>
                       {tip && (
                         <div className="mt-auto bg-dark-700 p-3 rounded-button border border-white/5">
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-500 text-xs font-body">Dein Tipp:</span>
-                            <span className="text-white font-mono font-bold">{tip.predicted_home_score} : {tip.predicted_away_score}</span>
-                          </div>
-                          <div className="flex justify-between items-center mt-1">
-                            <span className="text-gray-500 text-xs font-body">Punkte:</span>
-                            <span className={`font-mono font-bold ${points === 10 ? 'text-neon-green' : points === 5 ? 'text-neon-gold' : points === 3 ? 'text-neon-purple' : 'text-gray-400'}`}>
-                              {points === 10 ? '🎯 10' : points === 5 ? '👍 5' : points === 3 ? '✓ 3' : '🏀 1'}
-                            </span>
-                          </div>
+                          <div className="flex justify-between items-center"><span className="text-gray-500 text-xs font-body">Dein Tipp:</span><span className="text-white font-mono font-bold">{tip.predicted_home_score} : {tip.predicted_away_score}</span></div>
+                          <div className="flex justify-between items-center mt-1"><span className="text-gray-500 text-xs font-body">Punkte:</span><span className={`font-mono font-bold ${points === 10 ? 'text-neon-green' : points === 5 ? 'text-neon-gold' : points === 3 ? 'text-neon-purple' : 'text-gray-400'}`}>{points === 10 ? '🎯 10' : points === 5 ? '👍 5' : points === 3 ? '✓ 3' : '🏀 1'}</span></div>
                         </div>
                       )}
                       {!tip && resultTab === 'all' && <div className="mt-auto text-center text-gray-600 text-xs font-body">Kein Tipp abgegeben</div>}
@@ -838,9 +875,7 @@ export default function App() {
                 <h3 className="text-sm md:text-lg font-heading font-bold text-white capitalize">{new Date(calendarYear, calendarMonth).toLocaleString('de-DE', { month: 'long', year: 'numeric' })}</h3>
                 <button onClick={nextMonth} className="glow-button bg-dark-700 text-white px-3 py-1.5 rounded-button font-heading font-semibold hover:bg-dark-600 transition text-sm">→</button>
               </div>
-              <div className="calendar-grid mb-1">
-                {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(day => <div key={day} className="text-center text-xs font-mono font-bold text-gray-500 py-1">{day}</div>)}
-              </div>
+              <div className="calendar-grid mb-1">{['Mo','Di','Mi','Do','Fr','Sa','So'].map(day => <div key={day} className="text-center text-xs font-mono font-bold text-gray-500 py-1">{day}</div>)}</div>
               <div className="calendar-grid">
                 {getCalendarDays(calendarYear, calendarMonth).map((day, idx) => {
                   const dayGames = getGamesForDay(day);
@@ -850,12 +885,10 @@ export default function App() {
                   return (
                     <div key={idx} onClick={() => { if (day && hasGames) setSelectedDate(isSelected ? null : day); }}
                       className={`calendar-day ${hasGames ? 'has-games' : ''} ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''} ${!day ? 'opacity-0 pointer-events-none' : ''}`}>
-                      {day && (
-                        <>
-                          <span className={`text-xs md:text-sm font-body ${isSelected ? 'text-neon-gold font-bold' : 'text-white'}`}>{day}</span>
-                          {hasGames && <div className="flex gap-0.5 mt-0.5">{dayGames.slice(0, 3).map((_, i) => <div key={i} className={`w-1 h-1 rounded-full ${isSelected ? 'bg-white' : 'bg-neon-gold'}`} />)}</div>}
-                        </>
-                      )}
+                      {day && (<>
+                        <span className={`text-xs md:text-sm font-body ${isSelected ? 'text-neon-gold font-bold' : 'text-white'}`}>{day}</span>
+                        {hasGames && <div className="flex gap-0.5 mt-0.5">{dayGames.slice(0, 3).map((_, i) => <div key={i} className={`w-1 h-1 rounded-full ${isSelected ? 'bg-white' : 'bg-neon-gold'}`} />)}</div>}
+                      </>)}
                     </div>
                   );
                 })}
@@ -941,10 +974,7 @@ export default function App() {
                 </div>
               </div>
               {!selectedGroup.is_public && (
-                <div className="bg-dark-700 p-4 rounded-button border border-white/5">
-                  <div className="text-sm text-gray-500 font-body mb-1">Beitrittscode:</div>
-                  <div className="text-2xl font-mono font-bold text-neon-gold">{selectedGroup.join_code}</div>
-                </div>
+                <div className="bg-dark-700 p-4 rounded-button border border-white/5"><div className="text-sm text-gray-500 font-body mb-1">Beitrittscode:</div><div className="text-2xl font-mono font-bold text-neon-gold">{selectedGroup.join_code}</div></div>
               )}
             </div>
             <div className="glass-card rounded-card overflow-hidden mb-6">
