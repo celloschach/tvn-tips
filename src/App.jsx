@@ -1,11 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 
-// ============================================
-// NAMENSFILTER - Nur exakte Matches
-// ============================================
 const BLOCKED_WORDS = [
-  // Deutsch
   'arsch', 'arschloch', 'scheisse', 'scheiße', 'fick', 'ficken', 'ficker',
   'hure', 'hurensohn', 'wichser', 'wixer', 'spast', 'spasti', 'mongo',
   'behindert', 'idiot', 'depp', 'trottel', 'vollidiot', 'miststück',
@@ -13,31 +9,26 @@ const BLOCKED_WORDS = [
   'schlampe', 'fotze', 'muschi', 'schwanz', 'dödel', 'sack', 'eier', 'titten',
   'bumsen', 'vögeln', 'kotzen', 'pisse', 'kacke', 'kacken', 'scheissen', 'furz',
   'nazi', 'hitler', 'faschist', 'terrorist',
-  // Englisch
   'ass', 'asshole', 'bastard', 'bitch', 'bloody', 'bollocks', 'bullshit',
   'cock', 'cunt', 'damn', 'dick', 'douche', 'dumbass', 'fag', 'fuck', 'fucking',
   'fucker', 'fucked', 'goddamn', 'hell', 'jackass', 'jerk', 'motherfucker',
   'nigger', 'nigga', 'piss', 'prick', 'pussy', 'retard', 'shit', 'shitty',
   'slut', 'twat', 'wanker', 'whore', 'penis', 'vagina', 'porn', 'sex', 'nude',
   'kill', 'murder', 'suicide', 'die', 'death', 'dead',
-  // Russisch (transliteriert + Kyrillisch)
   'blyat', 'blya', 'suka', 'suki', 'pizda', 'pizdec', 'хуй', 'хуя',
   'hui', 'huya', 'ebat', 'ebal', 'yebat', 'yebal', 'govno', 'govnoed',
   'mudak', 'mudaki', 'zalupa', 'blin', 'dermo', 'svinja', 'svinya',
   'блять', 'бля', 'сука', 'пизда', 'пиздец', 'ебать', 'ебал', 'говно',
   'мудак', 'залупа', 'свинья',
-  // Türkisch
   'siktir', 'sikerim', 'sik', 'siki', 'sikik', 'orospu', 'orospu cocugu',
   'cocugu', 'piç', 'pic', 'yarrak', 'göt', 'got', 'amcik', 'amcık',
   'pezevenk', 'şerefsiz', 'serefsiz', 'haysiyetsiz', 'alçak', 'alcak',
   'gerizekalı', 'gerizekali', 'geri zekalı', 'mal', 'dangalak',
   'kevaşe', 'kevase', 'fahişe', 'fahise',
-  // Weitere Sprachen
   'puta', 'mierda', 'culo', 'cabron', 'maricon', 'pendejo',
   'merde', 'connard', 'salaud', 'pute', 'bordel', 'encule',
   'cazzo', 'merda', 'stronzo', 'vaffanculo', 'porco',
   'kurwa', 'pierdolic', 'jebac', 'chuj', 'dupa',
-  // System-Namen
   'admin', 'administrator', 'moderator', 'mod', 'system', 'root',
   'official', 'offiziell', 'tvn', 'verein', 'staff', 'support',
   'help', 'hilfe', 'bot', 'robot', 'null', 'undefined', 'test',
@@ -50,24 +41,15 @@ const BLOCKED_WORDS = [
   'meth', 'crack', 'pille', 'pill',
 ];
 
-// Einfache Prüfung: Nur exakte Matches
 function isNameAllowed(name) {
-  if (!name || name.trim().length < 2) {
-    return { ok: false, msg: 'Name muss mindestens 2 Zeichen haben.' };
-  }
-  if (name.trim().length > 20) {
-    return { ok: false, msg: 'Name darf maximal 20 Zeichen haben.' };
-  }
-  
+  if (!name || name.trim().length < 2) return { ok: false, msg: 'Name muss mindestens 2 Zeichen haben.' };
+  if (name.trim().length > 20) return { ok: false, msg: 'Name darf maximal 20 Zeichen haben.' };
   const lower = name.toLowerCase().trim();
-  
   for (const word of BLOCKED_WORDS) {
-    // Nur exaktes Match (als ganzes Wort oder exakter Teilstring)
     if (lower === word || lower.includes(word)) {
       return { ok: false, msg: 'Dieser Name ist nicht erlaubt.' };
     }
   }
-  
   return { ok: true, msg: '' };
 }
 
@@ -77,7 +59,6 @@ const BADGE_DEFS = {
   perfect_shooter: { icon: '🎯', name: 'Perfekter Schuss', desc: '5 exakte Tipps' },
   century: { icon: '💯', name: 'Centurion', desc: '100 Punkte erreicht' },
 };
-
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -122,6 +103,7 @@ export default function App() {
   const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
   const [selectedDate, setSelectedDate] = useState(null);
   const [gamesOnDate, setGamesOnDate] = useState([]);
+  const [showResendButton, setShowResendButton] = useState(false);
 
   function showToast(message, type = 'success') {
     setToast({ message, type });
@@ -172,7 +154,6 @@ export default function App() {
     document.documentElement.classList.toggle('dark', darkMode);
   }, [darkMode]);
 
-  // FIX: User-Existenz prüfen - wenn User gelöscht wurde, Session löschen
   async function loadUsername(uid) {
     const { data, error } = await supabase.from('profiles').select('username').eq('id', uid).single();
     if (error || !data) {
@@ -203,7 +184,6 @@ export default function App() {
     setWeeklyChampion(data?.[0] || null);
   }
 
-  // FIX: Session-Initialisierung mit User-Check
   useEffect(() => {
     async function initSession() {
       const { data: { session } } = await supabase.auth.getSession();
@@ -383,31 +363,35 @@ export default function App() {
     if (isRegistering) {
       const nc = isNameAllowed(regUsername);
       if (!nc.ok) { setMsg(nc.msg); return; }
-      
-      const { error } = await supabase.auth.signUp({ 
-        email, 
-        password, 
-        options: { 
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
           data: { username: regUsername.trim() },
           emailRedirectTo: window.location.origin
-        } 
+        }
       });
-      
       if (error) {
         setMsg('Fehler: ' + error.message);
       } else {
-        showToast('📧 Bestätigungs-E-Mail wurde gesendet! Bitte prüfe dein Postfach.', 'success');
-        setMsg('Registrierung erfolgreich! Bitte bestätige deine E-Mail-Adresse, bevor du dich einloggen kannst.');
+        showToast('📧 Bestätigungs-E-Mail wurde gesendet!', 'success');
+        setMsg('✅ Registrierung erfolgreich! Bitte bestätige deine E-Mail-Adresse.');
         setRegUsername('');
         setIsRegistering(false);
       }
     } else {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      
       if (error) {
-        setMsg('Fehler: ' + error.message);
+        if (error.message.includes('Email not confirmed') || error.message.includes('not confirmed')) {
+          setMsg('⚠️ E-Mail nicht bestätigt. Prüfe dein Postfach!');
+          setShowResendButton(true);
+        } else {
+          setMsg('Fehler: ' + error.message);
+          setShowResendButton(false);
+        }
       } else if (data.user && !data.user.email_confirmed_at) {
-        setMsg('Bitte bestätige zuerst deine E-Mail-Adresse. Prüfe dein Postfach!');
+        setMsg('⚠️ Bitte bestätige zuerst deine E-Mail-Adresse.');
+        setShowResendButton(true);
       }
     }
   }
@@ -417,6 +401,7 @@ export default function App() {
     setUser(null); setUsername(''); setView('login');
     setEmail(''); setPassword(''); setRegUsername('');
     setMyTips({}); setTips({}); setGroups([]); setBadges([]);
+    setShowResendButton(false);
   }
 
   async function submitTip(gid, hs, as) {
@@ -547,11 +532,23 @@ export default function App() {
               className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold focus:ring-2 focus:ring-neon-gold/20 outline-none font-body transition" required />
             <input type="password" placeholder="Passwort" value={password} onChange={(e) => setPassword(e.target.value)}
               className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold focus:ring-2 focus:ring-neon-gold/20 outline-none font-body transition" required minLength={6} />
+            {showResendButton && (
+              <button type="button"
+                onClick={async () => {
+                  if (!email) { setMsg('Bitte erst E-Mail eingeben.'); return; }
+                  const { error } = await supabase.auth.resend({ type: 'signup', email: email });
+                  if (error) setMsg('Fehler: ' + error.message);
+                  else { showToast('📧 Bestätigungs-E-Mail erneut gesendet!', 'success'); setShowResendButton(false); }
+                }}
+                className="w-full text-neon-gold hover:text-neon-pink text-sm font-medium font-body transition">
+                📧 Bestätigungs-E-Mail erneut senden
+              </button>
+            )}
             <button type="submit" className="glow-button w-full bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 p-3 rounded-button font-heading font-bold hover:shadow-glow transition">
               {isRegistering ? 'Registrieren' : 'Anmelden'}
             </button>
           </form>
-          <button onClick={() => { setIsRegistering(!isRegistering); setMsg(''); }}
+          <button onClick={() => { setIsRegistering(!isRegistering); setMsg(''); setShowResendButton(false); }}
             className="w-full mt-4 text-neon-gold hover:text-neon-pink text-sm font-medium font-body transition">
             {isRegistering ? 'Zurück zum Login' : 'Noch keinen Account? Registrieren'}
           </button>
