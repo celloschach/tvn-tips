@@ -378,16 +378,37 @@ export default function App() {
   }
 
   async function handleLogin(e) {
-    e.preventDefault(); setMsg('');
+    e.preventDefault();
+    setMsg('');
     if (isRegistering) {
       const nc = isNameAllowed(regUsername);
       if (!nc.ok) { setMsg(nc.msg); return; }
-      const { error } = await supabase.auth.signUp({ email, password, options: { data: { username: regUsername.trim() } } });
-      if (error) setMsg('Fehler: ' + error.message);
-      else { showToast('Registrierung erfolgreich!', 'success'); setRegUsername(''); setIsRegistering(false); }
+      
+      const { error } = await supabase.auth.signUp({ 
+        email, 
+        password, 
+        options: { 
+          data: { username: regUsername.trim() },
+          emailRedirectTo: window.location.origin
+        } 
+      });
+      
+      if (error) {
+        setMsg('Fehler: ' + error.message);
+      } else {
+        showToast('📧 Bestätigungs-E-Mail wurde gesendet! Bitte prüfe dein Postfach.', 'success');
+        setMsg('Registrierung erfolgreich! Bitte bestätige deine E-Mail-Adresse, bevor du dich einloggen kannst.');
+        setRegUsername('');
+        setIsRegistering(false);
+      }
     } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) setMsg('Fehler: ' + error.message);
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      
+      if (error) {
+        setMsg('Fehler: ' + error.message);
+      } else if (data.user && !data.user.email_confirmed_at) {
+        setMsg('Bitte bestätige zuerst deine E-Mail-Adresse. Prüfe dein Postfach!');
+      }
     }
   }
 
