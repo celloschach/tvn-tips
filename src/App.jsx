@@ -1,6 +1,51 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { supabase } from './supabaseClient';
-import { Turnstile } from '@marsidev/react-turnstile';
+// Native Turnstile Komponente (umgeht alle npm-Package Probleme)
+function CloudflareTurnstile({ siteKey, onVerify }) {
+  const containerRef = React.useRef(null);
+  const widgetIdRef = React.useRef(null);
+
+  React.useEffect(() => {
+    // 1. Prüfen ob das Skript schon da ist, sonst laden
+    if (!window.turnstile) {
+      const script = document.createElement('script');
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+      script.async = true;
+      script.defer = true;
+      script.onload = () => renderWidget();
+      document.head.appendChild(script);
+    } else {
+      renderWidget();
+    }
+
+    function renderWidget() {
+      if (containerRef.current && !widgetIdRef.current) {
+        widgetIdRef.current = window.turnstile.render(containerRef.current, {
+          sitekey: siteKey,
+          theme: 'dark',
+          language: 'de',
+          callback: (token) => {
+            console.log('✅ React Turnstile Token erhalten:', token);
+            onVerify(token);
+          },
+          'error-callback': () => {
+            console.error('❌ Turnstile Fehler beim Rendern');
+          }
+        });
+      }
+    }
+
+    // Aufräumen wenn Komponente verschwindet
+    return () => {
+      if (widgetIdRef.current && window.turnstile) {
+        window.turnstile.remove(widgetIdRef.current);
+        widgetIdRef.current = null;
+      }
+    };
+  }, [siteKey, onVerify]);
+
+  return <div ref={containerRef}></div>;
+}
 
 const BLOCKED_WORDS = [
   'arsch', 'arschloch', 'scheisse', 'scheiße', 'fick', 'ficken', 'ficker',
@@ -610,25 +655,16 @@ export default function App() {
               className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold focus:ring-2 focus:ring-neon-gold/20 outline-none font-body transition" required autoComplete="email" inputMode="email" />
             <input type="password" placeholder="Passwort" value={password} onChange={(e) => setPassword(e.target.value)}
               className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold focus:ring-2 focus:ring-neon-gold/20 outline-none font-body transition" required minLength={6} autoComplete={isRegistering ? 'new-password' : 'current-password'} />
-                {isRegistering && (
-  <div className="flex flex-col items-center mt-4">
-    <Turnstile
+{isRegistering && (
+  <div className="flex justify-center mt-4">
+    <CloudflareTurnstile 
       siteKey="0x4AAAAAAFDsuncEtGNWUI8C" // <-- HIER DEINEN ECHTEN KEY EINFÜGEN!
       onVerify={(token) => {
-        console.log('✅ Token erhalten:', token);
         setTurnstileToken(token);
       }}
-      onError={(error) => {
-        console.error('❌ Turnstile Fehler:', error);
-      }}
-      options={{ theme: 'dark', language: 'de' }}
     />
-    {/* DEBUG-ANZEIGE: */}
-    <p className="text-xs mt-2 font-mono">
-      Status: {turnstileToken ? '✅ Token da (Button sollte aktiv sein)' : '⏳ Warte auf Token...'}
-    </p>
   </div>
-            )}
+)}
             {showResendButton && (
               <button type="button" onClick={async () => {
                 if (!email) { setMsg('Bitte erst E-Mail eingeben.'); return; }
