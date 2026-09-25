@@ -745,12 +745,17 @@ export default function App() {
                       
                       {/* ✅ DER TABELLEN-BUTTON */}
                       {hasTable && (
-                        <button 
-                          onClick={() => setShowTableModal({ ligaId: game.liga_id, competition: game.competition })}
-                          className="mb-3 w-full text-xs text-neon-gold hover:text-neon-pink font-body transition flex items-center justify-center gap-1 py-2 border border-white/10 rounded-button hover:bg-white/5"
-                        >
-                          📊 Tabelle für {leagueMappings[game.liga_id].join(' & ')} anzeigen
-                        </button>
+                      <button 
+  onClick={() => setShowTableModal({ 
+    ligaId: game.liga_id, 
+    competition: game.competition,
+    homeTeam: game.home_team,
+    awayTeam: game.away_team
+  })}
+  className="mb-3 w-full text-xs text-neon-gold hover:text-neon-pink font-body transition flex items-center justify-center gap-1 py-2 border border-white/10 rounded-button hover:bg-white/5"
+>
+  📊 Tabelle für {leagueMappings[game.liga_id].join(' & ')} anzeigen
+</button>
                       )}
 
                       <div className="mt-auto">
@@ -816,12 +821,17 @@ export default function App() {
                       
                       {/* ✅ DER TABELLEN-BUTTON (auch in Ergebnissen) */}
                       {hasTable && (
-                        <button 
-                          onClick={() => setShowTableModal({ ligaId: game.liga_id, competition: game.competition })}
-                          className="mb-3 w-full text-xs text-neon-gold hover:text-neon-pink font-body transition flex items-center justify-center gap-1 py-2 border border-white/10 rounded-button hover:bg-white/5"
-                        >
-                          📊 Tabelle für {leagueMappings[game.liga_id].join(' & ')} anzeigen
-                        </button>
+                     <button 
+  onClick={() => setShowTableModal({ 
+    ligaId: game.liga_id, 
+    competition: game.competition,
+    homeTeam: game.home_team,
+    awayTeam: game.away_team
+  })}
+  className="mb-3 w-full text-xs text-neon-gold hover:text-neon-pink font-body transition flex items-center justify-center gap-1 py-2 border border-white/10 rounded-button hover:bg-white/5"
+>
+  📊 Tabelle für {leagueMappings[game.liga_id].join(' & ')} anzeigen
+</button>
                       )}
 
                       {tip && (
