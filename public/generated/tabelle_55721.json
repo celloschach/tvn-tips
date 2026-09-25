@@ -1,0 +1,66 @@
+[
+  {
+    "rank": 1,
+    "team": "Sieglarer TV",
+    "games": 1,
+    "wins": 1,
+    "points": 104,
+    "baskets": "62"
+  },
+  {
+    "rank": 2,
+    "team": "Dragons Rhöndorf 2",
+    "games": 1,
+    "wins": 1,
+    "points": 93,
+    "baskets": "27"
+  },
+  {
+    "rank": 3,
+    "team": "TV Neunkirchen",
+    "games": 1,
+    "wins": 1,
+    "points": 67,
+    "baskets": "13"
+  },
+  {
+    "rank": 4,
+    "team": "Turn- und Spielverein Mondorf",
+    "games": 1,
+    "wins": 1,
+    "points": 64,
+    "baskets": "7"
+  },
+  {
+    "rank": 5,
+    "team": "Hennefer TV",
+    "games": 1,
+    "wins": 0,
+    "points": 57,
+    "baskets": "-7"
+  },
+  {
+    "rank": 6,
+    "team": "TV Lohmar",
+    "games": 1,
+    "wins": 0,
+    "points": 66,
+    "baskets": "-27"
+  },
+  {
+    "rank": 7,
+    "team": "Bonner SV Roleber 2",
+    "games": 2,
+    "wins": 0,
+    "points": 96,
+    "baskets": "-75"
+  },
+  {
+    "rank": 8,
+    "team": "Troisdorfer LG",
+    "games": 0,
+    "wins": 0,
+    "points": 0,
+    "baskets": "0"
+  }
+]

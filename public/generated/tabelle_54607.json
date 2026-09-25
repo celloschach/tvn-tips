@@ -1,0 +1,98 @@
+[
+  {
+    "rank": 1,
+    "team": "SG Bergische Löwen 3",
+    "games": 2,
+    "wins": 2,
+    "points": 152,
+    "baskets": "15"
+  },
+  {
+    "rank": 2,
+    "team": "Troisdorfer LG 2",
+    "games": 1,
+    "wins": 1,
+    "points": 91,
+    "baskets": "29"
+  },
+  {
+    "rank": 3,
+    "team": "VfL Gummersbach 2",
+    "games": 1,
+    "wins": 1,
+    "points": 64,
+    "baskets": "10"
+  },
+  {
+    "rank": 4,
+    "team": "TuS Mondorf",
+    "games": 1,
+    "wins": 1,
+    "points": 82,
+    "baskets": "7"
+  },
+  {
+    "rank": 5,
+    "team": "SG Chateau Bonn",
+    "games": 1,
+    "wins": 1,
+    "points": 76,
+    "baskets": "5"
+  },
+  {
+    "rank": 6,
+    "team": "Dragons Rhöndorf 4",
+    "games": 1,
+    "wins": 1,
+    "points": 80,
+    "baskets": "3"
+  },
+  {
+    "rank": 7,
+    "team": "SC Fast-Break Leverkusen 2",
+    "games": 1,
+    "wins": 0,
+    "points": 77,
+    "baskets": "-3"
+  },
+  {
+    "rank": 8,
+    "team": "Troisdorfer LG",
+    "games": 1,
+    "wins": 0,
+    "points": 71,
+    "baskets": "-5"
+  },
+  {
+    "rank": 9,
+    "team": "TV Neunkirchen 2",
+    "games": 1,
+    "wins": 0,
+    "points": 71,
+    "baskets": "-5"
+  },
+  {
+    "rank": 10,
+    "team": "TuS Opladen",
+    "games": 1,
+    "wins": 0,
+    "points": 54,
+    "baskets": "-10"
+  },
+  {
+    "rank": 11,
+    "team": "Radevormwalder TV",
+    "games": 1,
+    "wins": 0,
+    "points": 62,
+    "baskets": "-29"
+  },
+  {
+    "rank": 12,
+    "team": "TSV Bayer 04 Leverkusen 4",
+    "games": 2,
+    "wins": 0,
+    "points": 141,
+    "baskets": "-17"
+  }
+]

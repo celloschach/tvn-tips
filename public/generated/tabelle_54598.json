@@ -1,0 +1,66 @@
+[
+  {
+    "rank": 1,
+    "team": "SG Sechtem",
+    "games": 2,
+    "wins": 2,
+    "points": 162,
+    "baskets": "95"
+  },
+  {
+    "rank": 2,
+    "team": "Sieglarer TV",
+    "games": 1,
+    "wins": 1,
+    "points": 70,
+    "baskets": "46"
+  },
+  {
+    "rank": 3,
+    "team": "Post-SV Bonn",
+    "games": 1,
+    "wins": 1,
+    "points": 74,
+    "baskets": "40"
+  },
+  {
+    "rank": 4,
+    "team": "TS Frechen",
+    "games": 0,
+    "wins": 0,
+    "points": 0,
+    "baskets": "0"
+  },
+  {
+    "rank": 5,
+    "team": "TV Neunkirchen",
+    "games": 1,
+    "wins": 0,
+    "points": 29,
+    "baskets": "-33"
+  },
+  {
+    "rank": 6,
+    "team": "BTV Basketball Brühl 2",
+    "games": 1,
+    "wins": 0,
+    "points": 34,
+    "baskets": "-40"
+  },
+  {
+    "rank": 7,
+    "team": "Talents BonnRhöndorf 5",
+    "games": 1,
+    "wins": 0,
+    "points": 24,
+    "baskets": "-46"
+  },
+  {
+    "rank": 8,
+    "team": "Kahramanlar-Die Brühler Helden",
+    "games": 1,
+    "wins": 0,
+    "points": 38,
+    "baskets": "-62"
+  }
+]
