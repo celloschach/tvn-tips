@@ -1093,10 +1093,6 @@ function LeagueTableContent({ ligaId, homeTeam, awayTeam }) {
         const res = await fetch(`./generated/tabelle_${ligaId}.json?t=${Date.now()}`);
         const data = await res.json();
         setTable(data);
-        
-        console.log('🔍 Team-Vergleich:');
-        console.log('  Spiel: Home =', homeTeam, '| Away =', awayTeam);
-        console.log('  Tabelle:', data.map(t => t.team).join(', '));
       } catch (e) {
         console.error('Fehler beim Laden der Tabelle', e);
       } finally {
@@ -1109,22 +1105,16 @@ function LeagueTableContent({ ligaId, homeTeam, awayTeam }) {
   if (loading) return <div className="text-center text-gray-400 py-8">Lade Tabelle...</div>;
   if (!table) return <div className="text-center text-neon-red py-8">Tabelle nicht verfügbar.</div>;
 
-  // Hilfsfunktion: Extrahiere Basis-Name und Nummer
   function parseTeamName(name) {
     if (!name) return { base: '', number: null };
-    
     const normalized = name.toLowerCase().trim();
-    
-    // Prüfe ob Name mit Zahl endet (z.B. "bg hagen 2", "tv neunkirchen 3")
     const match = normalized.match(/^(.+?)\s+(\d+)$/);
     if (match) {
       return { base: match[1].trim(), number: parseInt(match[2]) };
     }
-    
     return { base: normalized, number: null };
   }
 
-  // Hilfsfunktion: Prüfe ob Team exakt spielt (präziser Vergleich)
   function isTeamPlaying(tableName) {
     if (!homeTeam || !awayTeam) return false;
     
@@ -1132,18 +1122,10 @@ function LeagueTableContent({ ligaId, homeTeam, awayTeam }) {
     const homeParsed = parseTeamName(homeTeam);
     const awayParsed = parseTeamName(awayTeam);
     
-    // Exakter Match (Basis + Nummer müssen übereinstimmen)
-    const matchesHome = (
-      tableParsed.base === homeParsed.base && 
-      tableParsed.number === homeParsed.number
+    return (
+      (tableParsed.base === homeParsed.base && tableParsed.number === homeParsed.number) ||
+      (tableParsed.base === awayParsed.base && tableParsed.number === awayParsed.number)
     );
-    
-    const matchesAway = (
-      tableParsed.base === awayParsed.base && 
-      tableParsed.number === awayParsed.number
-    );
-    
-    return matchesHome || matchesAway;
   }
 
   return (
@@ -1164,10 +1146,6 @@ function LeagueTableContent({ ligaId, homeTeam, awayTeam }) {
             const isTVN = row.team.toLowerCase().includes('neunkirchen') || row.team.toLowerCase().includes('tvn');
             const isPlaying = isTeamPlaying(row.team);
             
-            if (isPlaying) {
-              console.log(`✅ Spielend erkannt: ${row.team}`);
-            }
-            
             let rowClass = 'text-white hover:bg-dark-700';
             let indicator = '';
             
@@ -1177,9 +1155,6 @@ function LeagueTableContent({ ligaId, homeTeam, awayTeam }) {
             } else if (isPlaying) {
               rowClass = 'bg-blue-500/20 font-bold text-blue-400 border-l-4 border-blue-500';
               indicator = ' ⚡';
-            } else if (isTVN) {
-              rowClass = 'bg-neon-gold/10 font-bold text-neon-gold';
-              indicator = ' 🏀';
             }
             
             return (
@@ -1204,10 +1179,6 @@ function LeagueTableContent({ ligaId, homeTeam, awayTeam }) {
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-blue-500/20 border-l-4 border-blue-500"></div>
           <span className="text-gray-400">Gegner spielt ⚡</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-neon-gold/10"></div>
-          <span className="text-gray-400">TVN Team 🏀</span>
         </div>
       </div>
     </div>
