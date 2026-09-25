@@ -715,14 +715,6 @@ export default function App() {
               </div>
             </div>
             <h2 className="text-xl font-heading font-bold text-white mb-4">Kommende Spiele</h2>
-            {/* DEBUG - Zeigt was fehlt (nach dem Testen wieder entfernen!) */}
-<div className="glass-card rounded-card p-4 mb-4 bg-neon-red/10 border border-neon-red/30 text-sm font-body">
-  <div className="font-bold text-neon-red mb-2">🔍 Debug-Info:</div>
-  <div className="text-gray-300">Spiele geladen: {games.length}</div>
-  <div className="text-gray-300">League Mappings: {JSON.stringify(leagueMappings)}</div>
-  <div className="text-gray-300">Erstes Spiel liga_id: {games[0]?.liga_id || 'NULL'}</div>
-  <div className="text-gray-300">Hat Tabelle: {games[0]?.liga_id && leagueMappings[games[0]?.liga_id] ? 'JA ✅' : 'NEIN ❌'}</div>
-</div>
             {loading && <div className="text-center py-12 text-gray-500 font-body"><div className="text-4xl mb-4 animate-pulse">🏀</div>Lade Spiele...</div>}
             {!loading && games.length === 0 && <div className="glass-card rounded-card p-8 text-center text-gray-500 font-body">Keine Spiele in den nächsten 7 Tagen.</div>}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
