@@ -1,6 +1,14 @@
 [
   {
     "rank": 1,
+    "team": "Hennefer TV",
+    "games": 2,
+    "wins": 2,
+    "points": 157,
+    "baskets": "84"
+  },
+  {
+    "rank": 2,
     "team": "TSV Seelscheid 1920 e. V.",
     "games": 2,
     "wins": 2,
@@ -8,20 +16,12 @@
     "baskets": "64"
   },
   {
-    "rank": 2,
+    "rank": 3,
     "team": "BG Bonn 7",
     "games": 1,
     "wins": 1,
     "points": 144,
     "baskets": "134"
-  },
-  {
-    "rank": 3,
-    "team": "Hennefer TV",
-    "games": 1,
-    "wins": 1,
-    "points": 74,
-    "baskets": "24"
   },
   {
     "rank": 4,
@@ -65,18 +65,18 @@
   },
   {
     "rank": 9,
-    "team": "Hennefer TV 2",
-    "games": 1,
-    "wins": 0,
-    "points": 32,
-    "baskets": "-36"
-  },
-  {
-    "rank": 10,
     "team": "TV Neunkirchen 3",
     "games": 1,
     "wins": 0,
     "points": 10,
     "baskets": "-134"
+  },
+  {
+    "rank": 10,
+    "team": "Hennefer TV 2",
+    "games": 2,
+    "wins": 0,
+    "points": 55,
+    "baskets": "-96"
   }
 ]

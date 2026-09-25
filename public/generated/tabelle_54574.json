@@ -1,6 +1,22 @@
 [
   {
     "rank": 1,
+    "team": "BG Köln",
+    "games": 2,
+    "wins": 2,
+    "points": 192,
+    "baskets": "47"
+  },
+  {
+    "rank": 2,
+    "team": "Telekom Baskets Bonn 3",
+    "games": 2,
+    "wins": 2,
+    "points": 150,
+    "baskets": "28"
+  },
+  {
+    "rank": 3,
     "team": "BG Bonn",
     "games": 1,
     "wins": 1,
@@ -8,15 +24,7 @@
     "baskets": "37"
   },
   {
-    "rank": 2,
-    "team": "BG Köln",
-    "games": 1,
-    "wins": 1,
-    "points": 103,
-    "baskets": "36"
-  },
-  {
-    "rank": 3,
+    "rank": 4,
     "team": "TV Neunkirchen",
     "games": 1,
     "wins": 1,
@@ -24,20 +32,12 @@
     "baskets": "25"
   },
   {
-    "rank": 4,
+    "rank": 5,
     "team": "TuS BW Königsdorf",
     "games": 1,
     "wins": 1,
     "points": 86,
     "baskets": "24"
-  },
-  {
-    "rank": 5,
-    "team": "Telekom Baskets Bonn 3",
-    "games": 1,
-    "wins": 1,
-    "points": 80,
-    "baskets": "17"
   },
   {
     "rank": 6,
@@ -50,10 +50,10 @@
   {
     "rank": 7,
     "team": "DJK Südwest Köln 2",
-    "games": 0,
+    "games": 1,
     "wins": 0,
-    "points": 0,
-    "baskets": "0"
+    "points": 59,
+    "baskets": "-11"
   },
   {
     "rank": 8,
@@ -90,9 +90,9 @@
   {
     "rank": 12,
     "team": "RheinStars Köln 3",
-    "games": 1,
+    "games": 2,
     "wins": 0,
-    "points": 68,
-    "baskets": "-37"
+    "points": 146,
+    "baskets": "-48"
   }
 ]

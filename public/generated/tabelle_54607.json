@@ -9,14 +9,6 @@
   },
   {
     "rank": 2,
-    "team": "Troisdorfer LG 2",
-    "games": 1,
-    "wins": 1,
-    "points": 91,
-    "baskets": "29"
-  },
-  {
-    "rank": 3,
     "team": "VfL Gummersbach 2",
     "games": 1,
     "wins": 1,
@@ -24,7 +16,7 @@
     "baskets": "10"
   },
   {
-    "rank": 4,
+    "rank": 3,
     "team": "TuS Mondorf",
     "games": 1,
     "wins": 1,
@@ -32,7 +24,7 @@
     "baskets": "7"
   },
   {
-    "rank": 5,
+    "rank": 4,
     "team": "SG Chateau Bonn",
     "games": 1,
     "wins": 1,
@@ -40,7 +32,7 @@
     "baskets": "5"
   },
   {
-    "rank": 6,
+    "rank": 5,
     "team": "Dragons Rhöndorf 4",
     "games": 1,
     "wins": 1,
@@ -48,7 +40,31 @@
     "baskets": "3"
   },
   {
+    "rank": 6,
+    "team": "TV Neunkirchen 2",
+    "games": 2,
+    "wins": 1,
+    "points": 142,
+    "baskets": "22"
+  },
+  {
     "rank": 7,
+    "team": "Troisdorfer LG 2",
+    "games": 2,
+    "wins": 1,
+    "points": 135,
+    "baskets": "2"
+  },
+  {
+    "rank": 8,
+    "team": "Radevormwalder TV",
+    "games": 2,
+    "wins": 1,
+    "points": 127,
+    "baskets": "-20"
+  },
+  {
+    "rank": 9,
     "team": "SC Fast-Break Leverkusen 2",
     "games": 1,
     "wins": 0,
@@ -56,7 +72,7 @@
     "baskets": "-3"
   },
   {
-    "rank": 8,
+    "rank": 10,
     "team": "Troisdorfer LG",
     "games": 1,
     "wins": 0,
@@ -64,35 +80,19 @@
     "baskets": "-5"
   },
   {
-    "rank": 9,
-    "team": "TV Neunkirchen 2",
-    "games": 1,
-    "wins": 0,
-    "points": 71,
-    "baskets": "-5"
-  },
-  {
-    "rank": 10,
-    "team": "TuS Opladen",
-    "games": 1,
-    "wins": 0,
-    "points": 54,
-    "baskets": "-10"
-  },
-  {
     "rank": 11,
-    "team": "Radevormwalder TV",
-    "games": 1,
-    "wins": 0,
-    "points": 62,
-    "baskets": "-29"
-  },
-  {
-    "rank": 12,
     "team": "TSV Bayer 04 Leverkusen 4",
     "games": 2,
     "wins": 0,
     "points": 141,
     "baskets": "-17"
+  },
+  {
+    "rank": 12,
+    "team": "TuS Opladen",
+    "games": 2,
+    "wins": 0,
+    "points": 110,
+    "baskets": "-19"
   }
 ]

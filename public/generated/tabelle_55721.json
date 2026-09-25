@@ -1,19 +1,19 @@
 [
   {
     "rank": 1,
+    "team": "Dragons Rhöndorf 2",
+    "games": 2,
+    "wins": 2,
+    "points": 165,
+    "baskets": "50"
+  },
+  {
+    "rank": 2,
     "team": "Sieglarer TV",
     "games": 1,
     "wins": 1,
     "points": 104,
     "baskets": "62"
-  },
-  {
-    "rank": 2,
-    "team": "Dragons Rhöndorf 2",
-    "games": 1,
-    "wins": 1,
-    "points": 93,
-    "baskets": "27"
   },
   {
     "rank": 3,
@@ -26,10 +26,10 @@
   {
     "rank": 4,
     "team": "Turn- und Spielverein Mondorf",
-    "games": 1,
+    "games": 2,
     "wins": 1,
-    "points": 64,
-    "baskets": "7"
+    "points": 113,
+    "baskets": "-16"
   },
   {
     "rank": 5,
