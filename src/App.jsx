@@ -611,7 +611,6 @@ export default function App() {
             <input type="password" placeholder="Passwort" value={password} onChange={(e) => setPassword(e.target.value)}
               className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold focus:ring-2 focus:ring-neon-gold/20 outline-none font-body transition" required minLength={6} autoComplete={isRegistering ? 'new-password' : 'current-password'} />
                 {isRegistering && (
-              {isRegistering && (
   <div className="flex flex-col items-center mt-4">
     <Turnstile
       siteKey="0x4AAAAAAFDsuncEtGNWUI8C" // <-- HIER DEINEN ECHTEN KEY EINFÜGEN!
