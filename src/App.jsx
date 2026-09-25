@@ -187,7 +187,7 @@ export default function App() {
   // Lädt die Zuordnung: Liga-ID -> [Teamname 1, Teamname 2]
   async function loadLeagueMappings() {
     try {
-      const response = await fetch(`/generated/table-links.json?t=${Date.now()}`);
+      const response = await fetch(`./generated/table-links.json?t=${Date.now()}`);
       if (response.ok) {
         const data = await response.json();
         const mapping = {};
@@ -1070,7 +1070,7 @@ function LeagueTableContent({ ligaId }) {
     async function load() {
       try {
         // Cache-Buster, um immer die neuesten Daten zu laden
-        const res = await fetch(`/generated/tabelle_${ligaId}.json?t=${Date.now()}`);
+        const res = await fetch(`./generated/tabelle_${ligaId}.json?t=${Date.now()}`);
         const data = await res.json();
         setTable(data);
       } catch (e) {
