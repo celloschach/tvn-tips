@@ -1,52 +1,59 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { supabase } from './supabaseClient';
-// Native Turnstile Komponente (korrigiert für Vite/ES Modules)
+// Native Turnstile Komponente (Loop-frei und stabil)
 function CloudflareTurnstile({ siteKey, onVerify }) {
   const containerRef = useRef(null);
   const widgetIdRef = useRef(null);
+  
+  // Trick: Speichere die aktuelle onVerify Funktion in einem Ref, 
+  // damit der useEffect nicht neu startet, wenn sie sich ändert.
+  const onVerifyRef = useRef(onVerify);
+  
+  useEffect(() => {
+    onVerifyRef.current = onVerify;
+  }, [onVerify]);
 
   useEffect(() => {
-    // 1. Prüfen ob das Skript schon da ist, sonst laden
-    if (!window.turnstile) {
-      const script = document.createElement('script');
-      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
-      script.async = true;
-      script.defer = true;
-      script.onload = () => renderWidget();
-      document.head.appendChild(script);
-    } else {
-      renderWidget();
-    }
-
-    function renderWidget() {
-      if (containerRef.current && !widgetIdRef.current) {
+    const loadTurnstile = () => {
+      // Nur rendern, wenn Container da ist und noch kein Widget existiert
+      if (window.turnstile && containerRef.current && !widgetIdRef.current) {
         widgetIdRef.current = window.turnstile.render(containerRef.current, {
           sitekey: siteKey,
           theme: 'dark',
           language: 'de',
           callback: (token) => {
-            console.log('✅ React Turnstile Token erhalten:', token);
-            onVerify(token);
+            console.log('✅ Turnstile Token erfolgreich erhalten (kein Loop!)');
+            onVerifyRef.current(token); // Nutze das Ref, um den Loop zu verhindern
           },
           'error-callback': () => {
             console.error('❌ Turnstile Fehler beim Rendern');
           }
         });
       }
+    };
+
+    if (!window.turnstile) {
+      const script = document.createElement('script');
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+      script.async = true;
+      script.defer = true;
+      script.onload = loadTurnstile;
+      document.head.appendChild(script);
+    } else {
+      loadTurnstile();
     }
 
-    // Aufräumen wenn Komponente verschwindet
+    // Aufräumen, wenn die Komponente verschwindet (z.B. Wechsel zu Login)
     return () => {
       if (widgetIdRef.current && window.turnstile) {
         window.turnstile.remove(widgetIdRef.current);
         widgetIdRef.current = null;
       }
     };
-  }, [siteKey, onVerify]);
+  }, [siteKey]); // WICHTIG: onVerify ist hier NICHT in der Abhängigkeit!
 
   return <div ref={containerRef}></div>;
 }
-
 const BLOCKED_WORDS = [
   'arsch', 'arschloch', 'scheisse', 'scheiße', 'fick', 'ficken', 'ficker',
   'hure', 'hurensohn', 'wichser', 'wixer', 'spast', 'spasti', 'mongo',
