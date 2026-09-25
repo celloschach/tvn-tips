@@ -103,7 +103,7 @@ export default function App() {
   const [showResendButton, setShowResendButton] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   
-  // NEU: Tabellen-States
+  // TABELLEN STATES
   const [leagueMappings, setLeagueMappings] = useState({});
   const [showTableModal, setShowTableModal] = useState(null);
 
@@ -184,15 +184,21 @@ export default function App() {
     } catch (e) { /* ignore */ }
   }
 
-  // NEU: Lade die Tabellen-Zuordnung
+  // Lädt die Zuordnung: Liga-ID -> [Teamname 1, Teamname 2]
   async function loadLeagueMappings() {
     try {
       const response = await fetch(`/generated/table-links.json?t=${Date.now()}`);
       if (response.ok) {
         const data = await response.json();
         const mapping = {};
-        data.forEach(item => { mapping[item.ligaId] = item.tvnTeams; });
+        data.forEach(item => { 
+          if (item.ligaId && item.tvnTeams) {
+            mapping[item.ligaId] = item.tvnTeams; 
+          }
+        });
         setLeagueMappings(mapping);
+      } else {
+        console.warn('table-links.json konnte nicht geladen werden.');
       }
     } catch (e) { console.error('Konnte Tabelle-Zuordnung nicht laden:', e); }
   }
@@ -207,7 +213,7 @@ export default function App() {
           setUser(session.user);
           loadBadges(session.user.id);
           loadWeeklyChampion();
-          loadLeagueMappings(); // <-- Hier aufrufen
+          loadLeagueMappings(); // WICHTIG: Hier laden
           requestNotificationPermission();
           setView('tips');
           loadData(session.user.id);
@@ -225,7 +231,7 @@ export default function App() {
           setUser(session.user);
           loadBadges(session.user.id);
           loadWeeklyChampion();
-          loadLeagueMappings(); // <-- Hier aufrufen
+          loadLeagueMappings(); // WICHTIG: Hier laden
           requestNotificationPermission();
           setView('tips');
           loadData(session.user.id);
@@ -719,6 +725,10 @@ export default function App() {
                 const hasTip = myTips[game.id];
                 const dT = getDisplayTime(game.start_time);
                 const tipChanged = hasTipChanged(game.id);
+                
+                // Prüfen, ob wir eine Tabelle für diese Liga haben
+                const hasTable = game.liga_id && leagueMappings[game.liga_id] && leagueMappings[game.liga_id].length > 0;
+
                 return (
                   <div key={game.id} ref={el => cardsRef.current[index] = el} className="card-reveal hover-lift glass-card rounded-card overflow-hidden">
                     <div className="game-card-content p-5">
@@ -733,8 +743,8 @@ export default function App() {
                         <span className="text-left flex-1 team-name-clamp pl-2">{aD}</span>
                       </div>
                       
-                      {/* NEU: Tabellen-Button */}
-                      {game.liga_id && leagueMappings[game.liga_id] && leagueMappings[game.liga_id].length > 0 && (
+                      {/* ✅ DER TABELLEN-BUTTON */}
+                      {hasTable && (
                         <button 
                           onClick={() => setShowTableModal({ ligaId: game.liga_id, competition: game.competition })}
                           className="mb-3 w-full text-xs text-neon-gold hover:text-neon-pink font-body transition flex items-center justify-center gap-1 py-2 border border-white/10 rounded-button hover:bg-white/5"
@@ -791,6 +801,8 @@ export default function App() {
                 const tip = myTips[game.id];
                 const points = getTipPoints(tip, game);
                 const dT = getDisplayTime(game.start_time);
+                const hasTable = game.liga_id && leagueMappings[game.liga_id] && leagueMappings[game.liga_id].length > 0;
+
                 return (
                   <div key={game.id} ref={el => finishedCardsRef.current[index] = el} className="card-reveal hover-lift glass-card rounded-card overflow-hidden">
                     <div className="game-card-content p-5">
@@ -802,8 +814,8 @@ export default function App() {
                         <span className="team-name team-right text-left flex-1 font-heading font-bold team-name-clamp pl-2">{aD}</span>
                       </div>
                       
-                      {/* NEU: Tabellen-Button auch in Ergebnissen */}
-                      {game.liga_id && leagueMappings[game.liga_id] && leagueMappings[game.liga_id].length > 0 && (
+                      {/* ✅ DER TABELLEN-BUTTON (auch in Ergebnissen) */}
+                      {hasTable && (
                         <button 
                           onClick={() => setShowTableModal({ ligaId: game.liga_id, competition: game.competition })}
                           className="mb-3 w-full text-xs text-neon-gold hover:text-neon-pink font-body transition flex items-center justify-center gap-1 py-2 border border-white/10 rounded-button hover:bg-white/5"
@@ -1013,7 +1025,7 @@ export default function App() {
         )}
       </main>
 
-      {/* NEU: TABELLEN-MODAL */}
+      {/* ✅ TABELLEN-MODAL (Pop-up Fenster) */}
       {showTableModal && (
         <div className="modal-overlay" onClick={() => setShowTableModal(null)}>
           <div className="modal-content max-w-2xl w-full max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
@@ -1040,7 +1052,7 @@ export default function App() {
 }
 
 // ==========================================
-// HILFSKOMPONENTE: TABELLEN-ANZEIGE
+// HILFSKOMPONENTE: TABELLEN-ANZEIGE IM MODAL
 // ==========================================
 function LeagueTableContent({ ligaId }) {
   const [table, setTable] = useState(null);
@@ -1049,6 +1061,7 @@ function LeagueTableContent({ ligaId }) {
   useEffect(() => {
     async function load() {
       try {
+        // Cache-Buster, um immer die neuesten Daten zu laden
         const res = await fetch(`/generated/tabelle_${ligaId}.json?t=${Date.now()}`);
         const data = await res.json();
         setTable(data);
