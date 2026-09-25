@@ -1094,7 +1094,6 @@ function LeagueTableContent({ ligaId, homeTeam, awayTeam }) {
         const data = await res.json();
         setTable(data);
         
-        // DEBUG: Zeige was verglichen wird
         console.log('🔍 Team-Vergleich:');
         console.log('  Spiel: Home =', homeTeam, '| Away =', awayTeam);
         console.log('  Tabelle:', data.map(t => t.team).join(', '));
@@ -1110,34 +1109,41 @@ function LeagueTableContent({ ligaId, homeTeam, awayTeam }) {
   if (loading) return <div className="text-center text-gray-400 py-8">Lade Tabelle...</div>;
   if (!table) return <div className="text-center text-neon-red py-8">Tabelle nicht verfügbar.</div>;
 
-  // Hilfsfunktion: Normalisiere Teamnamen für besseren Vergleich
-  function normalizeTeamName(name) {
-    if (!name) return '';
-    return name
-      .toLowerCase()
-      .replace(/\s+/g, ' ') // Mehrfache Leerzeichen zu einem
-      .replace(/tv\s*neunkirchen/g, 'tvn') // TV Neunkirchen → TVN
-      .replace(/\s+/g, ' ')
-      .trim();
+  // Hilfsfunktion: Extrahiere Basis-Name und Nummer
+  function parseTeamName(name) {
+    if (!name) return { base: '', number: null };
+    
+    const normalized = name.toLowerCase().trim();
+    
+    // Prüfe ob Name mit Zahl endet (z.B. "bg hagen 2", "tv neunkirchen 3")
+    const match = normalized.match(/^(.+?)\s+(\d+)$/);
+    if (match) {
+      return { base: match[1].trim(), number: parseInt(match[2]) };
+    }
+    
+    return { base: normalized, number: null };
   }
 
-  // Hilfsfunktion: Prüfe ob Team spielt (flexibler Vergleich)
+  // Hilfsfunktion: Prüfe ob Team exakt spielt (präziser Vergleich)
   function isTeamPlaying(tableName) {
     if (!homeTeam || !awayTeam) return false;
     
-    const normalizedTable = normalizeTeamName(tableName);
-    const normalizedHome = normalizeTeamName(homeTeam);
-    const normalizedAway = normalizeTeamName(awayTeam);
+    const tableParsed = parseTeamName(tableName);
+    const homeParsed = parseTeamName(homeTeam);
+    const awayParsed = parseTeamName(awayTeam);
     
-    // Exakter Match ODER einer enthält den anderen
-    return (
-      normalizedTable === normalizedHome ||
-      normalizedTable === normalizedAway ||
-      normalizedTable.includes(normalizedHome) ||
-      normalizedHome.includes(normalizedTable) ||
-      normalizedTable.includes(normalizedAway) ||
-      normalizedAway.includes(normalizedTable)
+    // Exakter Match (Basis + Nummer müssen übereinstimmen)
+    const matchesHome = (
+      tableParsed.base === homeParsed.base && 
+      tableParsed.number === homeParsed.number
     );
+    
+    const matchesAway = (
+      tableParsed.base === awayParsed.base && 
+      tableParsed.number === awayParsed.number
+    );
+    
+    return matchesHome || matchesAway;
   }
 
   return (
@@ -1158,12 +1164,10 @@ function LeagueTableContent({ ligaId, homeTeam, awayTeam }) {
             const isTVN = row.team.toLowerCase().includes('neunkirchen') || row.team.toLowerCase().includes('tvn');
             const isPlaying = isTeamPlaying(row.team);
             
-            // DEBUG: Zeige in der Konsole welches Team als "spielend" erkannt wird
             if (isPlaying) {
               console.log(`✅ Spielend erkannt: ${row.team}`);
             }
             
-            // Farb-Logik
             let rowClass = 'text-white hover:bg-dark-700';
             let indicator = '';
             
