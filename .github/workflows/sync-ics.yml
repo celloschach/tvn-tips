@@ -1,16 +1,19 @@
 name: Sync ICS to Supabase
+
 on:
+  workflow_dispatch:
   schedule:
-    - cron: '0 6 * * *' # Jeden Tag um 06:00 Uhr UTC
-  workflow_dispatch: # Ermöglicht manuelles Starten
+    - cron: '0 */6 * * *'
 
 jobs:
   sync:
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
       
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -19,7 +22,7 @@ jobs:
         run: npm install node-ical
       
       - name: Run sync script
-        run: node sync.js
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node sync.js
