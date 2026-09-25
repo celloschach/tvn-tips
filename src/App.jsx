@@ -1,11 +1,11 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { supabase } from './supabaseClient';
-// Native Turnstile Komponente (umgeht alle npm-Package Probleme)
+// Native Turnstile Komponente (korrigiert für Vite/ES Modules)
 function CloudflareTurnstile({ siteKey, onVerify }) {
-  const containerRef = React.useRef(null);
-  const widgetIdRef = React.useRef(null);
+  const containerRef = useRef(null);
+  const widgetIdRef = useRef(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     // 1. Prüfen ob das Skript schon da ist, sonst laden
     if (!window.turnstile) {
       const script = document.createElement('script');
