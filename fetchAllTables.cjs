@@ -5,7 +5,8 @@ const path = require('path');
 
 const LEAGUE_IDS = [
   '54574', '54598', '54607', '54894', '55715', 
-  '55721', '55727', '55729', '55726', '55724', '55730'
+  '55721', '55727', '55729', '55726', '55724', '55730',
+  '54992'  // ← NEU: Jugendlandesliga 1 U10 offen
 ];
 
 const OUTPUT_DIR = path.join(__dirname, 'public', 'generated');
