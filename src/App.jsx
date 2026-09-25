@@ -487,6 +487,33 @@ export default function App() {
           setSubmitting(false);
           return;
         }
+        // 🛡️ BOT-SCHUTZ 3: Turnstile-Token validieren
+if (!turnstileToken) {
+  setMsg('❌ Bitte warte kurz, bis die Sicherheitsprüfung abgeschlossen ist.');
+  setSubmitting(false);
+  return;
+}
+
+try {
+  console.log('📤 Sende Token an Edge Function zur Validierung...');
+  const { data: turnstileData, error: turnstileError } = await supabase.functions.invoke('verify-turnstile', {
+    body: { token: turnstileToken }
+  });
+
+  if (turnstileError || !turnstileData?.success) {
+    console.error('❌ Turnstile Validierung fehlgeschlagen:', turnstileData);
+    setMsg('❌ Sicherheitsprüfung fehlgeschlagen. Bitte versuche es erneut.');
+    setSubmitting(false);
+    return;
+  }
+  
+  console.log('✅ Turnstile vom Server erfolgreich validiert!');
+} catch (err) {
+  console.error('❌ Netzwerkfehler beim Aufruf der Edge Function:', err);
+  setMsg('❌ Verbindungsfehler zur Sicherheitsprüfung.');
+  setSubmitting(false);
+  return;
+}
 
         const nc = isNameAllowed(regUsername);
         if (!nc.ok) {
