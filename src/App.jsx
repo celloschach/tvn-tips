@@ -392,7 +392,10 @@ export default function App() {
         if (!nc.ok) { setMsg(nc.msg); setSubmitting(false); return; }
         const { data, error } = await supabase.auth.signUp({
           email: email.trim(), password: password,
-          options: { data: { username: regUsername.trim() } }
+             options: { 
+     data: { username: regUsername.trim() },
+     emailRedirectTo: 'https://celloschach.github.io/tvn-tips/confirm.html'
+   }
         });
         if (error) { setMsg('❌ ' + error.message); } 
         else {
