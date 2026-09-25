@@ -1,4 +1,4 @@
-name: Sync ICS to Supabase
+name: Sync ICS and Tables
 
 on:
   workflow_dispatch:
@@ -19,10 +19,21 @@ jobs:
           node-version: '20'
       
       - name: Install dependencies
-        run: npm install node-ical
+        run: npm install node-ical axios cheerio@1.0.0-rc.12
       
-      - name: Run sync script
+      - name: Run Table Scraper
+        run: node fetchAllTables.js
+      
+      - name: Run ICS Sync
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: node sync.js
+      
+      - name: Commit generated tables to repo
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add public/generated/
+          git commit -m "chore: auto-update league tables [skip ci]" || echo "No changes to commit"
+          git push
