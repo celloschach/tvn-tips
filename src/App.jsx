@@ -187,7 +187,7 @@ export default function App() {
   // NEU: Lade die Tabellen-Zuordnung
   async function loadLeagueMappings() {
     try {
-      const response = await fetch('/generated/table-links.json');
+      const response = await fetch(`/generated/table-links.json?t=${Date.now()}`);
       if (response.ok) {
         const data = await response.json();
         const mapping = {};
@@ -1049,7 +1049,7 @@ function LeagueTableContent({ ligaId }) {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(`/generated/tabelle_${ligaId}.json`);
+        const res = await fetch(`/generated/tabelle_${ligaId}.json?t=${Date.now()}`);
         const data = await res.json();
         setTable(data);
       } catch (e) {
