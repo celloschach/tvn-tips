@@ -3,7 +3,6 @@ const cheerio = require('cheerio');
 const fs = require('fs');
 const path = require('path');
 
-// Die 11 gefundenen Liga-IDs
 const LEAGUE_IDS = [
   '54574', '54598', '54607', '54894', '55715', 
   '55721', '55727', '55729', '55726', '55724', '55730'
@@ -56,7 +55,6 @@ async function fetchTable(ligaId) {
       const filename = `tabelle_${ligaId}.json`;
       fs.writeFileSync(path.join(OUTPUT_DIR, filename), JSON.stringify(tableData, null, 2));
       console.log(`✅ Gespeichert: ${filename} (TVN: ${tvnTeamsInLeague.join(', ')})`);
-      
       return { ligaId, filename, tvnTeams: tvnTeamsInLeague };
     }
   } catch (error) {
@@ -68,12 +66,10 @@ async function fetchTable(ligaId) {
 async function main() {
   console.log('🚀 Starte Tabellen-Update für TVN...\n');
   const results = [];
-  
   for (const id of LEAGUE_IDS) {
     const result = await fetchTable(id);
     if (result) results.push(result);
   }
-  
   fs.writeFileSync(path.join(OUTPUT_DIR, 'table-links.json'), JSON.stringify(results, null, 2));
   console.log('\n🎉 Tabellen-Update abgeschlossen!');
 }
