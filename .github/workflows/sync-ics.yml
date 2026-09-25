@@ -22,7 +22,7 @@ jobs:
         run: npm install node-ical axios cheerio@1.0.0-rc.12
       
       - name: Run Table Scraper
-        run: node fetchAllTables.js
+        run: node fetchAllTables.cjs
       
       - name: Run ICS Sync
         env:
