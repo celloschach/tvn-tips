@@ -1025,18 +1025,37 @@ export default function App() {
         )}
       </main>
 
-      {/* ✅ TABELLEN-MODAL (Pop-up Fenster) */}
-      {showTableModal && (
-        <div className="modal-overlay" onClick={() => setShowTableModal(null)}>
-          <div className="modal-content max-w-2xl w-full max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-heading font-bold text-white">📊 {showTableModal.competition || 'Liga'}</h3>
-              <button onClick={() => setShowTableModal(null)} className="text-gray-400 hover:text-white text-2xl">✕</button>
-            </div>
-            <LeagueTableContent ligaId={showTableModal.ligaId} />
-          </div>
-        </div>
-      )}
+    {/* TABELLEN-MODAL */}
+{showTableModal && (
+  <div 
+    className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+    onClick={() => setShowTableModal(null)}
+  >
+    {/* Backdrop */}
+    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
+    
+    {/* Modal Content */}
+    <div 
+      className="relative bg-dark-800 border border-white/10 rounded-card shadow-card max-w-2xl w-full max-h-[80vh] flex flex-col overflow-hidden"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* Header (fixiert) */}
+      <div className="flex justify-between items-center p-6 border-b border-white/10 flex-shrink-0">
+        <h3 className="text-xl font-heading font-bold text-white">📊 {showTableModal.competition || 'Liga'}</h3>
+        <button onClick={() => setShowTableModal(null)} className="text-gray-400 hover:text-white text-2xl">✕</button>
+      </div>
+      
+      {/* Scrollbarer Inhalt */}
+      <div className="overflow-y-auto flex-1 p-6">
+        <LeagueTableContent 
+          ligaId={showTableModal.ligaId} 
+          homeTeam={showTableModal.homeTeam}
+          awayTeam={showTableModal.awayTeam}
+        />
+      </div>
+    </div>
+  </div>
+)}
 
       <nav className="bottom-nav lg:hidden">
         <div className="flex justify-around items-center">
@@ -1054,14 +1073,13 @@ export default function App() {
 // ==========================================
 // HILFSKOMPONENTE: TABELLEN-ANZEIGE IM MODAL
 // ==========================================
-function LeagueTableContent({ ligaId }) {
+function LeagueTableContent({ ligaId, homeTeam, awayTeam }) {
   const [table, setTable] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        // Cache-Buster, um immer die neuesten Daten zu laden
         const res = await fetch(`./generated/tabelle_${ligaId}.json?t=${Date.now()}`);
         const data = await res.json();
         setTable(data);
@@ -1093,10 +1111,33 @@ function LeagueTableContent({ ligaId }) {
         <tbody className="divide-y divide-white/5">
           {table.map((row) => {
             const isTVN = row.team.toLowerCase().includes('neunkirchen') || row.team.toLowerCase().includes('tvn');
+            const isPlaying = homeTeam && awayTeam && (
+              row.team.toLowerCase() === homeTeam.toLowerCase() || 
+              row.team.toLowerCase() === awayTeam.toLowerCase()
+            );
+            
+            // Farb-Logik
+            let rowClass = 'text-white hover:bg-dark-700';
+            let indicator = '';
+            
+            if (isPlaying && isTVN) {
+              // TVN-Team spielt gerade (gold + ⚡🏀)
+              rowClass = 'bg-neon-gold/20 font-bold text-neon-gold border-l-4 border-neon-gold';
+              indicator = ' ⚡🏀';
+            } else if (isPlaying) {
+              // Gegner spielt gerade (blau + ⚡)
+              rowClass = 'bg-blue-500/20 font-bold text-blue-400 border-l-4 border-blue-500';
+              indicator = ' ⚡';
+            } else if (isTVN) {
+              // TVN-Team (spielt nicht gerade)
+              rowClass = 'bg-neon-gold/10 font-bold text-neon-gold';
+              indicator = ' 🏀';
+            }
+            
             return (
-              <tr key={row.rank} className={isTVN ? 'bg-neon-gold/10 font-bold text-neon-gold' : 'text-white hover:bg-dark-700'}>
+              <tr key={row.rank} className={rowClass}>
                 <td className="p-3 font-mono">{row.rank}.</td>
-                <td className="p-3">{row.team} {isTVN && '🏀'}</td>
+                <td className="p-3">{row.team}{indicator}</td>
                 <td className="p-3 text-center">{row.games}</td>
                 <td className="p-3 text-center">{row.wins}</td>
                 <td className="p-3 text-center font-bold">{row.points}</td>
@@ -1106,6 +1147,22 @@ function LeagueTableContent({ ligaId }) {
           })}
         </tbody>
       </table>
+      
+      {/* Legende */}
+      <div className="mt-4 pt-4 border-t border-white/10 flex flex-wrap gap-4 text-xs font-body">
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 bg-neon-gold/20 border-l-4 border-neon-gold"></div>
+          <span className="text-gray-400">TVN spielt ⚡🏀</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 bg-blue-500/20 border-l-4 border-blue-500"></div>
+          <span className="text-gray-400">Gegner spielt ⚡</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 bg-neon-gold/10"></div>
+          <span className="text-gray-400">TVN Team 🏀</span>
+        </div>
+      </div>
     </div>
   );
 }
