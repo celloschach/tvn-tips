@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { supabase } from './supabaseClient';
+import { Turnstile } from '@marsidev/react-turnstile';
 
 const BLOCKED_WORDS = [
   'arsch', 'arschloch', 'scheisse', 'scheiße', 'fick', 'ficken', 'ficker',
@@ -102,6 +103,9 @@ export default function App() {
   const [gamesOnDate, setGamesOnDate] = useState([]);
   const [showResendButton, setShowResendButton] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [honeypotValue, setHoneypotValue] = useState('');
+  const [formStartTime, setFormStartTime] = useState(null);
+  const [turnstileToken, setTurnstileToken] = useState('');
   
   // TABELLEN STATES
   const [leagueMappings, setLeagueMappings] = useState({});
@@ -142,6 +146,12 @@ export default function App() {
     refs.forEach(c => { if (c) obs.observe(c); });
     return obs;
   }, []);
+
+    useEffect(() => {
+    if (isRegistering && !formStartTime) {
+      setFormStartTime(Date.now());
+    }
+  }, [isRegistering, formStartTime]);
 
   useEffect(() => {
     if (view === 'tips') { const o = setupObserver(cardsRef.current); return () => o.disconnect(); }
@@ -388,20 +398,64 @@ export default function App() {
 
     try {
       if (isRegistering) {
+        if (honeypotValue) {
+          console.log('🤖 Bot erkannt (Honeypot)');
+          setMsg('❌ Registrierung fehlgeschlagen.');
+          setSubmitting(false);
+          return;
+        }
+
+        const timeSpent = Date.now() - formStartTime;
+        if (timeSpent < 3000) {
+          console.log('🤖 Bot erkannt (zu schnell: ' + timeSpent + 'ms)');
+          setMsg('❌ Bitte nimm dir mehr Zeit beim Ausfüllen.');
+          setSubmitting(false);
+          return;
+        }
+
+        if (!turnstileToken) {
+          setMsg('❌ Bitte bestätige, dass du kein Bot bist.');
+          setSubmitting(false);
+          return;
+        }
+
+        try {
+          const { data: turnstileData, error: turnstileError } = await supabase.functions.invoke('verify-turnstile', {
+            body: { token: turnstileToken }
+          });
+          if (turnstileError || !turnstileData?.success) {
+            console.log('🤖 Bot erkannt (Turnstile)');
+            setMsg('❌ Bot-Prüfung fehlgeschlagen.');
+            setSubmitting(false);
+            return;
+          }
+        } catch (err) {
+          console.error('Turnstile Fehler:', err);
+          setMsg('❌ Fehler bei der Bot-Prüfung.');
+          setSubmitting(false);
+          return;
+        }
+
         const nc = isNameAllowed(regUsername);
-        if (!nc.ok) { setMsg(nc.msg); setSubmitting(false); return; }
+        if (!nc.ok) {
+          setMsg(nc.msg);
+          setSubmitting(false);
+          return;
+        }
+
         const { data, error } = await supabase.auth.signUp({
           email: email.trim(), password: password,
-             options: { 
-     data: { username: regUsername.trim() },
-     emailRedirectTo: 'https://celloschach.github.io/tvn-tips/confirm.html'
-   }
+          options: {
+            data: { username: regUsername.trim() },
+            emailRedirectTo: 'https://celloschach.github.io/tvn-tips/confirm.html'
+          }
         });
-        if (error) { setMsg('❌ ' + error.message); } 
+        if (error) { setMsg('❌ ' + error.message); }
         else {
-          setMsg('✅ Registrierung erfolgreich! Bitte prüfe deine E-Mails und bestätige deinen Account.');
+          setMsg('✅ Registrierung erfolgreich! Bitte prüfe deine E-Mails.');
           showToast('📧 Bestätigungs-E-Mail gesendet!', 'success');
           setRegUsername(''); setEmail(''); setPassword(''); setIsRegistering(false);
+          setTurnstileToken(''); setHoneypotValue(''); setFormStartTime(null);
         }
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
@@ -547,6 +601,7 @@ export default function App() {
             <p className="text-gray-400 font-body mt-2">{isRegistering ? 'Erstelle deinen Account' : 'Willkommen zurück'}</p>
           </div>
           <form onSubmit={handleLogin} className="space-y-4">
+            <input type="text" name="website" tabIndex={-1} autoComplete="off" placeholder="" value={honeypotValue} onChange={(e) => setHoneypotValue(e.target.value)} style={{ position: 'absolute', left: '-9999px', top: '-9999px', opacity: 0, height: 0, width: 0, overflow: 'hidden' }} />
             {isRegistering && (
               <input type="text" placeholder="Benutzername" value={regUsername} onChange={(e) => setRegUsername(e.target.value)}
                 className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold focus:ring-2 focus:ring-neon-gold/20 outline-none font-body transition" required />
@@ -555,6 +610,16 @@ export default function App() {
               className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold focus:ring-2 focus:ring-neon-gold/20 outline-none font-body transition" required autoComplete="email" inputMode="email" />
             <input type="password" placeholder="Passwort" value={password} onChange={(e) => setPassword(e.target.value)}
               className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold focus:ring-2 focus:ring-neon-gold/20 outline-none font-body transition" required minLength={6} autoComplete={isRegistering ? 'new-password' : 'current-password'} />
+                {isRegistering && (
+              <div className="flex justify-center mt-4">
+                <Turnstile
+                  siteKey="0x4AAAAAAFDsuncEtGNWUI8C"
+                  onVerify={(token) => setTurnstileToken(token)}
+                  onExpire={() => setTurnstileToken('')}
+                  options={{ theme: 'dark', language: 'de' }}
+                />
+              </div>
+            )}
             {showResendButton && (
               <button type="button" onClick={async () => {
                 if (!email) { setMsg('Bitte erst E-Mail eingeben.'); return; }
@@ -567,11 +632,11 @@ export default function App() {
                 📧 Bestätigungs-E-Mail erneut senden
               </button>
             )}
-            <button type="submit" disabled={submitting} className={`glow-button w-full bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 p-3 rounded-button font-heading font-bold hover:shadow-glow transition ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                  <button type="submit" disabled={submitting || (isRegistering && !turnstileToken)} className={`glow-button w-full bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 p-3 rounded-button font-heading font-bold hover:shadow-glow transition ${submitting || (isRegistering && !turnstileToken) ? 'opacity-50 cursor-not-allowed' : ''}`}>
               {submitting ? '⏳ Bitte warten...' : (isRegistering ? 'Registrieren' : 'Anmelden')}
             </button>
           </form>
-          <button onClick={() => { setIsRegistering(!isRegistering); setMsg(''); setShowResendButton(false); }}
+            <button onClick={() => { setIsRegistering(!isRegistering); setMsg(''); setShowResendButton(false); setTurnstileToken(''); setHoneypotValue(''); setFormStartTime(null); }}
             className="w-full mt-4 text-neon-gold hover:text-neon-pink text-sm font-medium font-body transition">
             {isRegistering ? 'Zurück zum Login' : 'Noch keinen Account? Registrieren'}
           </button>
