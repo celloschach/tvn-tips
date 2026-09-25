@@ -92,10 +92,7 @@ export default function App() {
   const cardsRef = useRef([]);
   const finishedCardsRef = useRef([]);
   const [darkMode, setDarkMode] = useState(() => {
-    try {
-      const s = localStorage.getItem('tvn-dark-mode');
-      return s !== null ? JSON.parse(s) : true;
-    } catch { return true; }
+    try { const s = localStorage.getItem('tvn-dark-mode'); return s !== null ? JSON.parse(s) : true; } catch { return true; }
   });
   const [badges, setBadges] = useState([]);
   const [weeklyChampion, setWeeklyChampion] = useState(null);
@@ -105,6 +102,10 @@ export default function App() {
   const [gamesOnDate, setGamesOnDate] = useState([]);
   const [showResendButton, setShowResendButton] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  
+  // NEU: Tabellen-States
+  const [leagueMappings, setLeagueMappings] = useState({});
+  const [showTableModal, setShowTableModal] = useState(null);
 
   function showToast(message, type = 'success') {
     setToast({ message, type });
@@ -130,9 +131,7 @@ export default function App() {
 
   async function requestNotificationPermission() {
     try {
-      if ('Notification' in window && Notification.permission === 'default') {
-        await Notification.requestPermission();
-      }
+      if ('Notification' in window && Notification.permission === 'default') await Notification.requestPermission();
     } catch (e) { /* ignore */ }
   }
 
@@ -153,9 +152,7 @@ export default function App() {
   }, [finishedGames, myFinishedGames, resultTab, view, setupObserver]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem('tvn-dark-mode', JSON.stringify(darkMode));
-    } catch (e) { /* ignore */ }
+    try { localStorage.setItem('tvn-dark-mode', JSON.stringify(darkMode)); } catch (e) { /* ignore */ }
     document.documentElement.classList.toggle('dark', darkMode);
   }, [darkMode]);
 
@@ -165,15 +162,12 @@ export default function App() {
       if (error || !data) {
         await supabase.auth.signOut();
         setUser(null); setUsername(''); setView('login');
-        setEmail(''); setPassword('');
-        setMyTips({}); setTips({}); setGroups([]); setBadges([]);
+        setEmail(''); setPassword(''); setMyTips({}); setTips({}); setGroups([]); setBadges([]);
         return false;
       }
       setUsername(data.username);
       return true;
-    } catch (e) {
-      return false;
-    }
+    } catch (e) { return false; }
   }
 
   async function loadBadges(uid) {
@@ -190,6 +184,19 @@ export default function App() {
     } catch (e) { /* ignore */ }
   }
 
+  // NEU: Lade die Tabellen-Zuordnung
+  async function loadLeagueMappings() {
+    try {
+      const response = await fetch('/generated/table-links.json');
+      if (response.ok) {
+        const data = await response.json();
+        const mapping = {};
+        data.forEach(item => { mapping[item.ligaId] = item.tvnTeams; });
+        setLeagueMappings(mapping);
+      }
+    } catch (e) { console.error('Konnte Tabelle-Zuordnung nicht laden:', e); }
+  }
+
   useEffect(() => {
     async function initSession() {
       try {
@@ -200,14 +207,13 @@ export default function App() {
           setUser(session.user);
           loadBadges(session.user.id);
           loadWeeklyChampion();
+          loadLeagueMappings(); // <-- Hier aufrufen
           requestNotificationPermission();
           setView('tips');
           loadData(session.user.id);
           loadGroups(session.user.id);
         }
-      } catch (e) {
-        console.error('Session-Fehler:', e);
-      }
+      } catch (e) { console.error('Session-Fehler:', e); }
     }
     initSession();
 
@@ -219,17 +225,15 @@ export default function App() {
           setUser(session.user);
           loadBadges(session.user.id);
           loadWeeklyChampion();
+          loadLeagueMappings(); // <-- Hier aufrufen
           requestNotificationPermission();
           setView('tips');
           loadData(session.user.id);
           loadGroups(session.user.id);
         } else {
-          setUser(null);
-          setView('login');
+          setUser(null); setView('login');
         }
-      } catch (e) {
-        console.error('Auth-Fehler:', e);
-      }
+      } catch (e) { console.error('Auth-Fehler:', e); }
     });
     return () => al.subscription.unsubscribe();
   }, []);
@@ -262,8 +266,7 @@ export default function App() {
 
   async function loadFinishedGames(days) {
     setResultFilter(days);
-    let q = supabase.from('games').select('*').eq('is_cancelled', false)
-      .not('home_score', 'is', null).order('start_time', { ascending: false });
+    let q = supabase.from('games').select('*').eq('is_cancelled', false).not('home_score', 'is', null).order('start_time', { ascending: false });
     if (days !== 'all') {
       const s = new Date(Date.now() - parseInt(days)*24*60*60*1000);
       q = q.gte('start_time', s.toISOString());
@@ -371,7 +374,6 @@ export default function App() {
     } catch (e) { showToast('Fehler: ' + e.message, 'error'); }
   }
 
-  // FIX: Robuste Login/Registrierung für alle Handys
   async function handleLogin(e) {
     e.preventDefault();
     setMsg('');
@@ -381,59 +383,35 @@ export default function App() {
     try {
       if (isRegistering) {
         const nc = isNameAllowed(regUsername);
-        if (!nc.ok) {
-          setMsg(nc.msg);
-          setSubmitting(false);
-          return;
-        }
-
+        if (!nc.ok) { setMsg(nc.msg); setSubmitting(false); return; }
         const { data, error } = await supabase.auth.signUp({
-          email: email.trim(),
-          password: password,
-          options: {
-            data: { username: regUsername.trim() }
-          }
+          email: email.trim(), password: password,
+          options: { data: { username: regUsername.trim() } }
         });
-
-        if (error) {
-          setMsg('❌ ' + error.message);
-        } else {
-          setMsg('✅ Registrierung erfolgreich! Bitte prüfe deine E-Mails und bestätige deinen Account. Danach kannst du dich einloggen.');
+        if (error) { setMsg('❌ ' + error.message); } 
+        else {
+          setMsg('✅ Registrierung erfolgreich! Bitte prüfe deine E-Mails und bestätige deinen Account.');
           showToast('📧 Bestätigungs-E-Mail gesendet!', 'success');
-          setRegUsername('');
-          setEmail('');
-          setPassword('');
-          setIsRegistering(false);
+          setRegUsername(''); setEmail(''); setPassword(''); setIsRegistering(false);
         }
       } else {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password: password
-        });
-
+        const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
         if (error) {
-          if (error.message.toLowerCase().includes('not confirmed') || error.message.toLowerCase().includes('email not confirmed')) {
+          if (error.message.toLowerCase().includes('not confirmed')) {
             setMsg('⚠️ E-Mail nicht bestätigt. Prüfe dein Postfach!');
             setShowResendButton(true);
-          } else {
-            setMsg('❌ ' + error.message);
-          }
+          } else { setMsg('❌ ' + error.message); }
         } else if (data.user && !data.user.email_confirmed_at) {
           setMsg('⚠️ Bitte bestätige zuerst deine E-Mail-Adresse.');
           setShowResendButton(true);
         }
       }
-    } catch (err) {
-      setMsg('❌ Fehler: ' + (err.message || 'Unbekannter Fehler'));
-    }
-
+    } catch (err) { setMsg('❌ Fehler: ' + (err.message || 'Unbekannter Fehler')); }
     setSubmitting(false);
   }
 
   async function handleLogout() {
-    try {
-      await supabase.auth.signOut();
-    } catch (e) { /* ignore */ }
+    try { await supabase.auth.signOut(); } catch (e) { /* ignore */ }
     setUser(null); setUsername(''); setView('login');
     setEmail(''); setPassword(''); setRegUsername('');
     setMyTips({}); setTips({}); setGroups([]); setBadges([]);
@@ -565,27 +543,22 @@ export default function App() {
                 className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold focus:ring-2 focus:ring-neon-gold/20 outline-none font-body transition" required />
             )}
             <input type="email" placeholder="E-Mail-Adresse" value={email} onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold focus:ring-2 focus:ring-neon-gold/20 outline-none font-body transition" required
-              autoComplete="email" inputMode="email" />
+              className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold focus:ring-2 focus:ring-neon-gold/20 outline-none font-body transition" required autoComplete="email" inputMode="email" />
             <input type="password" placeholder="Passwort" value={password} onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold focus:ring-2 focus:ring-neon-gold/20 outline-none font-body transition" required minLength={6}
-              autoComplete={isRegistering ? 'new-password' : 'current-password'} />
+              className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold focus:ring-2 focus:ring-neon-gold/20 outline-none font-body transition" required minLength={6} autoComplete={isRegistering ? 'new-password' : 'current-password'} />
             {showResendButton && (
-              <button type="button"
-                onClick={async () => {
-                  if (!email) { setMsg('Bitte erst E-Mail eingeben.'); return; }
-                  try {
-                    const { error } = await supabase.auth.resend({ type: 'signup', email: email.trim() });
-                    if (error) setMsg('❌ ' + error.message);
-                    else { showToast('📧 E-Mail erneut gesendet!', 'success'); setShowResendButton(false); }
-                  } catch (err) { setMsg('❌ ' + err.message); }
-                }}
-                className="w-full text-neon-gold hover:text-neon-pink text-sm font-medium font-body transition">
+              <button type="button" onClick={async () => {
+                if (!email) { setMsg('Bitte erst E-Mail eingeben.'); return; }
+                try {
+                  const { error } = await supabase.auth.resend({ type: 'signup', email: email.trim() });
+                  if (error) setMsg('❌ ' + error.message);
+                  else { showToast('📧 E-Mail erneut gesendet!', 'success'); setShowResendButton(false); }
+                } catch (err) { setMsg('❌ ' + err.message); }
+              }} className="w-full text-neon-gold hover:text-neon-pink text-sm font-medium font-body transition">
                 📧 Bestätigungs-E-Mail erneut senden
               </button>
             )}
-            <button type="submit" disabled={submitting}
-              className={`glow-button w-full bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 p-3 rounded-button font-heading font-bold hover:shadow-glow transition ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}>
+            <button type="submit" disabled={submitting} className={`glow-button w-full bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 p-3 rounded-button font-heading font-bold hover:shadow-glow transition ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}>
               {submitting ? '⏳ Bitte warten...' : (isRegistering ? 'Registrieren' : 'Anmelden')}
             </button>
           </form>
@@ -594,11 +567,7 @@ export default function App() {
             {isRegistering ? 'Zurück zum Login' : 'Noch keinen Account? Registrieren'}
           </button>
           {msg && (
-            <div className={`mt-4 p-3 rounded-button text-sm text-center font-body ${
-              msg.includes('✅') ? 'bg-neon-green/20 text-neon-green' :
-              msg.includes('⚠️') ? 'bg-yellow-500/20 text-yellow-400' :
-              'bg-neon-red/20 text-neon-red'
-            }`}>
+            <div className={`mt-4 p-3 rounded-button text-sm text-center font-body ${msg.includes('✅') ? 'bg-neon-green/20 text-neon-green' : msg.includes('⚠️') ? 'bg-yellow-500/20 text-yellow-400' : 'bg-neon-red/20 text-neon-red'}`}>
               {msg}
             </div>
           )}
@@ -621,10 +590,7 @@ export default function App() {
       {confirmModal && (
         <div className="modal-overlay" onClick={handleConfirmNo}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="text-center mb-4">
-              <div className="text-4xl mb-2">⚠️</div>
-              <h3 className="text-xl font-heading font-bold text-white">Bist du sicher?</h3>
-            </div>
+            <div className="text-center mb-4"><div className="text-4xl mb-2">⚠️</div><h3 className="text-xl font-heading font-bold text-white">Bist du sicher?</h3></div>
             <p className="text-gray-400 font-body mb-6 text-center">{confirmModal.message}</p>
             <div className="flex gap-3">
               <button onClick={handleConfirmNo} className="flex-1 glow-button bg-dark-700 text-white px-4 py-3 rounded-button font-heading font-semibold hover:bg-dark-600 transition">Abbrechen</button>
@@ -654,8 +620,7 @@ export default function App() {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-xl font-heading font-bold text-white mb-4">Gruppe erstellen</h3>
             <div className="space-y-4">
-              <input type="text" placeholder="Gruppenname" value={newGroupName} onChange={(e) => setNewGroupName(e.target.value)}
-                className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold outline-none font-body" />
+              <input type="text" placeholder="Gruppenname" value={newGroupName} onChange={(e) => setNewGroupName(e.target.value)} className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold outline-none font-body" />
               <label className="flex items-center gap-2 font-body text-gray-400">
                 <input type="checkbox" checked={newGroupIsPublic} onChange={(e) => setNewGroupIsPublic(e.target.checked)} className="w-5 h-5" />
                 <span>Öffentliche Gruppe</span>
@@ -674,8 +639,7 @@ export default function App() {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-xl font-heading font-bold text-white mb-4">Gruppe beitreten</h3>
             <div className="space-y-4">
-              <input type="text" placeholder="Beitrittscode" value={joinCode} onChange={(e) => setJoinCode(e.target.value)}
-                className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold outline-none font-body uppercase" />
+              <input type="text" placeholder="Beitrittscode" value={joinCode} onChange={(e) => setJoinCode(e.target.value)} className="w-full p-3 bg-dark-800 border border-white/10 rounded-button text-white placeholder-gray-500 focus:border-neon-gold outline-none font-body uppercase" />
               <div className="flex gap-3">
                 <button onClick={() => setShowJoinGroup(false)} className="flex-1 glow-button bg-dark-700 text-white px-4 py-3 rounded-button font-heading font-semibold hover:bg-dark-600 transition">Abbrechen</button>
                 <button onClick={joinGroupWithCode} className="flex-1 glow-button bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 px-4 py-3 rounded-button font-heading font-bold hover:shadow-glow transition">Beitreten</button>
@@ -694,36 +658,25 @@ export default function App() {
         </div>
         <nav className="flex-1 p-4 space-y-2">
           {[{ id: 'tips', label: 'Spiele', icon: '⚽' }, { id: 'results', label: 'Ergebnisse', icon: '📊' }, { id: 'calendar', label: 'Kalender', icon: '📅' }, { id: 'groups', label: 'Gruppen', icon: '👥' }, { id: 'leaderboard', label: 'Tabelle', icon: '🏆' }].map(tab => (
-            <button key={tab.id} onClick={() => setView(tab.id)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-button font-heading font-semibold transition ${view === tab.id ? 'bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 shadow-glow' : 'text-gray-400 hover:text-white hover:bg-dark-700'}`}>
+            <button key={tab.id} onClick={() => setView(tab.id)} className={`w-full flex items-center gap-3 px-4 py-3 rounded-button font-heading font-semibold transition ${view === tab.id ? 'bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 shadow-glow' : 'text-gray-400 hover:text-white hover:bg-dark-700'}`}>
               <span className="text-xl">{tab.icon}</span><span>{tab.label}</span>
             </button>
           ))}
         </nav>
         <div className="p-4 border-t border-white/10 space-y-3">
-          {badges.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-3">
-              {badges.map(badge => <div key={badge.id} className="text-xl" title={getBadgeName(badge.badge_type)}>{getBadgeIcon(badge.badge_type)}</div>)}
-            </div>
-          )}
+          {badges.length > 0 && (<div className="flex flex-wrap gap-1 mb-3">{badges.map(badge => <div key={badge.id} className="text-xl" title={getBadgeName(badge.badge_type)}>{getBadgeIcon(badge.badge_type)}</div>)}</div>)}
           <button onClick={() => setDarkMode(!darkMode)} className="w-full flex items-center justify-between px-4 py-2 rounded-button bg-dark-700 hover:bg-dark-600 transition">
             <span className="text-sm font-body text-gray-400">{darkMode ? '🌙 Dark' : '☀️ Light'}</span>
-            <div className={`w-12 h-6 rounded-full p-1 transition ${darkMode ? 'bg-neon-gold' : 'bg-gray-600'}`}>
-              <div className={`w-4 h-4 rounded-full bg-white transition-transform ${darkMode ? 'translate-x-6' : 'translate-x-0'}`} />
-            </div>
+            <div className={`w-12 h-6 rounded-full p-1 transition ${darkMode ? 'bg-neon-gold' : 'bg-gray-600'}`}><div className={`w-4 h-4 rounded-full bg-white transition-transform ${darkMode ? 'translate-x-6' : 'translate-x-0'}`} /></div>
           </button>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-gradient-to-r from-neon-purple to-neon-pink flex items-center justify-center text-white font-bold">{username?.[0]?.toUpperCase() || 'U'}</div>
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-heading font-bold text-white truncate">{username}</div>
-              <div className="text-xs text-gray-500 font-body">Online</div>
-            </div>
+            <div className="flex-1 min-w-0"><div className="text-sm font-heading font-bold text-white truncate">{username}</div><div className="text-xs text-gray-500 font-body">Online</div></div>
           </div>
           <button onClick={handleLogout} className="w-full glow-button bg-neon-red/20 text-neon-red px-4 py-2 rounded-button font-heading font-semibold hover:bg-neon-red/30 transition">Logout</button>
         </div>
       </aside>
 
-      {/* HEADER MOBILE - MIT LOGOUT BUTTON */}
       <header className="lg:hidden bg-dark-800 border-b border-white/10 p-4 sticky top-0 z-50">
         <div className="flex justify-between items-center">
           <button onClick={() => setView('tips')} className="flex items-center gap-2">
@@ -733,9 +686,7 @@ export default function App() {
           <div className="flex items-center gap-2">
             <button onClick={() => setDarkMode(!darkMode)} className="w-8 h-8 rounded-full bg-dark-700 flex items-center justify-center text-lg hover:bg-dark-600 transition">{darkMode ? '☀️' : '🌙'}</button>
             <div className="w-8 h-8 rounded-full bg-gradient-to-r from-neon-purple to-neon-pink flex items-center justify-center text-white text-sm font-bold">{username?.[0]?.toUpperCase() || 'U'}</div>
-            <button onClick={handleLogout} className="glow-button bg-neon-red/20 text-neon-red px-3 py-1.5 rounded-button text-xs font-heading font-semibold hover:bg-neon-red/30 transition">
-              Logout
-            </button>
+            <button onClick={handleLogout} className="glow-button bg-neon-red/20 text-neon-red px-3 py-1.5 rounded-button text-xs font-heading font-semibold hover:bg-neon-red/30 transition">Logout</button>
           </div>
         </div>
       </header>
@@ -748,16 +699,7 @@ export default function App() {
                 <div>
                   <h1 className="text-2xl md:text-3xl font-heading font-bold text-white mb-2">Hallo {username}! 👋</h1>
                   <p className="text-gray-400 font-body">Spiele der nächsten 7 Tage</p>
-                  {badges.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {badges.map(badge => (
-                        <div key={badge.id} className="flex items-center gap-1 bg-dark-700 px-2 py-1 rounded-button" title={BADGE_DEFS[badge.badge_type]?.desc}>
-                          <span className="text-lg">{getBadgeIcon(badge.badge_type)}</span>
-                          <span className="text-xs font-body text-gray-300">{getBadgeName(badge.badge_type)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  {badges.length > 0 && (<div className="flex flex-wrap gap-2 mt-3">{badges.map(badge => (<div key={badge.id} className="flex items-center gap-1 bg-dark-700 px-2 py-1 rounded-button" title={BADGE_DEFS[badge.badge_type]?.desc}><span className="text-lg">{getBadgeIcon(badge.badge_type)}</span><span className="text-xs font-body text-gray-300">{getBadgeName(badge.badge_type)}</span></div>))}</div>)}
                 </div>
                 <div className="text-right">
                   <div className="text-3xl font-heading font-bold text-neon-gold">{getMyPoints()}</div>
@@ -790,6 +732,17 @@ export default function App() {
                         <span className="text-neon-gold px-3 text-sm font-normal flex-shrink-0">vs</span>
                         <span className="text-left flex-1 team-name-clamp pl-2">{aD}</span>
                       </div>
+                      
+                      {/* NEU: Tabellen-Button */}
+                      {game.liga_id && leagueMappings[game.liga_id] && leagueMappings[game.liga_id].length > 0 && (
+                        <button 
+                          onClick={() => setShowTableModal({ ligaId: game.liga_id, competition: game.competition })}
+                          className="mb-3 w-full text-xs text-neon-gold hover:text-neon-pink font-body transition flex items-center justify-center gap-1 py-2 border border-white/10 rounded-button hover:bg-white/5"
+                        >
+                          📊 Tabelle für {leagueMappings[game.liga_id].join(' & ')} anzeigen
+                        </button>
+                      )}
+
                       <div className="mt-auto">
                         {started ? (
                           <div className="bg-dark-700 p-3 rounded-button border border-white/5 text-center">
@@ -799,13 +752,10 @@ export default function App() {
                         ) : (
                           <div>
                             <div className="flex items-center gap-2 bg-dark-700 p-3 rounded-button border border-white/5">
-                              <input type="number" min="0" placeholder="H" className="w-14 p-2 bg-dark-800 border border-white/10 rounded-button text-center font-mono font-bold text-white focus:border-neon-gold outline-none text-sm"
-                                value={tips[game.id + 'h'] || ''} onChange={(e) => setTips({ ...tips, [game.id + 'h']: e.target.value })} />
+                              <input type="number" min="0" placeholder="H" className="w-14 p-2 bg-dark-800 border border-white/10 rounded-button text-center font-mono font-bold text-white focus:border-neon-gold outline-none text-sm" value={tips[game.id + 'h'] || ''} onChange={(e) => setTips({ ...tips, [game.id + 'h']: e.target.value })} />
                               <span className="font-bold text-neon-gold">:</span>
-                              <input type="number" min="0" placeholder="G" className="w-14 p-2 bg-dark-800 border border-white/10 rounded-button text-center font-mono font-bold text-white focus:border-neon-gold outline-none text-sm"
-                                value={tips[game.id + 'a'] || ''} onChange={(e) => setTips({ ...tips, [game.id + 'a']: e.target.value })} />
-                              <button className="glow-button ml-auto bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 px-3 py-2 rounded-button font-heading font-bold hover:shadow-glow transition text-sm"
-                                onClick={() => submitTip(game.id, tips[game.id + 'h'], tips[game.id + 'a'])}>
+                              <input type="number" min="0" placeholder="G" className="w-14 p-2 bg-dark-800 border border-white/10 rounded-button text-center font-mono font-bold text-white focus:border-neon-gold outline-none text-sm" value={tips[game.id + 'a'] || ''} onChange={(e) => setTips({ ...tips, [game.id + 'a']: e.target.value })} />
+                              <button className="glow-button ml-auto bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 px-3 py-2 rounded-button font-heading font-bold hover:shadow-glow transition text-sm" onClick={() => submitTip(game.id, tips[game.id + 'h'], tips[game.id + 'a'])}>
                                 {hasTip && tipChanged ? 'Ändern' : 'Tippen'}
                               </button>
                             </div>
@@ -851,6 +801,17 @@ export default function App() {
                         <span className="vs-score-mobile text-neon-gold font-mono font-bold text-xl px-3 flex-shrink-0">{game.home_score} : {game.away_score}</span>
                         <span className="team-name team-right text-left flex-1 font-heading font-bold team-name-clamp pl-2">{aD}</span>
                       </div>
+                      
+                      {/* NEU: Tabellen-Button auch in Ergebnissen */}
+                      {game.liga_id && leagueMappings[game.liga_id] && leagueMappings[game.liga_id].length > 0 && (
+                        <button 
+                          onClick={() => setShowTableModal({ ligaId: game.liga_id, competition: game.competition })}
+                          className="mb-3 w-full text-xs text-neon-gold hover:text-neon-pink font-body transition flex items-center justify-center gap-1 py-2 border border-white/10 rounded-button hover:bg-white/5"
+                        >
+                          📊 Tabelle für {leagueMappings[game.liga_id].join(' & ')} anzeigen
+                        </button>
+                      )}
+
                       {tip && (
                         <div className="mt-auto bg-dark-700 p-3 rounded-button border border-white/5">
                           <div className="flex justify-between items-center"><span className="text-gray-500 text-xs font-body">Dein Tipp:</span><span className="text-white font-mono font-bold">{tip.predicted_home_score} : {tip.predicted_away_score}</span></div>
@@ -883,8 +844,7 @@ export default function App() {
                   const isToday = day === new Date().getDate() && calendarMonth === new Date().getMonth() && calendarYear === new Date().getFullYear();
                   const isSelected = selectedDate === day;
                   return (
-                    <div key={idx} onClick={() => { if (day && hasGames) setSelectedDate(isSelected ? null : day); }}
-                      className={`calendar-day ${hasGames ? 'has-games' : ''} ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''} ${!day ? 'opacity-0 pointer-events-none' : ''}`}>
+                    <div key={idx} onClick={() => { if (day && hasGames) setSelectedDate(isSelected ? null : day); }} className={`calendar-day ${hasGames ? 'has-games' : ''} ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''} ${!day ? 'opacity-0 pointer-events-none' : ''}`}>
                       {day && (<>
                         <span className={`text-xs md:text-sm font-body ${isSelected ? 'text-neon-gold font-bold' : 'text-white'}`}>{day}</span>
                         {hasGames && <div className="flex gap-0.5 mt-0.5">{dayGames.slice(0, 3).map((_, i) => <div key={i} className={`w-1 h-1 rounded-full ${isSelected ? 'bg-white' : 'bg-neon-gold'}`} />)}</div>}
@@ -1053,6 +1013,19 @@ export default function App() {
         )}
       </main>
 
+      {/* NEU: TABELLEN-MODAL */}
+      {showTableModal && (
+        <div className="modal-overlay" onClick={() => setShowTableModal(null)}>
+          <div className="modal-content max-w-2xl w-full max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-heading font-bold text-white">📊 {showTableModal.competition || 'Liga'}</h3>
+              <button onClick={() => setShowTableModal(null)} className="text-gray-400 hover:text-white text-2xl">✕</button>
+            </div>
+            <LeagueTableContent ligaId={showTableModal.ligaId} />
+          </div>
+        </div>
+      )}
+
       <nav className="bottom-nav lg:hidden">
         <div className="flex justify-around items-center">
           {[{ id: 'tips', label: 'Spiele', icon: '⚽' }, { id: 'results', label: 'Ergebnisse', icon: '📊' }, { id: 'calendar', label: 'Kalender', icon: '📅' }, { id: 'groups', label: 'Gruppen', icon: '👥' }, { id: 'leaderboard', label: 'Tabelle', icon: '🏆' }].map(tab => (
@@ -1062,6 +1035,64 @@ export default function App() {
           ))}
         </div>
       </nav>
+    </div>
+  );
+}
+
+// ==========================================
+// HILFSKOMPONENTE: TABELLEN-ANZEIGE
+// ==========================================
+function LeagueTableContent({ ligaId }) {
+  const [table, setTable] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await fetch(`/generated/tabelle_${ligaId}.json`);
+        const data = await res.json();
+        setTable(data);
+      } catch (e) {
+        console.error('Fehler beim Laden der Tabelle', e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [ligaId]);
+
+  if (loading) return <div className="text-center text-gray-400 py-8">Lade Tabelle...</div>;
+  if (!table) return <div className="text-center text-neon-red py-8">Tabelle nicht verfügbar.</div>;
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-left text-sm">
+        <thead className="bg-dark-700 text-gray-400 font-mono">
+          <tr>
+            <th className="p-3 rounded-tl-button">#</th>
+            <th className="p-3">Mannschaft</th>
+            <th className="p-3 text-center">Sp</th>
+            <th className="p-3 text-center">S</th>
+            <th className="p-3 text-center">Pkte</th>
+            <th className="p-3 text-right rounded-tr-button">Körbe</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-white/5">
+          {table.map((row) => {
+            const isTVN = row.team.toLowerCase().includes('neunkirchen') || row.team.toLowerCase().includes('tvn');
+            return (
+              <tr key={row.rank} className={isTVN ? 'bg-neon-gold/10 font-bold text-neon-gold' : 'text-white hover:bg-dark-700'}>
+                <td className="p-3 font-mono">{row.rank}.</td>
+                <td className="p-3">{row.team} {isTVN && '🏀'}</td>
+                <td className="p-3 text-center">{row.games}</td>
+                <td className="p-3 text-center">{row.wins}</td>
+                <td className="p-3 text-center font-bold">{row.points}</td>
+                <td className="p-3 text-right font-mono text-xs">{row.baskets}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }
