@@ -8,7 +8,6 @@ if (!supabaseUrl || !supabaseKey) {
   process.exit(1);
 }
 
-// Funktion: Altersklasse extrahieren
 function extractAgeGroup(competition) {
   if (!competition) return '';
   const match = competition.match(/U\d+/i);
@@ -18,25 +17,20 @@ function extractAgeGroup(competition) {
   return '';
 }
 
-// Funktion: Spielstand sicher extrahieren
 function extractScore(summary, description) {
-  // 1. Priorität: Das explizite "✅ ERGEBNIS:" in der Beschreibung
   const descMatch = description.match(/✅\s*ERGEBNIS:\s*(\d{1,3})\s*:\s*(\d{1,3})/i);
   if (descMatch) {
     return { home: parseInt(descMatch[1], 10), away: parseInt(descMatch[2], 10) };
   }
-
-  // 2. Fallback: Suche im Summary (z.B. "Hürther BC 58:83 TV Neunkirchen")
   const sumMatch = summary.match(/\s(\d{1,3})\s*:\s*(\d{1,3})\s/);
   if (sumMatch && !summary.toLowerCase().includes(" vs. ")) {
     return { home: parseInt(sumMatch[1], 10), away: parseInt(sumMatch[2], 10) };
   }
-
   return null;
 }
 
 async function sync() {
-  console.log('Starte ICS-Sync...');
+  console.log('🚀 Starte ICS-Sync mit Liga-ID-Extraktion...');
   try {
     const data = await ical.fromURL('https://mragg.github.io/bbb-ics-generator/all_teams.ics');
     const games = [];
@@ -57,8 +51,16 @@ async function sync() {
         const ageGroup = extractAgeGroup(wettbewerb);
         const isCancelled = summary.includes('AUSGEFALLEN') || summary.includes('ABGESAGT');
 
-        // ✅ NEU: Liga-ID extrahieren (node-ical parst X-Properties oft in Kleinbuchstaben, sonst Fallback auf Regex)
-        const ligaId = event['x-liga-id'] || event['X-LIGA-ID'] || (desc.match(/X-LIGA-ID:(\d+)/)?.[1]) || null;
+        // 🔍 NARRENSICHERE LIGA-ID EXTRAKTION (3 Versuche)
+        let ligaId = event['x-liga-id'] || event['X-LIGA-ID']; // Versuch 1: Direkte Property
+        
+        if (!ligaId && desc) {
+          const match1 = desc.match(/X-LIGA-ID:(\d+)/); // Versuch 2: Im Beschreibungstext
+          if (match1) ligaId = match1[1];
+          
+          const match2 = desc.match(/\(ID:\s*(\d+)\)/i); // Versuch 3: Aus "(ID: 54574)" im Text
+          if (match2) ligaId = match2[1];
+        }
 
         const score = extractScore(summary, desc);
         
@@ -74,13 +76,14 @@ async function sync() {
           is_cancelled: isCancelled,
           home_score: score ? score.home : null,
           away_score: score ? score.away : null,
-          liga_id: ligaId // ✅ NEU: Liga-ID wird jetzt mit in die Datenbank geschrieben
+          liga_id: ligaId // ✅ WICHTIG: Wird jetzt definitiv mitgesendet
         };
 
-        if (score !== null) {
-          console.log(`  ✅ Ergebnis: ${heimTeam} ${score.home}:${score.away} ${gastTeam} (Liga: ${ligaId || 'unbekannt'})`);
+        // 🔍 DEBUG LOG: Damit wir im GitHub Log sehen, ob es funktioniert!
+        if (ligaId) {
+          console.log(`  ✅ ID gefunden: ${ligaId} | ${heimTeam} vs. ${gastTeam}`);
         } else {
-          console.log(`  ⏳ Zukunft: ${heimTeam} vs. ${gastTeam} (Liga: ${ligaId || 'unbekannt'})`);
+          console.log(`  ⚠️  KEINE ID gefunden | ${heimTeam} vs. ${gastTeam}`);
         }
 
         games.push(gameData);
@@ -92,9 +95,10 @@ async function sync() {
       return;
     }
 
-    // --- SCHRITT 1: Alle Spieldaten syncen (inklusive der neuen liga_id Spalte) ---
+    // --- SCHRITT 1: Alle Spieldaten syncen (inklusive liga_id) ---
     const gamesWithoutScores = games.map(({ home_score, away_score, ...rest }) => rest);
     
+    console.log(`\n📤 Sende ${gamesWithoutScores.length} Spiele an Supabase (inkl. liga_id)...`);
     const response = await fetch(`${supabaseUrl}/rest/v1/games`, {
       method: 'POST',
       headers: {
@@ -108,12 +112,12 @@ async function sync() {
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('❌ Supabase API Fehler (Spiele):', response.status, errorData);
+      console.error('❌ Supabase API Fehler:', response.status, errorData);
       process.exit(1);
     }
-    console.log(`\n✅ Schritt 1: ${games.length} Spieldaten (inkl. Liga-ID) synchronisiert.`);
+    console.log(`✅ Schritt 1 erfolgreich: Spieldaten aktualisiert.`);
 
-    // --- SCHRITT 2: Ergebnisse gezielt aktualisieren (nur für Spiele mit einem Score) ---
+    // --- SCHRITT 2: Ergebnisse gezielt aktualisieren ---
     const gamesWithScores = games.filter(g => g.home_score !== null);
     
     if (gamesWithScores.length > 0) {
@@ -133,14 +137,9 @@ async function sync() {
         });
 
         if (!updateResponse.ok) {
-          const errorData = await updateResponse.text();
-          console.error(`  ❌ Fehler beim Update von ${game.id}:`, updateResponse.status, errorData);
-        } else {
-          console.log(`  ✅ Score aktualisiert: ${game.home_team} ${game.home_score}:${game.away_score} ${game.away_team}`);
+          console.error(`  ❌ Fehler bei ${game.id}:`, updateResponse.status);
         }
       }
-    } else {
-      console.log('\nℹ️ Keine neuen Ergebnisse zum Aktualisieren gefunden.');
     }
 
     console.log(`\n🎉 Sync erfolgreich abgeschlossen!`);
