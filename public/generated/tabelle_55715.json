@@ -9,6 +9,14 @@
   },
   {
     "rank": 2,
+    "team": "Hennefer Turnverein 1895 e. V.",
+    "games": 1,
+    "wins": 1,
+    "points": 92,
+    "baskets": "69"
+  },
+  {
+    "rank": 3,
     "team": "Sieglarer TV 1897 e. V.",
     "games": 1,
     "wins": 1,
@@ -16,16 +24,8 @@
     "baskets": "67"
   },
   {
-    "rank": 3,
-    "team": "Dragons Rhöndorf 3",
-    "games": 0,
-    "wins": 0,
-    "points": 0,
-    "baskets": "0"
-  },
-  {
     "rank": 4,
-    "team": "Hennefer Turnverein 1895 e. V.",
+    "team": "Dragons Rhöndorf 3",
     "games": 0,
     "wins": 0,
     "points": 0,
@@ -41,19 +41,19 @@
   },
   {
     "rank": 6,
-    "team": "TV Neunkirchen 2",
-    "games": 0,
-    "wins": 0,
-    "points": 0,
-    "baskets": "0"
-  },
-  {
-    "rank": 7,
     "team": "SpVgg Lülsdorf-Ranzel 2",
     "games": 1,
     "wins": 0,
     "points": 20,
     "baskets": "-67"
+  },
+  {
+    "rank": 7,
+    "team": "TV Neunkirchen 2",
+    "games": 1,
+    "wins": 0,
+    "points": 23,
+    "baskets": "-69"
   },
   {
     "rank": 8,

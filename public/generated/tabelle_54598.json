@@ -10,10 +10,10 @@
   {
     "rank": 2,
     "team": "Sieglarer TV",
-    "games": 1,
-    "wins": 1,
-    "points": 70,
-    "baskets": "46"
+    "games": 2,
+    "wins": 2,
+    "points": 120,
+    "baskets": "81"
   },
   {
     "rank": 3,
@@ -33,19 +33,19 @@
   },
   {
     "rank": 5,
-    "team": "TS Frechen",
-    "games": 0,
-    "wins": 0,
-    "points": 0,
-    "baskets": "0"
-  },
-  {
-    "rank": 6,
     "team": "TV Neunkirchen",
     "games": 1,
     "wins": 0,
     "points": 29,
     "baskets": "-33"
+  },
+  {
+    "rank": 6,
+    "team": "TS Frechen",
+    "games": 1,
+    "wins": 0,
+    "points": 15,
+    "baskets": "-35"
   },
   {
     "rank": 7,
