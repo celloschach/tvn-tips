@@ -643,18 +643,38 @@ try {
     return null;
   }
 
+  // 🏀 NEUES PUNKTESYSTEM: Durchschnittliche Abweichung beider Teams
   function getTipPoints(tip, g) {
-    if (!tip || g.home_score === null) return null;
-    if (tip.predicted_home_score === g.home_score && tip.predicted_away_score === g.away_score) return 10;
-    if (Math.abs((tip.predicted_home_score - tip.predicted_away_score) - (g.home_score - g.away_score)) <= 20) return 5;
-    const tH = tip.predicted_home_score > tip.predicted_away_score;
-    const tA = tip.predicted_home_score < tip.predicted_away_score;
-    const tD = tip.predicted_home_score === tip.predicted_away_score;
-    const gH = g.home_score > g.away_score;
-    const gA = g.home_score < g.away_score;
-    const gD = g.home_score === g.away_score;
-    if ((tH && gH) || (tA && gA) || (tD && gD)) return 3;
-    return 1;
+    if (!tip || g.home_score === null || g.away_score === null) return null;
+
+    // 1. Gewinner ermitteln
+    const tippSieger = tip.predicted_home_score > tip.predicted_away_score ? 'heim' 
+                     : tip.predicted_home_score < tip.predicted_away_score ? 'gast' 
+                     : 'unentschieden';
+                     
+    const ergebnisSieger = g.home_score > g.away_score ? 'heim' 
+                         : g.home_score < g.away_score ? 'gast' 
+                         : 'unentschieden';
+
+    // 2. Falscher Gewinner = 0 Punkte
+    if (tippSieger !== ergebnisSieger) {
+      return 0;
+    }
+
+    // 3. Abweichung BEIDER Teams berechnen
+    const abweichungHeim = Math.abs(tip.predicted_home_score - g.home_score);
+    const abweichungGast = Math.abs(tip.predicted_away_score - g.away_score);
+    const durchschnittlicheAbweichung = (abweichungHeim + abweichungGast) / 2;
+
+    // 4. Basis-Punkte: 5 (für richtigen Sieger) + max(0, 10 - Abweichung)
+    let punkte = 5 + Math.max(0, 10 - durchschnittlicheAbweichung);
+
+    // 5. Exakt-Bonus: +5 Punkte wenn exaktes Ergebnis
+    if (tip.predicted_home_score === g.home_score && tip.predicted_away_score === g.away_score) {
+      punkte += 5;
+    }
+
+    return Math.round(punkte); // Runden auf ganze Zahlen (keine Kommazahlen)
   }
 
   function getBadgeIcon(t) { return BADGE_DEFS[t]?.icon || '🏅'; }
@@ -757,12 +777,13 @@ try {
         <div className="modal-overlay" onClick={() => setShowPointsInfo(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-xl font-heading font-bold text-white mb-4">🏆 Punkte-System</h3>
-            <div className="space-y-3 font-body text-gray-400">
-              <div className="flex items-start gap-3"><span className="text-2xl">🎯</span><div><div className="font-bold text-white">10 Punkte</div><div className="text-sm">Exaktes Ergebnis</div></div></div>
-              <div className="flex items-start gap-3"><span className="text-2xl">👍</span><div><div className="font-bold text-white">5 Punkte</div><div className="text-sm">Innerhalb von 20 Punkten Differenz</div></div></div>
-              <div className="flex items-start gap-3"><span className="text-2xl">✓</span><div><div className="font-bold text-white">3 Punkte</div><div className="text-sm">Richtige Tendenz</div></div></div>
-              <div className="flex items-start gap-3"><span className="text-2xl">🏀</span><div><div className="font-bold text-white">1 Punkt</div><div className="text-sm">Teilnahme</div></div></div>
-            </div>
+         <div className="space-y-3 font-body text-gray-400">
+  <div className="flex items-start gap-3"><span className="text-2xl">🎯</span><div><div className="font-bold text-white">20 Punkte</div><div className="text-sm">Exaktes Ergebnis (15 Basis + 5 Bonus)</div></div></div>
+  <div className="flex items-start gap-3"><span className="text-2xl">🔥</span><div><div className="font-bold text-white">10-19 Punkte</div><div className="text-sm">Sieger richtig + sehr nah dran (geringe Abweichung beider Teams)</div></div></div>
+  <div className="flex items-start gap-3"><span className="text-2xl">👍</span><div><div className="font-bold text-white">5-9 Punkte</div><div className="text-sm">Sieger richtig + gute Annäherung</div></div></div>
+  <div className="flex items-start gap-3"><span className="text-2xl">✓</span><div><div className="font-bold text-white">1-4 Punkte</div><div className="text-sm">Nur Sieger richtig, Ergebnis weit daneben</div></div></div>
+  <div className="flex items-start gap-3"><span className="text-2xl">❌</span><div><div className="font-bold text-white">0 Punkte</div><div className="text-sm">Falscher Sieger getippt</div></div></div>
+</div>
             <button onClick={() => setShowPointsInfo(false)} className="mt-6 w-full glow-button bg-gradient-to-r from-neon-gold to-yellow-500 text-dark-900 px-4 py-3 rounded-button font-heading font-bold hover:shadow-glow transition">Verstanden</button>
           </div>
         </div>
@@ -984,7 +1005,17 @@ try {
                       {tip && (
                         <div className="mt-auto bg-dark-700 p-3 rounded-button border border-white/5">
                           <div className="flex justify-between items-center"><span className="text-gray-500 text-xs font-body">Dein Tipp:</span><span className="text-white font-mono font-bold">{tip.predicted_home_score} : {tip.predicted_away_score}</span></div>
-                          <div className="flex justify-between items-center mt-1"><span className="text-gray-500 text-xs font-body">Punkte:</span><span className={`font-mono font-bold ${points === 10 ? 'text-neon-green' : points === 5 ? 'text-neon-gold' : points === 3 ? 'text-neon-purple' : 'text-gray-400'}`}>{points === 10 ? '🎯 10' : points === 5 ? '👍 5' : points === 3 ? '✓ 3' : '🏀 1'}</span></div>
+                         <div className="flex justify-between items-center mt-1">
+  <span className="text-gray-500 text-xs font-body">Punkte:</span>
+  <span className={`font-mono font-bold ${
+    points === 20 ? 'text-neon-green' : 
+    points >= 10 ? 'text-neon-gold' : 
+    points >= 5 ? 'text-neon-purple' : 
+    points > 0 ? 'text-blue-400' : 'text-gray-500'
+  }`}>
+    {points === 20 ? '🎯 20 (Exakt!)' : points > 0 ? `🏀 ${points}` : '❌ 0'}
+  </span>
+</div>
                         </div>
                       )}
                       {!tip && resultTab === 'all' && <div className="mt-auto text-center text-gray-600 text-xs font-body">Kein Tipp abgegeben</div>}
