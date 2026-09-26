@@ -1,6 +1,14 @@
 [
   {
     "rank": 1,
+    "team": "Sieglarer TV",
+    "games": 2,
+    "wins": 2,
+    "points": 117,
+    "baskets": "9"
+  },
+  {
+    "rank": 2,
     "team": "TV Neunkirchen",
     "games": 1,
     "wins": 1,
@@ -8,20 +16,12 @@
     "baskets": "26"
   },
   {
-    "rank": 2,
-    "team": "Dragons Rhöndorf 3",
-    "games": 1,
-    "wins": 1,
-    "points": 39,
-    "baskets": "4"
-  },
-  {
     "rank": 3,
-    "team": "Sieglarer TV",
-    "games": 1,
+    "team": "Dragons Rhöndorf 3",
+    "games": 2,
     "wins": 1,
-    "points": 63,
-    "baskets": "1"
+    "points": 85,
+    "baskets": "-4"
   },
   {
     "rank": 4,
