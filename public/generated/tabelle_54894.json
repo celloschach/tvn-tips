@@ -1,6 +1,14 @@
 [
   {
     "rank": 1,
+    "team": "BG Aachen",
+    "games": 2,
+    "wins": 2,
+    "points": 127,
+    "baskets": "53"
+  },
+  {
+    "rank": 2,
     "team": "TV Neunkirchen",
     "games": 1,
     "wins": 1,
@@ -8,20 +16,12 @@
     "baskets": "61"
   },
   {
-    "rank": 2,
+    "rank": 3,
     "team": "DJK Köln-Nord",
     "games": 1,
     "wins": 1,
     "points": 83,
     "baskets": "49"
-  },
-  {
-    "rank": 3,
-    "team": "BG Aachen",
-    "games": 1,
-    "wins": 1,
-    "points": 63,
-    "baskets": "21"
   },
   {
     "rank": 4,
@@ -73,18 +73,18 @@
   },
   {
     "rank": 10,
-    "team": "Talents BonnRhöndorf 4",
-    "games": 1,
-    "wins": 0,
-    "points": 34,
-    "baskets": "-49"
-  },
-  {
-    "rank": 11,
     "team": "RheinStars Köln 2",
     "games": 1,
     "wins": 0,
     "points": 39,
     "baskets": "-61"
+  },
+  {
+    "rank": 11,
+    "team": "Talents BonnRhöndorf 4",
+    "games": 2,
+    "wins": 0,
+    "points": 66,
+    "baskets": "-81"
   }
 ]

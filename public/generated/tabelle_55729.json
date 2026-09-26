@@ -2,10 +2,10 @@
   {
     "rank": 1,
     "team": "TV Neunkirchen",
-    "games": 1,
-    "wins": 1,
-    "points": 92,
-    "baskets": "69"
+    "games": 2,
+    "wins": 2,
+    "points": 191,
+    "baskets": "150"
   },
   {
     "rank": 2,
@@ -17,14 +17,6 @@
   },
   {
     "rank": 3,
-    "team": "Dragons Rhöndorf 2",
-    "games": 0,
-    "wins": 0,
-    "points": 0,
-    "baskets": "0"
-  },
-  {
-    "rank": 4,
     "team": "SpVgg Lülsdorf-Ranzel 1959 e.V.",
     "games": 0,
     "wins": 0,
@@ -32,7 +24,7 @@
     "baskets": "0"
   },
   {
-    "rank": 5,
+    "rank": 4,
     "team": "TV Lohmar",
     "games": 0,
     "wins": 0,
@@ -40,12 +32,20 @@
     "baskets": "0"
   },
   {
-    "rank": 6,
+    "rank": 5,
     "team": "Hennefer Turnverein 2",
     "games": 1,
     "wins": 0,
     "points": 23,
     "baskets": "-69"
+  },
+  {
+    "rank": 6,
+    "team": "Dragons Rhöndorf 2",
+    "games": 1,
+    "wins": 0,
+    "points": 18,
+    "baskets": "-81"
   },
   {
     "rank": 7,
