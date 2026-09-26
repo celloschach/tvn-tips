@@ -9,6 +9,14 @@
   },
   {
     "rank": 2,
+    "team": "BG Bonn",
+    "games": 2,
+    "wins": 2,
+    "points": 171,
+    "baskets": "41"
+  },
+  {
+    "rank": 3,
     "team": "TuS BW Königsdorf",
     "games": 2,
     "wins": 2,
@@ -16,20 +24,12 @@
     "baskets": "34"
   },
   {
-    "rank": 3,
+    "rank": 4,
     "team": "Telekom Baskets Bonn 3",
     "games": 2,
     "wins": 2,
     "points": 150,
     "baskets": "28"
-  },
-  {
-    "rank": 4,
-    "team": "BG Bonn",
-    "games": 1,
-    "wins": 1,
-    "points": 105,
-    "baskets": "37"
   },
   {
     "rank": 5,
@@ -41,6 +41,14 @@
   },
   {
     "rank": 6,
+    "team": "Dragons Rhöndorf 2",
+    "games": 2,
+    "wins": 1,
+    "points": 149,
+    "baskets": "-3"
+  },
+  {
+    "rank": 7,
     "team": "TS Frechen",
     "games": 2,
     "wins": 1,
@@ -48,15 +56,15 @@
     "baskets": "-26"
   },
   {
-    "rank": 7,
+    "rank": 8,
     "team": "DJK Bad Münstereifel",
-    "games": 0,
+    "games": 1,
     "wins": 0,
-    "points": 0,
-    "baskets": "0"
+    "points": 62,
+    "baskets": "-4"
   },
   {
-    "rank": 8,
+    "rank": 9,
     "team": "DJK Südwest Köln 2",
     "games": 1,
     "wins": 0,
@@ -64,28 +72,20 @@
     "baskets": "-11"
   },
   {
-    "rank": 9,
-    "team": "Dragons Rhöndorf 2",
-    "games": 1,
-    "wins": 0,
-    "points": 63,
-    "baskets": "-17"
-  },
-  {
     "rank": 10,
-    "team": "Haarener TE",
-    "games": 1,
-    "wins": 0,
-    "points": 62,
-    "baskets": "-24"
-  },
-  {
-    "rank": 11,
     "team": "Hürther BC",
     "games": 2,
     "wins": 0,
     "points": 123,
     "baskets": "-35"
+  },
+  {
+    "rank": 11,
+    "team": "Haarener TE",
+    "games": 2,
+    "wins": 0,
+    "points": 134,
+    "baskets": "-38"
   },
   {
     "rank": 12,
