@@ -1,6 +1,14 @@
 [
   {
     "rank": 1,
+    "team": "TV Neunkirchen",
+    "games": 2,
+    "wins": 2,
+    "points": 179,
+    "baskets": "96"
+  },
+  {
+    "rank": 2,
     "team": "BG Aachen",
     "games": 2,
     "wins": 2,
@@ -8,23 +16,7 @@
     "baskets": "53"
   },
   {
-    "rank": 2,
-    "team": "TV Neunkirchen",
-    "games": 1,
-    "wins": 1,
-    "points": 100,
-    "baskets": "61"
-  },
-  {
     "rank": 3,
-    "team": "DJK Köln-Nord",
-    "games": 1,
-    "wins": 1,
-    "points": 83,
-    "baskets": "49"
-  },
-  {
-    "rank": 4,
     "team": "BBV Köln-Nordwest 2",
     "games": 1,
     "wins": 1,
@@ -32,12 +24,20 @@
     "baskets": "43"
   },
   {
-    "rank": 5,
+    "rank": 4,
     "team": "SG Sechtem",
     "games": 1,
     "wins": 1,
     "points": 70,
     "baskets": "11"
+  },
+  {
+    "rank": 5,
+    "team": "DJK Köln-Nord",
+    "games": 2,
+    "wins": 1,
+    "points": 127,
+    "baskets": "14"
   },
   {
     "rank": 6,
