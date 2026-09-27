@@ -1,27 +1,27 @@
 [
   {
     "rank": 1,
+    "team": "TuS Mondorf",
+    "games": 2,
+    "wins": 2,
+    "points": 171,
+    "baskets": "38"
+  },
+  {
+    "rank": 2,
+    "team": "VfL Gummersbach 2",
+    "games": 2,
+    "wins": 2,
+    "points": 120,
+    "baskets": "17"
+  },
+  {
+    "rank": 3,
     "team": "SG Bergische Löwen 3",
     "games": 2,
     "wins": 2,
     "points": 152,
     "baskets": "15"
-  },
-  {
-    "rank": 2,
-    "team": "VfL Gummersbach 2",
-    "games": 1,
-    "wins": 1,
-    "points": 64,
-    "baskets": "10"
-  },
-  {
-    "rank": 3,
-    "team": "TuS Mondorf",
-    "games": 1,
-    "wins": 1,
-    "points": 82,
-    "baskets": "7"
   },
   {
     "rank": 4,
@@ -33,14 +33,6 @@
   },
   {
     "rank": 5,
-    "team": "Dragons Rhöndorf 4",
-    "games": 1,
-    "wins": 1,
-    "points": 80,
-    "baskets": "3"
-  },
-  {
-    "rank": 6,
     "team": "TV Neunkirchen 2",
     "games": 2,
     "wins": 1,
@@ -48,12 +40,20 @@
     "baskets": "22"
   },
   {
-    "rank": 7,
+    "rank": 6,
     "team": "Troisdorfer LG 2",
     "games": 2,
     "wins": 1,
     "points": 135,
     "baskets": "2"
+  },
+  {
+    "rank": 7,
+    "team": "Dragons Rhöndorf 4",
+    "games": 2,
+    "wins": 1,
+    "points": 138,
+    "baskets": "-28"
   },
   {
     "rank": 8,
@@ -74,10 +74,10 @@
   {
     "rank": 10,
     "team": "Troisdorfer LG",
-    "games": 1,
+    "games": 2,
     "wins": 0,
-    "points": 71,
-    "baskets": "-5"
+    "points": 120,
+    "baskets": "-12"
   },
   {
     "rank": 11,
