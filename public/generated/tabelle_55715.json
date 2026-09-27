@@ -1,6 +1,14 @@
 [
   {
     "rank": 1,
+    "team": "Sieglarer TV 1897 e. V.",
+    "games": 2,
+    "wins": 2,
+    "points": 167,
+    "baskets": "129"
+  },
+  {
+    "rank": 2,
     "team": "SpVgg Lülsdorf-Ranzel 1959 e.V.",
     "games": 1,
     "wins": 1,
@@ -8,20 +16,12 @@
     "baskets": "145"
   },
   {
-    "rank": 2,
+    "rank": 3,
     "team": "Hennefer Turnverein 1895 e. V.",
     "games": 1,
     "wins": 1,
     "points": 92,
     "baskets": "69"
-  },
-  {
-    "rank": 3,
-    "team": "Sieglarer TV 1897 e. V.",
-    "games": 1,
-    "wins": 1,
-    "points": 87,
-    "baskets": "67"
   },
   {
     "rank": 4,
@@ -33,19 +33,19 @@
   },
   {
     "rank": 5,
-    "team": "Troisdorfer LG 1966 e. V.",
-    "games": 0,
-    "wins": 0,
-    "points": 0,
-    "baskets": "0"
-  },
-  {
-    "rank": 6,
     "team": "Dragons Rhöndorf 3",
     "games": 1,
     "wins": 0,
     "points": 20,
     "baskets": "-26"
+  },
+  {
+    "rank": 6,
+    "team": "Troisdorfer LG 1966 e. V.",
+    "games": 1,
+    "wins": 0,
+    "points": 18,
+    "baskets": "-62"
   },
   {
     "rank": 7,

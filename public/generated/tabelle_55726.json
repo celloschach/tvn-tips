@@ -1,6 +1,14 @@
 [
   {
     "rank": 1,
+    "team": "TV Neunkirchen",
+    "games": 2,
+    "wins": 2,
+    "points": 153,
+    "baskets": "52"
+  },
+  {
+    "rank": 2,
     "team": "Sieglarer TV",
     "games": 2,
     "wins": 2,
@@ -8,28 +16,20 @@
     "baskets": "9"
   },
   {
-    "rank": 2,
-    "team": "TV Neunkirchen",
-    "games": 1,
+    "rank": 3,
+    "team": "Bonner SV Roleber 2",
+    "games": 2,
     "wins": 1,
-    "points": 67,
-    "baskets": "26"
+    "points": 120,
+    "baskets": "15"
   },
   {
-    "rank": 3,
+    "rank": 4,
     "team": "Dragons Rhöndorf 3",
     "games": 2,
     "wins": 1,
     "points": 85,
     "baskets": "-4"
-  },
-  {
-    "rank": 4,
-    "team": "BG Bonn 5",
-    "games": 0,
-    "wins": 0,
-    "points": 0,
-    "baskets": "0"
   },
   {
     "rank": 5,
@@ -41,27 +41,27 @@
   },
   {
     "rank": 6,
-    "team": "Bonner SV Roleber 2",
+    "team": "BG Bonn 5",
     "games": 1,
     "wins": 0,
-    "points": 62,
-    "baskets": "-1"
+    "points": 42,
+    "baskets": "-16"
   },
   {
     "rank": 7,
-    "team": "BG Bonn 6",
-    "games": 1,
-    "wins": 0,
-    "points": 35,
-    "baskets": "-4"
-  },
-  {
-    "rank": 8,
     "team": "Dragons Rhöndorf 2",
     "games": 1,
     "wins": 0,
     "points": 41,
     "baskets": "-26"
+  },
+  {
+    "rank": 8,
+    "team": "BG Bonn 6",
+    "games": 2,
+    "wins": 0,
+    "points": 95,
+    "baskets": "-30"
   },
   {
     "rank": 9,

@@ -1,6 +1,22 @@
 [
   {
     "rank": 1,
+    "team": "Dragons Rhöndorf 2",
+    "games": 1,
+    "wins": 1,
+    "points": 130,
+    "baskets": "104"
+  },
+  {
+    "rank": 2,
+    "team": "TuS Mondorf",
+    "games": 1,
+    "wins": 1,
+    "points": 73,
+    "baskets": "61"
+  },
+  {
+    "rank": 3,
     "team": "TV Neunkirchen",
     "games": 1,
     "wins": 1,
@@ -8,24 +24,8 @@
     "baskets": "61"
   },
   {
-    "rank": 2,
-    "team": "Dragons Rhöndorf 2",
-    "games": 0,
-    "wins": 0,
-    "points": 0,
-    "baskets": "0"
-  },
-  {
-    "rank": 3,
-    "team": "TSV Seelscheid",
-    "games": 0,
-    "wins": 0,
-    "points": 0,
-    "baskets": "0"
-  },
-  {
     "rank": 4,
-    "team": "TuS Mondorf",
+    "team": "TSV Seelscheid",
     "games": 0,
     "wins": 0,
     "points": 0,
@@ -34,18 +34,18 @@
   {
     "rank": 5,
     "team": "TV Neunkirchen 2",
-    "games": 0,
+    "games": 1,
     "wins": 0,
-    "points": 0,
-    "baskets": "0"
+    "points": 26,
+    "baskets": "-104"
   },
   {
     "rank": 6,
     "team": "TV Lohmar",
-    "games": 1,
+    "games": 2,
     "wins": 0,
-    "points": 34,
-    "baskets": "-61"
+    "points": 46,
+    "baskets": "-122"
   },
   {
     "rank": 7,
