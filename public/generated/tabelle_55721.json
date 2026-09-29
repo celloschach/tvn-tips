@@ -9,19 +9,19 @@
   },
   {
     "rank": 2,
+    "team": "TV Neunkirchen",
+    "games": 2,
+    "wins": 2,
+    "points": 87,
+    "baskets": "33"
+  },
+  {
+    "rank": 3,
     "team": "Sieglarer TV",
     "games": 1,
     "wins": 1,
     "points": 104,
     "baskets": "62"
-  },
-  {
-    "rank": 3,
-    "team": "TV Neunkirchen",
-    "games": 1,
-    "wins": 1,
-    "points": 67,
-    "baskets": "13"
   },
   {
     "rank": 4,
@@ -41,19 +41,19 @@
   },
   {
     "rank": 6,
-    "team": "TV Lohmar",
-    "games": 1,
-    "wins": 0,
-    "points": 66,
-    "baskets": "-27"
-  },
-  {
-    "rank": 7,
     "team": "Bonner SV Roleber 2",
     "games": 2,
     "wins": 0,
     "points": 96,
     "baskets": "-75"
+  },
+  {
+    "rank": 7,
+    "team": "TV Lohmar",
+    "games": 2,
+    "wins": 0,
+    "points": 66,
+    "baskets": "-47"
   },
   {
     "rank": 8,
