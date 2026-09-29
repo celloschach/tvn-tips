@@ -1,19 +1,19 @@
 [
   {
     "rank": 1,
+    "team": "TV Neunkirchen",
+    "games": 3,
+    "wins": 3,
+    "points": 141,
+    "baskets": "37"
+  },
+  {
+    "rank": 2,
     "team": "Dragons Rhöndorf 2",
     "games": 2,
     "wins": 2,
     "points": 165,
     "baskets": "50"
-  },
-  {
-    "rank": 2,
-    "team": "TV Neunkirchen",
-    "games": 2,
-    "wins": 2,
-    "points": 87,
-    "baskets": "33"
   },
   {
     "rank": 3,
@@ -26,10 +26,10 @@
   {
     "rank": 4,
     "team": "Turn- und Spielverein Mondorf",
-    "games": 2,
+    "games": 3,
     "wins": 1,
-    "points": 113,
-    "baskets": "-16"
+    "points": 163,
+    "baskets": "-20"
   },
   {
     "rank": 5,
