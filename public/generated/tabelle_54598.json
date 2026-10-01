@@ -17,6 +17,14 @@
   },
   {
     "rank": 3,
+    "team": "Post-SV Bonn",
+    "games": 3,
+    "wins": 2,
+    "points": 154,
+    "baskets": "-3"
+  },
+  {
+    "rank": 4,
     "team": "TV Neunkirchen",
     "games": 2,
     "wins": 1,
@@ -24,20 +32,12 @@
     "baskets": "24"
   },
   {
-    "rank": 4,
+    "rank": 5,
     "team": "Talents BonnRhöndorf 5",
     "games": 2,
     "wins": 1,
     "points": 44,
     "baskets": "-26"
-  },
-  {
-    "rank": 5,
-    "team": "Post-SV Bonn",
-    "games": 2,
-    "wins": 1,
-    "points": 98,
-    "baskets": "-17"
   },
   {
     "rank": 6,
@@ -50,10 +50,10 @@
   {
     "rank": 7,
     "team": "Kahramanlar-Die Brühler Helden",
-    "games": 1,
+    "games": 2,
     "wins": 0,
-    "points": 38,
-    "baskets": "-62"
+    "points": 80,
+    "baskets": "-76"
   },
   {
     "rank": 8,
