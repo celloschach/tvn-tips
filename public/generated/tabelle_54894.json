@@ -17,14 +17,6 @@
   },
   {
     "rank": 3,
-    "team": "BBV Köln-Nordwest 2",
-    "games": 1,
-    "wins": 1,
-    "points": 81,
-    "baskets": "43"
-  },
-  {
-    "rank": 4,
     "team": "SG Sechtem",
     "games": 1,
     "wins": 1,
@@ -32,7 +24,7 @@
     "baskets": "11"
   },
   {
-    "rank": 5,
+    "rank": 4,
     "team": "DJK Köln-Nord",
     "games": 2,
     "wins": 1,
@@ -40,12 +32,20 @@
     "baskets": "14"
   },
   {
-    "rank": 6,
+    "rank": 5,
     "team": "RheinStars Köln 2",
     "games": 2,
     "wins": 1,
     "points": 89,
     "baskets": "-54"
+  },
+  {
+    "rank": 6,
+    "team": "BBV Köln-Nordwest 2",
+    "games": 0,
+    "wins": 0,
+    "points": 0,
+    "baskets": "0"
   },
   {
     "rank": 7,
@@ -73,18 +73,18 @@
   },
   {
     "rank": 10,
-    "team": "RheinStars Köln 3",
-    "games": 1,
-    "wins": 0,
-    "points": 38,
-    "baskets": "-43"
-  },
-  {
-    "rank": 11,
     "team": "Talents BonnRhöndorf 4",
     "games": 2,
     "wins": 0,
     "points": 66,
     "baskets": "-81"
+  },
+  {
+    "rank": 11,
+    "team": "RheinStars Köln 3",
+    "games": 0,
+    "wins": 0,
+    "points": 0,
+    "baskets": "0"
   }
 ]

@@ -17,6 +17,22 @@
   },
   {
     "rank": 3,
+    "team": "TV Neunkirchen",
+    "games": 3,
+    "wins": 2,
+    "points": 196,
+    "baskets": "80"
+  },
+  {
+    "rank": 4,
+    "team": "Talents BonnRhöndorf 5",
+    "games": 3,
+    "wins": 2,
+    "points": 113,
+    "baskets": "-1"
+  },
+  {
+    "rank": 5,
     "team": "Post-SV Bonn",
     "games": 3,
     "wins": 2,
@@ -24,28 +40,12 @@
     "baskets": "-3"
   },
   {
-    "rank": 4,
-    "team": "TV Neunkirchen",
-    "games": 2,
-    "wins": 1,
-    "points": 110,
-    "baskets": "24"
-  },
-  {
-    "rank": 5,
-    "team": "Talents BonnRhöndorf 5",
-    "games": 2,
-    "wins": 1,
-    "points": 44,
-    "baskets": "-26"
-  },
-  {
     "rank": 6,
     "team": "TS Frechen",
-    "games": 1,
+    "games": 2,
     "wins": 0,
-    "points": 15,
-    "baskets": "-35"
+    "points": 59,
+    "baskets": "-60"
   },
   {
     "rank": 7,
@@ -58,9 +58,9 @@
   {
     "rank": 8,
     "team": "BTV Basketball Brühl 2",
-    "games": 2,
+    "games": 3,
     "wins": 0,
-    "points": 34,
-    "baskets": "-60"
+    "points": 64,
+    "baskets": "-116"
   }
 ]
