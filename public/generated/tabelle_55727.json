@@ -2,18 +2,18 @@
   {
     "rank": 1,
     "team": "BG Bonn 7",
-    "games": 2,
-    "wins": 2,
-    "points": 271,
-    "baskets": "251"
+    "games": 3,
+    "wins": 3,
+    "points": 356,
+    "baskets": "292"
   },
   {
     "rank": 2,
     "team": "Hennefer TV",
-    "games": 2,
-    "wins": 2,
-    "points": 157,
-    "baskets": "84"
+    "games": 3,
+    "wins": 3,
+    "points": 261,
+    "baskets": "160"
   },
   {
     "rank": 3,
@@ -25,27 +25,27 @@
   },
   {
     "rank": 4,
-    "team": "BG Bonn 4",
-    "games": 2,
-    "wins": 1,
-    "points": 111,
+    "team": "SpVgg Lülsdorf-Ranzel 1959 e.V.",
+    "games": 3,
+    "wins": 2,
+    "points": 166,
     "baskets": "8"
   },
   {
     "rank": 5,
-    "team": "SpVgg Lülsdorf-Ranzel 1959 e.V.",
-    "games": 2,
+    "team": "TV Lohmar",
+    "games": 3,
     "wins": 1,
-    "points": 102,
-    "baskets": "-2"
+    "points": 185,
+    "baskets": "-48"
   },
   {
     "rank": 6,
-    "team": "TV Lohmar",
-    "games": 2,
+    "team": "BG Bonn 4",
+    "games": 3,
     "wins": 1,
-    "points": 141,
-    "baskets": "-7"
+    "points": 139,
+    "baskets": "-68"
   },
   {
     "rank": 7,
@@ -57,19 +57,19 @@
   },
   {
     "rank": 8,
-    "team": "TV Neunkirchen 2",
-    "games": 1,
-    "wins": 0,
-    "points": 10,
-    "baskets": "-117"
-  },
-  {
-    "rank": 9,
     "team": "Hennefer TV 2",
     "games": 2,
     "wins": 0,
     "points": 55,
     "baskets": "-96"
+  },
+  {
+    "rank": 9,
+    "team": "TV Neunkirchen 2",
+    "games": 2,
+    "wins": 0,
+    "points": 64,
+    "baskets": "-127"
   },
   {
     "rank": 10,

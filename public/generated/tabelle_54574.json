@@ -1,6 +1,14 @@
 [
   {
     "rank": 1,
+    "team": "Telekom Baskets Bonn 3",
+    "games": 3,
+    "wins": 3,
+    "points": 267,
+    "baskets": "40"
+  },
+  {
+    "rank": 2,
     "team": "BG Köln",
     "games": 2,
     "wins": 2,
@@ -8,7 +16,7 @@
     "baskets": "47"
   },
   {
-    "rank": 2,
+    "rank": 3,
     "team": "BG Bonn",
     "games": 2,
     "wins": 2,
@@ -16,20 +24,12 @@
     "baskets": "41"
   },
   {
-    "rank": 3,
+    "rank": 4,
     "team": "TuS BW Königsdorf",
     "games": 2,
     "wins": 2,
     "points": 159,
     "baskets": "34"
-  },
-  {
-    "rank": 4,
-    "team": "Telekom Baskets Bonn 3",
-    "games": 2,
-    "wins": 2,
-    "points": 150,
-    "baskets": "28"
   },
   {
     "rank": 5,
@@ -81,18 +81,18 @@
   },
   {
     "rank": 11,
-    "team": "Haarener TE",
-    "games": 2,
-    "wins": 0,
-    "points": 134,
-    "baskets": "-38"
-  },
-  {
-    "rank": 12,
     "team": "RheinStars Köln 3",
     "games": 2,
     "wins": 0,
     "points": 146,
     "baskets": "-48"
+  },
+  {
+    "rank": 12,
+    "team": "Haarener TE",
+    "games": 3,
+    "wins": 0,
+    "points": 239,
+    "baskets": "-50"
   }
 ]

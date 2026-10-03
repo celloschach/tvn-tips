@@ -1,11 +1,11 @@
 [
   {
     "rank": 1,
-    "team": "Dragons Rhöndorf 2",
-    "games": 1,
-    "wins": 1,
-    "points": 130,
-    "baskets": "104"
+    "team": "TV Neunkirchen",
+    "games": 2,
+    "wins": 2,
+    "points": 148,
+    "baskets": "65"
   },
   {
     "rank": 2,
@@ -17,11 +17,11 @@
   },
   {
     "rank": 3,
-    "team": "TV Neunkirchen",
-    "games": 1,
+    "team": "Dragons Rhöndorf 2",
+    "games": 2,
     "wins": 1,
-    "points": 95,
-    "baskets": "61"
+    "points": 179,
+    "baskets": "100"
   },
   {
     "rank": 4,
