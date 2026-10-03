@@ -17,11 +17,11 @@
   },
   {
     "rank": 3,
-    "team": "SG Bergische Löwen 3",
-    "games": 2,
+    "team": "Dragons Rhöndorf 4",
+    "games": 3,
     "wins": 2,
-    "points": 152,
-    "baskets": "15"
+    "points": 198,
+    "baskets": "-20"
   },
   {
     "rank": 4,
@@ -33,6 +33,14 @@
   },
   {
     "rank": 5,
+    "team": "SG Bergische Löwen 3",
+    "games": 3,
+    "wins": 2,
+    "points": 204,
+    "baskets": "7"
+  },
+  {
+    "rank": 6,
     "team": "SG Chateau Bonn",
     "games": 1,
     "wins": 1,
@@ -40,20 +48,12 @@
     "baskets": "5"
   },
   {
-    "rank": 6,
+    "rank": 7,
     "team": "Troisdorfer LG 2",
     "games": 2,
     "wins": 1,
     "points": 135,
     "baskets": "2"
-  },
-  {
-    "rank": 7,
-    "team": "Dragons Rhöndorf 4",
-    "games": 2,
-    "wins": 1,
-    "points": 138,
-    "baskets": "-28"
   },
   {
     "rank": 8,

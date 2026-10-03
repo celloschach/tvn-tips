@@ -17,6 +17,14 @@
   },
   {
     "rank": 3,
+    "team": "TuS Mondorf",
+    "games": 1,
+    "wins": 1,
+    "points": 135,
+    "baskets": "122"
+  },
+  {
+    "rank": 4,
     "team": "Bonner SV Roleber 2",
     "games": 2,
     "wins": 1,
@@ -24,7 +32,7 @@
     "baskets": "15"
   },
   {
-    "rank": 4,
+    "rank": 5,
     "team": "Dragons Rhöndorf 3",
     "games": 2,
     "wins": 1,
@@ -32,23 +40,7 @@
     "baskets": "-4"
   },
   {
-    "rank": 5,
-    "team": "TuS Mondorf",
-    "games": 0,
-    "wins": 0,
-    "points": 0,
-    "baskets": "0"
-  },
-  {
     "rank": 6,
-    "team": "BG Bonn 5",
-    "games": 1,
-    "wins": 0,
-    "points": 42,
-    "baskets": "-16"
-  },
-  {
-    "rank": 7,
     "team": "Dragons Rhöndorf 2",
     "games": 1,
     "wins": 0,
@@ -56,12 +48,20 @@
     "baskets": "-26"
   },
   {
-    "rank": 8,
+    "rank": 7,
     "team": "BG Bonn 6",
     "games": 2,
     "wins": 0,
     "points": 95,
     "baskets": "-30"
+  },
+  {
+    "rank": 8,
+    "team": "BG Bonn 5",
+    "games": 2,
+    "wins": 0,
+    "points": 55,
+    "baskets": "-138"
   },
   {
     "rank": 9,
