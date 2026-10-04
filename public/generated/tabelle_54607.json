@@ -65,6 +65,14 @@
   },
   {
     "rank": 9,
+    "team": "TSV Bayer 04 Leverkusen 4",
+    "games": 3,
+    "wins": 1,
+    "points": 218,
+    "baskets": "3"
+  },
+  {
+    "rank": 10,
     "team": "Radevormwalder TV",
     "games": 3,
     "wins": 1,
@@ -72,20 +80,12 @@
     "baskets": "-22"
   },
   {
-    "rank": 10,
-    "team": "Troisdorfer LG",
-    "games": 2,
-    "wins": 0,
-    "points": 120,
-    "baskets": "-12"
-  },
-  {
     "rank": 11,
-    "team": "TSV Bayer 04 Leverkusen 4",
-    "games": 2,
+    "team": "Troisdorfer LG",
+    "games": 3,
     "wins": 0,
-    "points": 141,
-    "baskets": "-17"
+    "points": 177,
+    "baskets": "-32"
   },
   {
     "rank": 12,
