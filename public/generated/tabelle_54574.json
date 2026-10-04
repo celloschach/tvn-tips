@@ -1,6 +1,14 @@
 [
   {
     "rank": 1,
+    "team": "BG Köln",
+    "games": 3,
+    "wins": 3,
+    "points": 296,
+    "baskets": "91"
+  },
+  {
+    "rank": 2,
     "team": "TuS BW Königsdorf",
     "games": 3,
     "wins": 3,
@@ -8,20 +16,12 @@
     "baskets": "54"
   },
   {
-    "rank": 2,
+    "rank": 3,
     "team": "Telekom Baskets Bonn 3",
     "games": 3,
     "wins": 3,
     "points": 267,
     "baskets": "40"
-  },
-  {
-    "rank": 3,
-    "team": "BG Köln",
-    "games": 2,
-    "wins": 2,
-    "points": 192,
-    "baskets": "47"
   },
   {
     "rank": 4,
@@ -74,10 +74,10 @@
   {
     "rank": 10,
     "team": "DJK Bad Münstereifel",
-    "games": 1,
+    "games": 2,
     "wins": 0,
-    "points": 62,
-    "baskets": "-4"
+    "points": 122,
+    "baskets": "-48"
   },
   {
     "rank": 11,

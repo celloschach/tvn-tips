@@ -2,10 +2,10 @@
   {
     "rank": 1,
     "team": "Sieglarer TV 1897 e. V.",
-    "games": 2,
-    "wins": 2,
-    "points": 167,
-    "baskets": "129"
+    "games": 3,
+    "wins": 3,
+    "points": 292,
+    "baskets": "245"
   },
   {
     "rank": 2,
@@ -33,14 +33,6 @@
   },
   {
     "rank": 5,
-    "team": "Dragons Rhöndorf 3",
-    "games": 1,
-    "wins": 0,
-    "points": 20,
-    "baskets": "-26"
-  },
-  {
-    "rank": 6,
     "team": "Troisdorfer LG 1966 e. V.",
     "games": 1,
     "wins": 0,
@@ -48,7 +40,7 @@
     "baskets": "-62"
   },
   {
-    "rank": 7,
+    "rank": 6,
     "team": "TV Neunkirchen 2",
     "games": 1,
     "wins": 0,
@@ -56,12 +48,20 @@
     "baskets": "-69"
   },
   {
-    "rank": 8,
+    "rank": 7,
     "team": "SpVgg Lülsdorf-Ranzel 2",
     "games": 2,
     "wins": 0,
     "points": 62,
     "baskets": "-110"
+  },
+  {
+    "rank": 8,
+    "team": "Dragons Rhöndorf 3",
+    "games": 2,
+    "wins": 0,
+    "points": 29,
+    "baskets": "-142"
   },
   {
     "rank": 9,

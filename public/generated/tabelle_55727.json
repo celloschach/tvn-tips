@@ -33,6 +33,14 @@
   },
   {
     "rank": 5,
+    "team": "Dragons Rhöndorf 4",
+    "games": 2,
+    "wins": 1,
+    "points": 194,
+    "baskets": "79"
+  },
+  {
+    "rank": 6,
     "team": "TV Lohmar",
     "games": 3,
     "wins": 1,
@@ -40,7 +48,7 @@
     "baskets": "-48"
   },
   {
-    "rank": 6,
+    "rank": 7,
     "team": "BG Bonn 4",
     "games": 3,
     "wins": 1,
@@ -48,28 +56,20 @@
     "baskets": "-68"
   },
   {
-    "rank": 7,
-    "team": "Dragons Rhöndorf 4",
-    "games": 1,
-    "wins": 0,
-    "points": 74,
-    "baskets": "-17"
-  },
-  {
     "rank": 8,
-    "team": "Hennefer TV 2",
-    "games": 2,
-    "wins": 0,
-    "points": 55,
-    "baskets": "-96"
-  },
-  {
-    "rank": 9,
     "team": "TV Neunkirchen 2",
     "games": 2,
     "wins": 0,
     "points": 64,
     "baskets": "-127"
+  },
+  {
+    "rank": 9,
+    "team": "Hennefer TV 2",
+    "games": 3,
+    "wins": 0,
+    "points": 79,
+    "baskets": "-192"
   },
   {
     "rank": 10,
