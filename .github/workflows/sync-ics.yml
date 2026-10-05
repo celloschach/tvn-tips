@@ -1,39 +1,58 @@
-name: Sync ICS and Tables
+name: Sync Data and Deploy Website
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: '0 */6 * * *'
+    - cron: '0 3 * * *'  # Läuft jeden Tag automatisch um 03:00 Uhr morgens
+  workflow_dispatch:     # Ermöglicht manuelles Starten per Knopfdruck in GitHub
+
+# Berechtigungen, damit der Workflow committen und deployen darf
+permissions:
+  contents: write
+  pages: write
+  id-token: write
 
 jobs:
-  sync:
+  sync-and-deploy:
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout repository
+      # 1. Repository herunterladen
+      - name: Checkout Repository
         uses: actions/checkout@v4
-      
+
+      # 2. Node.js einrichten
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-      
-      - name: Install dependencies
-        run: npm install node-ical axios cheerio@1.0.0-rc.12
-      
-      - name: Run Table Scraper
-        run: node fetchAllTables.cjs
-      
-      - name: Run ICS Sync
+          node-version: '18'
+          cache: 'npm'
+
+      # 3. Abhängigkeiten installieren
+      - name: Install Dependencies
+        run: npm install
+
+      # 4. Sync-Skript ausführen (Spiele in DB + Tabellen als JSON)
+      - name: Run Sync Script
+        run: node sync.js
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        run: node sync.js
-      
-      - name: Commit generated tables to repo
+
+      # 5. Die neuen JSON-Dateien committen und pushen (für die Historie)
+      - name: Commit updated generated files
         run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add public/generated/
-          git commit -m "chore: auto-update league tables [skip ci]" || echo "No changes to commit"
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+          git add generated/
+          git commit -m "chore: auto-update tables and games" || echo "Keine Änderungen zum Committen"
           git push
+
+      # 6. Website mit den NEUEN Tabellen bauen
+      - name: Build Vite Project
+        run: npm run build
+
+      # 7. Die gebaute Website auf GitHub Pages deployen
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
