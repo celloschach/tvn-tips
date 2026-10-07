@@ -18,12 +18,23 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-
           node-version: '20'
 
       - name: Install dependencies
         # 'npm ci' installiert reproduzierbar exakt die Versionen aus package-lock.json.
-        run: npm ci
+        #
+        # WORKAROUND für das npm optional-deps Bug (npm/cli#4828):
+        # 'node-ical' wird auf dem Linux-Runner manchmal nicht vollständig
+        # installiert, obwohl es im package-lock.json steht -> "Cannot find
+        # module 'node-ical'". Deshalb prüfen wir danach explizit, ob das
+        # Paket auflösbar ist und installieren es notfalls nach.
+        run: |
+          npm ci
+          if ! node -e "require('node-ical')" >/dev/null 2>&1; then
+            echo "::warning::node-ical fehlte nach 'npm ci' -> installiere es explizit nach"
+            npm install node-ical@0.25.6 --no-save
+          fi
+          node -e "console.log('node-ical OK:', require('node-ical/package.json').version)"
 
       - name: Run Sync Script (Spiele aus ICS)
         run: node sync.js
