@@ -29,19 +29,37 @@ jobs:
           node-version: '18'
 
       - name: Install dependencies
-        run: npm install
+        # WICHTIG: 'npm ci' statt 'npm install', damit exakt die Versionen aus
+        # package-lock.json installiert werden (reproduzierbarer Build).
+        run: npm ci
 
-      # ⚠️ DER VITE-TRICK:
-      # Vite ignoriert Ordner außerhalb von 'src' oder 'public'.
-      # Wir kopieren die synchronisierten Tabellen in den 'public' Ordner,
-      # damit Vite sie beim Bauen mit in die finale Website nimmt.
-      - name: Prepare tables for Vite build
+      # Die Tabellen JSONs liegen bereits versioniert in 'public/generated'
+      # und werden von Vite automatisch mitgebaut. Ein separates Kopieren aus
+      # einem Root-Ordner 'generated/' ist nicht nötig (und war Fehlerquelle,
+      # weil dieser Ordner im Repo nie existiert hat -> "cp: generated/* No
+      # such file or directory").
+
+      - name: Check Supabase secrets are configured
+        # Fail-fast mit klarer Fehlermeldung, statt die Seite mit leerer
+        # Supabase-URL zu deployen (die dann live abstuerzt).
         run: |
-          mkdir -p public/generated
-          cp -r generated/* public/generated/
+          if [ -z "${VITE_SUPABASE_URL}" ] || [ -z "${VITE_SUPABASE_ANON_KEY}" ]; then
+            echo "::error::Secrets 'VITE_SUPABASE_URL' und/oder 'VITE_SUPABASE_ANON_KEY' fehlen! Bitte unter Settings -> Secrets and variables -> Actions anlegen."
+            exit 1
+          fi
+          echo "✅ Supabase-Secrets gefunden."
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
       - name: Build Vite Project
         run: npm run build
+        env:
+          # Supabase-Client liest diese Werte zur Buildzeit via import.meta.env.
+          # Fehlen sie, stürzt die Seite live mit "FEHLER: Supabase URL oder
+          # Key ist nicht definiert!" ab.
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

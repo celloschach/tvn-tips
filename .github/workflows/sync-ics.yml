@@ -21,20 +21,27 @@ jobs:
           node-version: '18'
 
       - name: Install dependencies
-        run: npm install
+        # 'npm ci' installiert reproduzierbar exakt die Versionen aus package-lock.json.
+        run: npm ci
 
-      - name: Run Sync Script
+      - name: Run Sync Script (Spiele aus ICS)
         run: node sync.js
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
-      # WICHTIG: Wir committen die neuen JSON-Dateien auf den main Branch.
+      - name: Fetch Tables (Tabellen von basketbal-bund.net)
+        # fetchAllTables.cjs schreibt direkt nach public/generated/.
+        # Ohne diesen Schritt bleiben die Tabellen-JSONs veraltet.
+        run: node fetchAllTables.cjs
+
+      # WICHTIG: Wir committen die neuen Dateien auf den main Branch.
       # Das löst automatisch Workflow 2 (Deploy) aus!
+      # commit -am erfasst auch geänderte Dateien in public/generated/.
       - name: Commit and Push generated files
         run: |
           git config user.name "GitHub Action"
           git config user.email "action@github.com"
-          git add generated/
+          git add public/generated/
           git commit -m "chore: auto-update games and tables" || echo "Keine Änderungen"
           git push

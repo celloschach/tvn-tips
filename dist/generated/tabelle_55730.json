@@ -1,0 +1,58 @@
+[
+  {
+    "rank": 1,
+    "team": "Dragons Rhöndorf 3",
+    "games": 2,
+    "wins": 2,
+    "points": 189,
+    "baskets": "103"
+  },
+  {
+    "rank": 2,
+    "team": "Sieglarer TV 1897 e. V.",
+    "games": 1,
+    "wins": 1,
+    "points": 116,
+    "baskets": "85"
+  },
+  {
+    "rank": 3,
+    "team": "Hennefer TV",
+    "games": 1,
+    "wins": 1,
+    "points": 113,
+    "baskets": "84"
+  },
+  {
+    "rank": 4,
+    "team": "Bonner SV Roleber 2",
+    "games": 0,
+    "wins": 0,
+    "points": 0,
+    "baskets": "0"
+  },
+  {
+    "rank": 5,
+    "team": "SpVgg Lülsdorf-Ranzel 2",
+    "games": 1,
+    "wins": 0,
+    "points": 66,
+    "baskets": "-53"
+  },
+  {
+    "rank": 6,
+    "team": "TV Neunkirchen 2",
+    "games": 3,
+    "wins": 0,
+    "points": 80,
+    "baskets": "-219"
+  },
+  {
+    "rank": 7,
+    "team": "TuS Mondorf",
+    "games": 0,
+    "wins": 0,
+    "points": 0,
+    "baskets": "0"
+  }
+]

@@ -1,0 +1,98 @@
+[
+  {
+    "rank": 1,
+    "team": "BG Köln",
+    "games": 3,
+    "wins": 3,
+    "points": 296,
+    "baskets": "91"
+  },
+  {
+    "rank": 2,
+    "team": "TuS BW Königsdorf",
+    "games": 3,
+    "wins": 3,
+    "points": 239,
+    "baskets": "54"
+  },
+  {
+    "rank": 3,
+    "team": "Telekom Baskets Bonn 3",
+    "games": 3,
+    "wins": 3,
+    "points": 267,
+    "baskets": "40"
+  },
+  {
+    "rank": 4,
+    "team": "BG Bonn",
+    "games": 3,
+    "wins": 2,
+    "points": 238,
+    "baskets": "36"
+  },
+  {
+    "rank": 5,
+    "team": "Dragons Rhöndorf 2",
+    "games": 3,
+    "wins": 2,
+    "points": 214,
+    "baskets": "0"
+  },
+  {
+    "rank": 6,
+    "team": "DJK Südwest Köln 2",
+    "games": 2,
+    "wins": 1,
+    "points": 131,
+    "baskets": "-6"
+  },
+  {
+    "rank": 7,
+    "team": "TV Neunkirchen",
+    "games": 3,
+    "wins": 1,
+    "points": 208,
+    "baskets": "12"
+  },
+  {
+    "rank": 8,
+    "team": "TS Frechen",
+    "games": 3,
+    "wins": 1,
+    "points": 202,
+    "baskets": "-46"
+  },
+  {
+    "rank": 9,
+    "team": "Hürther BC",
+    "games": 3,
+    "wins": 1,
+    "points": 216,
+    "baskets": "-31"
+  },
+  {
+    "rank": 10,
+    "team": "DJK Bad Münstereifel",
+    "games": 2,
+    "wins": 0,
+    "points": 122,
+    "baskets": "-48"
+  },
+  {
+    "rank": 11,
+    "team": "Haarener TE",
+    "games": 3,
+    "wins": 0,
+    "points": 239,
+    "baskets": "-50"
+  },
+  {
+    "rank": 12,
+    "team": "RheinStars Köln 3",
+    "games": 3,
+    "wins": 0,
+    "points": 235,
+    "baskets": "-52"
+  }
+]
