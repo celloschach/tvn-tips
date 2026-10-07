@@ -18,7 +18,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          # Node 20+: node-ical >= 0.26 nutzt moderne Regex-Flags (/gv, /v),
+          # die unter Node 18 einen SyntaxError werfen. Node 18 ist zudem EOL.
+          node-version: '20'
 
       - name: Install dependencies
         # 'npm ci' installiert reproduzierbar exakt die Versionen aus package-lock.json.
