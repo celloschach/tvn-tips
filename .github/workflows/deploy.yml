@@ -1,8 +1,11 @@
-name: Deploy to GitHub Pages
+name: 2. Build and Deploy Website
 
 on:
+  # Dieser Workflow startet IMMER, wenn etwas auf den 'main' Branch gepusht wird
+  # (Also auch, wenn Workflow 1 gerade seine JSON-Dateien gepusht hat!)
   push:
-    branches: [ main ]
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -11,41 +14,43 @@ permissions:
   id-token: write
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Node
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-         
-      
+          node-version: '18'
+
       - name: Install dependencies
         run: npm install
-      
-      - name: Build
+
+      # ⚠️ DER VITE-TRICK:
+      # Vite ignoriert Ordner außerhalb von 'src' oder 'public'.
+      # Wir kopieren die synchronisierten Tabellen in den 'public' Ordner,
+      # damit Vite sie beim Bauen mit in die finale Website nimmt.
+      - name: Prepare tables for Vite build
+        run: |
+          mkdir -p public/generated
+          cp -r generated/* public/generated/
+
+      - name: Build Vite Project
         run: npm run build
-        env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-      
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
-      
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: './dist'
 
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
