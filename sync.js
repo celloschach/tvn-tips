@@ -1,4 +1,11 @@
-import ical from 'node-ical';
+import { createRequire } from 'module';
+
+// WICHTIG: createRequire statt 'import ical from node-ical'
+// Das umgeht das bekannte npm-optional-deps-Bug (npm/cli#4828),
+// bei dem ESM-Imports 'node-ical' nicht finden, obwohl npm ci erfolgreich war.
+// createRequire nutzt den CJS-Resolver (wie fetchAllTables.cjs), der zuverlässiger ist.
+const require = createRequire(import.meta.url);
+const ical = require('node-ical');
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
