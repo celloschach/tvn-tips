@@ -1,0 +1,74 @@
+[
+  {
+    "rank": 1,
+    "team": "Sieglarer TV 1897 e. V.",
+    "games": 3,
+    "wins": 3,
+    "points": 292,
+    "baskets": "245"
+  },
+  {
+    "rank": 2,
+    "team": "Hennefer Turnverein 1895 e. V.",
+    "games": 3,
+    "wins": 3,
+    "points": 278,
+    "baskets": "196"
+  },
+  {
+    "rank": 3,
+    "team": "SpVgg Lülsdorf-Ranzel 1959 e.V.",
+    "games": 2,
+    "wins": 2,
+    "points": 227,
+    "baskets": "184"
+  },
+  {
+    "rank": 4,
+    "team": "Bonner SV Roleber 2",
+    "games": 2,
+    "wins": 1,
+    "points": 55,
+    "baskets": "-119"
+  },
+  {
+    "rank": 5,
+    "team": "TV Neunkirchen 2",
+    "games": 2,
+    "wins": 0,
+    "points": 57,
+    "baskets": "-108"
+  },
+  {
+    "rank": 6,
+    "team": "SpVgg Lülsdorf-Ranzel 2",
+    "games": 2,
+    "wins": 0,
+    "points": 62,
+    "baskets": "-110"
+  },
+  {
+    "rank": 7,
+    "team": "Dragons Rhöndorf 3",
+    "games": 2,
+    "wins": 0,
+    "points": 29,
+    "baskets": "-142"
+  },
+  {
+    "rank": 8,
+    "team": "Troisdorfer LG 1966 e. V.",
+    "games": 2,
+    "wins": 0,
+    "points": 35,
+    "baskets": "-146"
+  },
+  {
+    "rank": 9,
+    "team": "TSV Seelscheid 1920 e. V.",
+    "games": 0,
+    "wins": 0,
+    "points": 0,
+    "baskets": "0"
+  }
+]
