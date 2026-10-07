@@ -1,58 +1,40 @@
-name: Sync Data and Deploy Website
+name: 1. Sync Data (Games & Tables)
 
 on:
   schedule:
-    - cron: '0 3 * * *'  # Läuft jeden Tag automatisch um 03:00 Uhr morgens
-  workflow_dispatch:     # Ermöglicht manuelles Starten per Knopfdruck in GitHub
+    - cron: '0 3 * * *'  # Jeden Tag um 03:00 Uhr
+  workflow_dispatch:     # Manuelles Auslösen erlaubt
 
-# Berechtigungen, damit der Workflow committen und deployen darf
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 jobs:
-  sync-and-deploy:
+  sync:
     runs-on: ubuntu-latest
     steps:
-      # 1. Repository herunterladen
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 2. Node.js einrichten
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
 
-      # 3. Abhängigkeiten installieren
-      - name: Install Dependencies
+      - name: Install dependencies
         run: npm install
 
-      # 4. Sync-Skript ausführen (Spiele in DB + Tabellen als JSON)
       - name: Run Sync Script
         run: node sync.js
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
-      # 5. Die neuen JSON-Dateien committen und pushen (für die Historie)
-      - name: Commit updated generated files
+      # WICHTIG: Wir committen die neuen JSON-Dateien auf den main Branch.
+      # Das löst automatisch Workflow 2 (Deploy) aus!
+      - name: Commit and Push generated files
         run: |
           git config user.name "GitHub Action"
           git config user.email "action@github.com"
           git add generated/
-          git commit -m "chore: auto-update tables and games" || echo "Keine Änderungen zum Committen"
+          git commit -m "chore: auto-update games and tables" || echo "Keine Änderungen"
           git push
-
-      # 6. Website mit den NEUEN Tabellen bauen
-      - name: Build Vite Project
-        run: npm run build
-
-      # 7. Die gebaute Website auf GitHub Pages deployen
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
