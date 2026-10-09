@@ -9,19 +9,19 @@
   },
   {
     "rank": 2,
+    "team": "TV Neunkirchen",
+    "games": 4,
+    "wins": 3,
+    "points": 253,
+    "baskets": "96"
+  },
+  {
+    "rank": 3,
     "team": "SG Sechtem",
     "games": 3,
     "wins": 2,
     "points": 208,
     "baskets": "81"
-  },
-  {
-    "rank": 3,
-    "team": "TV Neunkirchen",
-    "games": 3,
-    "wins": 2,
-    "points": 196,
-    "baskets": "80"
   },
   {
     "rank": 4,
@@ -50,10 +50,10 @@
   {
     "rank": 7,
     "team": "Kahramanlar-Die Brühler Helden",
-    "games": 2,
+    "games": 3,
     "wins": 0,
-    "points": 80,
-    "baskets": "-76"
+    "points": 121,
+    "baskets": "-92"
   },
   {
     "rank": 8,

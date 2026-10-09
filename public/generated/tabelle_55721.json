@@ -18,26 +18,26 @@
   {
     "rank": 3,
     "team": "Sieglarer TV",
-    "games": 2,
-    "wins": 1,
-    "points": 171,
-    "baskets": "50"
+    "games": 3,
+    "wins": 2,
+    "points": 238,
+    "baskets": "68"
   },
   {
     "rank": 4,
-    "team": "Turn- und Spielverein Mondorf",
-    "games": 3,
-    "wins": 1,
-    "points": 163,
-    "baskets": "-20"
+    "team": "TV Lohmar",
+    "games": 4,
+    "wins": 2,
+    "points": 213,
+    "baskets": "-31"
   },
   {
     "rank": 5,
-    "team": "TV Lohmar",
-    "games": 3,
+    "team": "Turn- und Spielverein Mondorf",
+    "games": 4,
     "wins": 1,
-    "points": 145,
-    "baskets": "-35"
+    "points": 212,
+    "baskets": "-38"
   },
   {
     "rank": 6,
@@ -50,10 +50,10 @@
   {
     "rank": 7,
     "team": "Bonner SV Roleber 2",
-    "games": 2,
+    "games": 3,
     "wins": 0,
-    "points": 96,
-    "baskets": "-75"
+    "points": 160,
+    "baskets": "-79"
   },
   {
     "rank": 8,
