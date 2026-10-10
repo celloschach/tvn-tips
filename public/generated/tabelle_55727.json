@@ -2,26 +2,26 @@
   {
     "rank": 1,
     "team": "BG Bonn 7",
-    "games": 3,
-    "wins": 3,
-    "points": 356,
-    "baskets": "292"
+    "games": 4,
+    "wins": 4,
+    "points": 497,
+    "baskets": "412"
   },
   {
     "rank": 2,
+    "team": "Hennefer TV",
+    "games": 4,
+    "wins": 4,
+    "points": 344,
+    "baskets": "185"
+  },
+  {
+    "rank": 3,
     "team": "TSV Seelscheid 1920 e. V.",
     "games": 3,
     "wins": 3,
     "points": 283,
     "baskets": "166"
-  },
-  {
-    "rank": 3,
-    "team": "Hennefer TV",
-    "games": 3,
-    "wins": 3,
-    "points": 261,
-    "baskets": "160"
   },
   {
     "rank": 4,
@@ -33,14 +33,6 @@
   },
   {
     "rank": 5,
-    "team": "Dragons Rhöndorf 4",
-    "games": 2,
-    "wins": 1,
-    "points": 194,
-    "baskets": "79"
-  },
-  {
-    "rank": 6,
     "team": "TV Lohmar",
     "games": 3,
     "wins": 1,
@@ -48,12 +40,20 @@
     "baskets": "-48"
   },
   {
-    "rank": 7,
+    "rank": 6,
     "team": "BG Bonn 4",
     "games": 3,
     "wins": 1,
     "points": 139,
     "baskets": "-68"
+  },
+  {
+    "rank": 7,
+    "team": "Dragons Rhöndorf 4",
+    "games": 3,
+    "wins": 1,
+    "points": 252,
+    "baskets": "54"
   },
   {
     "rank": 8,
@@ -65,18 +65,18 @@
   },
   {
     "rank": 9,
-    "team": "Hennefer TV 2",
-    "games": 3,
-    "wins": 0,
-    "points": 79,
-    "baskets": "-192"
-  },
-  {
-    "rank": 10,
     "team": "TV Neunkirchen 3",
     "games": 3,
     "wins": 0,
     "points": 68,
     "baskets": "-270"
+  },
+  {
+    "rank": 10,
+    "team": "Hennefer TV 2",
+    "games": 4,
+    "wins": 0,
+    "points": 100,
+    "baskets": "-312"
   }
 ]

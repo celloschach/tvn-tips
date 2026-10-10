@@ -1,14 +1,22 @@
 [
   {
     "rank": 1,
-    "team": "VfL Gummersbach 2",
-    "games": 3,
+    "team": "TV Neunkirchen 2",
+    "games": 4,
     "wins": 3,
-    "points": 184,
-    "baskets": "19"
+    "points": 303,
+    "baskets": "93"
   },
   {
     "rank": 2,
+    "team": "VfL Gummersbach 2",
+    "games": 4,
+    "wins": 3,
+    "points": 229,
+    "baskets": "-11"
+  },
+  {
+    "rank": 3,
     "team": "Dragons Rhöndorf 4",
     "games": 3,
     "wins": 2,
@@ -16,20 +24,12 @@
     "baskets": "-20"
   },
   {
-    "rank": 3,
+    "rank": 4,
     "team": "TuS Mondorf",
     "games": 3,
     "wins": 2,
     "points": 250,
     "baskets": "34"
-  },
-  {
-    "rank": 4,
-    "team": "TV Neunkirchen 2",
-    "games": 3,
-    "wins": 2,
-    "points": 228,
-    "baskets": "63"
   },
   {
     "rank": 5,
@@ -49,19 +49,19 @@
   },
   {
     "rank": 7,
+    "team": "Radevormwalder TV",
+    "games": 4,
+    "wins": 2,
+    "points": 251,
+    "baskets": "4"
+  },
+  {
+    "rank": 8,
     "team": "SG Chateau Bonn",
     "games": 3,
     "wins": 2,
     "points": 159,
     "baskets": "-11"
-  },
-  {
-    "rank": 8,
-    "team": "Troisdorfer LG 2",
-    "games": 3,
-    "wins": 1,
-    "points": 208,
-    "baskets": "0"
   },
   {
     "rank": 9,
@@ -73,26 +73,26 @@
   },
   {
     "rank": 10,
-    "team": "Radevormwalder TV",
+    "team": "Troisdorfer LG 2",
     "games": 3,
     "wins": 1,
-    "points": 189,
-    "baskets": "-22"
+    "points": 208,
+    "baskets": "0"
   },
   {
     "rank": 11,
-    "team": "Troisdorfer LG",
-    "games": 3,
-    "wins": 0,
-    "points": 177,
-    "baskets": "-32"
-  },
-  {
-    "rank": 12,
     "team": "TuS Opladen",
     "games": 3,
     "wins": 0,
     "points": 155,
     "baskets": "-60"
+  },
+  {
+    "rank": 12,
+    "team": "Troisdorfer LG",
+    "games": 4,
+    "wins": 0,
+    "points": 213,
+    "baskets": "-58"
   }
 ]
