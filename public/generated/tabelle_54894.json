@@ -9,38 +9,30 @@
   },
   {
     "rank": 2,
-    "team": "BG Aachen",
-    "games": 3,
-    "wins": 2,
-    "points": 174,
-    "baskets": "34"
+    "team": "DJK Köln-Nord",
+    "games": 4,
+    "wins": 3,
+    "points": 278,
+    "baskets": "47"
   },
   {
     "rank": 3,
-    "team": "DJK Köln-Nord",
-    "games": 3,
+    "team": "SG Sechtem",
+    "games": 2,
     "wins": 2,
-    "points": 206,
-    "baskets": "30"
+    "points": 151,
+    "baskets": "55"
   },
   {
     "rank": 4,
-    "team": "BBV Köln-Nordwest 2",
-    "games": 1,
-    "wins": 1,
-    "points": 81,
-    "baskets": "54"
+    "team": "BG Aachen",
+    "games": 4,
+    "wins": 2,
+    "points": 237,
+    "baskets": "31"
   },
   {
     "rank": 5,
-    "team": "SG Sechtem",
-    "games": 1,
-    "wins": 1,
-    "points": 70,
-    "baskets": "11"
-  },
-  {
-    "rank": 6,
     "team": "Hürther BC 2",
     "games": 2,
     "wins": 1,
@@ -48,28 +40,36 @@
     "baskets": "27"
   },
   {
+    "rank": 6,
+    "team": "BBV Köln-Nordwest 2",
+    "games": 2,
+    "wins": 1,
+    "points": 118,
+    "baskets": "10"
+  },
+  {
     "rank": 7,
-    "team": "RheinStars Köln 2",
+    "team": "Talents BonnRhöndorf 3",
     "games": 3,
     "wins": 1,
-    "points": 116,
-    "baskets": "-108"
+    "points": 172,
+    "baskets": "-20"
   },
   {
     "rank": 8,
+    "team": "RheinStars Köln 2",
+    "games": 4,
+    "wins": 1,
+    "points": 171,
+    "baskets": "-125"
+  },
+  {
+    "rank": 9,
     "team": "BTV Basketball Brühl 2",
     "games": 1,
     "wins": 0,
     "points": 42,
     "baskets": "-21"
-  },
-  {
-    "rank": 9,
-    "team": "Talents BonnRhöndorf 3",
-    "games": 2,
-    "wins": 0,
-    "points": 106,
-    "baskets": "-23"
   },
   {
     "rank": 10,

@@ -42,10 +42,10 @@
   {
     "rank": 6,
     "team": "TS Frechen",
-    "games": 2,
-    "wins": 0,
-    "points": 59,
-    "baskets": "-60"
+    "games": 3,
+    "wins": 1,
+    "points": 118,
+    "baskets": "-48"
   },
   {
     "rank": 7,
@@ -58,9 +58,9 @@
   {
     "rank": 8,
     "team": "BTV Basketball Brühl 2",
-    "games": 3,
+    "games": 4,
     "wins": 0,
-    "points": 64,
-    "baskets": "-116"
+    "points": 111,
+    "baskets": "-128"
   }
 ]
