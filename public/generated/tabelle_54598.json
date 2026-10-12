@@ -2,13 +2,21 @@
   {
     "rank": 1,
     "team": "Sieglarer TV",
-    "games": 3,
-    "wins": 3,
-    "points": 180,
-    "baskets": "95"
+    "games": 4,
+    "wins": 4,
+    "points": 239,
+    "baskets": "124"
   },
   {
     "rank": 2,
+    "team": "SG Sechtem",
+    "games": 4,
+    "wins": 3,
+    "points": 282,
+    "baskets": "122"
+  },
+  {
+    "rank": 3,
     "team": "TV Neunkirchen",
     "games": 4,
     "wins": 3,
@@ -16,28 +24,20 @@
     "baskets": "96"
   },
   {
-    "rank": 3,
-    "team": "SG Sechtem",
-    "games": 3,
-    "wins": 2,
-    "points": 208,
-    "baskets": "81"
-  },
-  {
     "rank": 4,
-    "team": "Talents BonnRhöndorf 5",
-    "games": 3,
+    "team": "Post-SV Bonn",
+    "games": 4,
     "wins": 2,
-    "points": 113,
-    "baskets": "-1"
+    "points": 184,
+    "baskets": "-32"
   },
   {
     "rank": 5,
-    "team": "Post-SV Bonn",
-    "games": 3,
+    "team": "Talents BonnRhöndorf 5",
+    "games": 4,
     "wins": 2,
-    "points": 154,
-    "baskets": "-3"
+    "points": 146,
+    "baskets": "-42"
   },
   {
     "rank": 6,
