@@ -25,6 +25,14 @@
   },
   {
     "rank": 4,
+    "team": "SG Bergische Löwen 3",
+    "games": 4,
+    "wins": 3,
+    "points": 276,
+    "baskets": "9"
+  },
+  {
+    "rank": 5,
     "team": "VfL Gummersbach 2",
     "games": 4,
     "wins": 3,
@@ -32,20 +40,12 @@
     "baskets": "-11"
   },
   {
-    "rank": 5,
+    "rank": 6,
     "team": "Dragons Rhöndorf 4",
     "games": 3,
     "wins": 2,
     "points": 198,
     "baskets": "-20"
-  },
-  {
-    "rank": 6,
-    "team": "SG Bergische Löwen 3",
-    "games": 3,
-    "wins": 2,
-    "points": 204,
-    "baskets": "7"
   },
   {
     "rank": 7,
@@ -58,10 +58,10 @@
   {
     "rank": 8,
     "team": "SG Chateau Bonn",
-    "games": 3,
+    "games": 4,
     "wins": 2,
-    "points": 159,
-    "baskets": "-11"
+    "points": 229,
+    "baskets": "-13"
   },
   {
     "rank": 9,
