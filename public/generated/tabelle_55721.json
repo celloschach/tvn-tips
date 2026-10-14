@@ -1,19 +1,19 @@
 [
   {
     "rank": 1,
+    "team": "TV Neunkirchen",
+    "games": 4,
+    "wins": 4,
+    "points": 161,
+    "baskets": "57"
+  },
+  {
+    "rank": 2,
     "team": "Dragons Rhöndorf 2",
     "games": 3,
     "wins": 3,
     "points": 259,
     "baskets": "74"
-  },
-  {
-    "rank": 2,
-    "team": "TV Neunkirchen",
-    "games": 3,
-    "wins": 3,
-    "points": 141,
-    "baskets": "37"
   },
   {
     "rank": 3,
@@ -42,10 +42,10 @@
   {
     "rank": 6,
     "team": "Hennefer TV",
-    "games": 2,
+    "games": 3,
     "wins": 0,
     "points": 127,
-    "baskets": "-31"
+    "baskets": "-51"
   },
   {
     "rank": 7,
