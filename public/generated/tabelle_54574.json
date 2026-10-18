@@ -26,10 +26,10 @@
   {
     "rank": 4,
     "team": "DJK Südwest Köln 2",
-    "games": 3,
-    "wins": 2,
-    "points": 208,
-    "baskets": "2"
+    "games": 4,
+    "wins": 3,
+    "points": 301,
+    "baskets": "24"
   },
   {
     "rank": 5,
@@ -66,10 +66,10 @@
   {
     "rank": 9,
     "team": "DJK Bad Münstereifel",
-    "games": 3,
+    "games": 4,
     "wins": 1,
-    "points": 199,
-    "baskets": "-45"
+    "points": 270,
+    "baskets": "-67"
   },
   {
     "rank": 10,
