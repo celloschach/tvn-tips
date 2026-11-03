@@ -2,10 +2,10 @@
   {
     "rank": 1,
     "team": "TV Neunkirchen",
-    "games": 2,
-    "wins": 2,
-    "points": 148,
-    "baskets": "65"
+    "games": 3,
+    "wins": 3,
+    "points": 258,
+    "baskets": "144"
   },
   {
     "rank": 2,
@@ -17,19 +17,19 @@
   },
   {
     "rank": 3,
-    "team": "TSV Seelscheid",
-    "games": 1,
-    "wins": 1,
-    "points": 82,
-    "baskets": "40"
-  },
-  {
-    "rank": 4,
     "team": "TuS Mondorf",
     "games": 2,
     "wins": 1,
     "points": 126,
     "baskets": "13"
+  },
+  {
+    "rank": 4,
+    "team": "TSV Seelscheid",
+    "games": 2,
+    "wins": 1,
+    "points": 113,
+    "baskets": "-39"
   },
   {
     "rank": 5,
