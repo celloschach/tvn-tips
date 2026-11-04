@@ -1,19 +1,19 @@
 [
   {
     "rank": 1,
+    "team": "TuS Mondorf",
+    "games": 5,
+    "wins": 4,
+    "points": 442,
+    "baskets": "75"
+  },
+  {
+    "rank": 2,
     "team": "TV Neunkirchen 2",
     "games": 4,
     "wins": 3,
     "points": 303,
     "baskets": "93"
-  },
-  {
-    "rank": 2,
-    "team": "TuS Mondorf",
-    "games": 4,
-    "wins": 3,
-    "points": 350,
-    "baskets": "66"
   },
   {
     "rank": 3,
@@ -90,9 +90,9 @@
   {
     "rank": 12,
     "team": "TuS Opladen",
-    "games": 4,
+    "games": 5,
     "wins": 0,
-    "points": 232,
-    "baskets": "-66"
+    "points": 315,
+    "baskets": "-75"
   }
 ]
