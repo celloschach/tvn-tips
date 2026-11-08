@@ -10,10 +10,10 @@
   {
     "rank": 2,
     "team": "Dragons Rhöndorf 2",
-    "games": 3,
-    "wins": 2,
-    "points": 280,
-    "baskets": "148"
+    "games": 4,
+    "wins": 3,
+    "points": 405,
+    "baskets": "243"
   },
   {
     "rank": 3,
@@ -33,18 +33,18 @@
   },
   {
     "rank": 5,
-    "team": "TV Lohmar",
-    "games": 2,
-    "wins": 0,
-    "points": 46,
-    "baskets": "-122"
-  },
-  {
-    "rank": 6,
     "team": "TV Neunkirchen 2",
     "games": 2,
     "wins": 0,
     "points": 68,
     "baskets": "-144"
+  },
+  {
+    "rank": 6,
+    "team": "TV Lohmar",
+    "games": 3,
+    "wins": 0,
+    "points": 76,
+    "baskets": "-217"
   }
 ]

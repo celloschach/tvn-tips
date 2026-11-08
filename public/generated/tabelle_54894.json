@@ -1,6 +1,14 @@
 [
   {
     "rank": 1,
+    "team": "SG Sechtem",
+    "games": 3,
+    "wins": 3,
+    "points": 240,
+    "baskets": "115"
+  },
+  {
+    "rank": 2,
     "team": "TV Neunkirchen",
     "games": 3,
     "wins": 3,
@@ -8,28 +16,20 @@
     "baskets": "115"
   },
   {
-    "rank": 2,
-    "team": "DJK Köln-Nord",
+    "rank": 3,
+    "team": "BBV Köln-Nordwest 2",
     "games": 4,
     "wins": 3,
-    "points": 278,
-    "baskets": "47"
-  },
-  {
-    "rank": 3,
-    "team": "SG Sechtem",
-    "games": 2,
-    "wins": 2,
-    "points": 151,
-    "baskets": "55"
+    "points": 342,
+    "baskets": "146"
   },
   {
     "rank": 4,
-    "team": "BBV Köln-Nordwest 2",
-    "games": 3,
-    "wins": 2,
-    "points": 234,
-    "baskets": "85"
+    "team": "DJK Köln-Nord",
+    "games": 5,
+    "wins": 3,
+    "points": 325,
+    "baskets": "-14"
   },
   {
     "rank": 5,
@@ -66,10 +66,10 @@
   {
     "rank": 9,
     "team": "BTV Basketball Brühl 2",
-    "games": 1,
+    "games": 2,
     "wins": 0,
-    "points": 42,
-    "baskets": "-21"
+    "points": 71,
+    "baskets": "-81"
   },
   {
     "rank": 10,

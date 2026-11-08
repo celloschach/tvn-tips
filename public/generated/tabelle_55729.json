@@ -1,19 +1,19 @@
 [
   {
     "rank": 1,
+    "team": "Bonner SV Roleber",
+    "games": 2,
+    "wins": 2,
+    "points": 165,
+    "baskets": "23"
+  },
+  {
+    "rank": 2,
     "team": "TV Neunkirchen",
     "games": 3,
     "wins": 2,
     "points": 273,
     "baskets": "144"
-  },
-  {
-    "rank": 2,
-    "team": "Bonner SV Roleber",
-    "games": 1,
-    "wins": 1,
-    "points": 71,
-    "baskets": "19"
   },
   {
     "rank": 3,
@@ -33,19 +33,19 @@
   },
   {
     "rank": 5,
-    "team": "Dragons Rhöndorf 2",
-    "games": 1,
-    "wins": 0,
-    "points": 18,
-    "baskets": "-81"
-  },
-  {
-    "rank": 6,
     "team": "Hennefer Turnverein 2",
     "games": 2,
     "wins": 0,
     "points": 72,
     "baskets": "-71"
+  },
+  {
+    "rank": 6,
+    "team": "Dragons Rhöndorf 2",
+    "games": 2,
+    "wins": 0,
+    "points": 108,
+    "baskets": "-85"
   },
   {
     "rank": 7,

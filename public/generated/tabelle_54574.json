@@ -1,19 +1,19 @@
 [
   {
     "rank": 1,
-    "team": "BG Köln",
-    "games": 4,
-    "wins": 4,
-    "points": 389,
-    "baskets": "105"
+    "team": "TuS BW Königsdorf",
+    "games": 5,
+    "wins": 5,
+    "points": 418,
+    "baskets": "118"
   },
   {
     "rank": 2,
-    "team": "TuS BW Königsdorf",
-    "games": 4,
-    "wins": 4,
-    "points": 332,
-    "baskets": "82"
+    "team": "BG Köln",
+    "games": 5,
+    "wins": 5,
+    "points": 466,
+    "baskets": "113"
   },
   {
     "rank": 3,
@@ -26,37 +26,29 @@
   {
     "rank": 4,
     "team": "DJK Südwest Köln 2",
-    "games": 4,
+    "games": 5,
     "wins": 3,
-    "points": 301,
-    "baskets": "24"
+    "points": 370,
+    "baskets": "16"
   },
   {
     "rank": 5,
-    "team": "Dragons Rhöndorf 2",
-    "games": 4,
-    "wins": 2,
-    "points": 272,
-    "baskets": "-7"
+    "team": "TV Neunkirchen",
+    "games": 5,
+    "wins": 3,
+    "points": 355,
+    "baskets": "27"
   },
   {
     "rank": 6,
     "team": "BG Bonn",
-    "games": 4,
-    "wins": 2,
-    "points": 317,
-    "baskets": "22"
+    "games": 5,
+    "wins": 3,
+    "points": 391,
+    "baskets": "26"
   },
   {
     "rank": 7,
-    "team": "TV Neunkirchen",
-    "games": 4,
-    "wins": 2,
-    "points": 282,
-    "baskets": "20"
-  },
-  {
-    "rank": 8,
     "team": "TS Frechen",
     "games": 5,
     "wins": 2,
@@ -64,35 +56,43 @@
     "baskets": "-77"
   },
   {
+    "rank": 8,
+    "team": "Dragons Rhöndorf 2",
+    "games": 5,
+    "wins": 2,
+    "points": 330,
+    "baskets": "-42"
+  },
+  {
     "rank": 9,
     "team": "DJK Bad Münstereifel",
-    "games": 4,
+    "games": 5,
     "wins": 1,
-    "points": 270,
-    "baskets": "-67"
+    "points": 320,
+    "baskets": "-103"
   },
   {
     "rank": 10,
     "team": "Hürther BC",
-    "games": 4,
+    "games": 5,
     "wins": 1,
-    "points": 290,
-    "baskets": "-34"
+    "points": 360,
+    "baskets": "-38"
   },
   {
     "rank": 11,
-    "team": "Haarener TE",
-    "games": 4,
-    "wins": 0,
-    "points": 308,
-    "baskets": "-58"
+    "team": "RheinStars Köln 3",
+    "games": 5,
+    "wins": 1,
+    "points": 393,
+    "baskets": "-45"
   },
   {
     "rank": 12,
-    "team": "RheinStars Köln 3",
-    "games": 4,
+    "team": "Haarener TE",
+    "games": 5,
     "wins": 0,
-    "points": 300,
-    "baskets": "-80"
+    "points": 374,
+    "baskets": "-65"
   }
 ]
