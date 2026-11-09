@@ -18,37 +18,45 @@
   {
     "rank": 3,
     "team": "SC Fast-Break Leverkusen 2",
-    "games": 4,
-    "wins": 3,
-    "points": 255,
-    "baskets": "25"
+    "games": 5,
+    "wins": 4,
+    "points": 333,
+    "baskets": "49"
   },
   {
     "rank": 4,
     "team": "SG Bergische Löwen 3",
-    "games": 4,
-    "wins": 3,
-    "points": 276,
-    "baskets": "9"
+    "games": 5,
+    "wins": 4,
+    "points": 365,
+    "baskets": "37"
   },
   {
     "rank": 5,
     "team": "VfL Gummersbach 2",
-    "games": 4,
+    "games": 5,
     "wins": 3,
-    "points": 229,
-    "baskets": "-11"
+    "points": 283,
+    "baskets": "-35"
   },
   {
     "rank": 6,
-    "team": "Dragons Rhöndorf 4",
-    "games": 3,
-    "wins": 2,
-    "points": 198,
-    "baskets": "-20"
+    "team": "SG Chateau Bonn",
+    "games": 5,
+    "wins": 3,
+    "points": 325,
+    "baskets": "9"
   },
   {
     "rank": 7,
+    "team": "Dragons Rhöndorf 4",
+    "games": 4,
+    "wins": 2,
+    "points": 266,
+    "baskets": "-30"
+  },
+  {
+    "rank": 8,
     "team": "Radevormwalder TV",
     "games": 5,
     "wins": 2,
@@ -56,36 +64,28 @@
     "baskets": "-27"
   },
   {
-    "rank": 8,
-    "team": "SG Chateau Bonn",
-    "games": 4,
-    "wins": 2,
-    "points": 229,
-    "baskets": "-13"
-  },
-  {
     "rank": 9,
     "team": "TSV Bayer 04 Leverkusen 4",
-    "games": 3,
+    "games": 4,
     "wins": 1,
-    "points": 218,
-    "baskets": "3"
+    "points": 292,
+    "baskets": "-19"
   },
   {
     "rank": 10,
-    "team": "Troisdorfer LG 2",
-    "games": 4,
+    "team": "Troisdorfer LG",
+    "games": 5,
     "wins": 1,
-    "points": 276,
-    "baskets": "-32"
+    "points": 291,
+    "baskets": "-48"
   },
   {
     "rank": 11,
-    "team": "Troisdorfer LG",
-    "games": 4,
-    "wins": 0,
-    "points": 213,
-    "baskets": "-58"
+    "team": "Troisdorfer LG 2",
+    "games": 5,
+    "wins": 1,
+    "points": 337,
+    "baskets": "-60"
   },
   {
     "rank": 12,

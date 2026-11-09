@@ -1,6 +1,14 @@
 [
   {
     "rank": 1,
+    "team": "BG Bonn 7",
+    "games": 5,
+    "wins": 5,
+    "points": 559,
+    "baskets": "416"
+  },
+  {
+    "rank": 2,
     "team": "TSV Seelscheid 1920 e. V.",
     "games": 5,
     "wins": 5,
@@ -8,20 +16,12 @@
     "baskets": "287"
   },
   {
-    "rank": 2,
-    "team": "BG Bonn 7",
-    "games": 4,
-    "wins": 4,
-    "points": 497,
-    "baskets": "412"
-  },
-  {
     "rank": 3,
     "team": "Hennefer TV",
-    "games": 4,
+    "games": 5,
     "wins": 4,
-    "points": 344,
-    "baskets": "185"
+    "points": 402,
+    "baskets": "181"
   },
   {
     "rank": 4,
@@ -58,18 +58,18 @@
   {
     "rank": 8,
     "team": "TV Neunkirchen 2",
-    "games": 4,
-    "wins": 0,
-    "points": 128,
-    "baskets": "-284"
+    "games": 5,
+    "wins": 1,
+    "points": 183,
+    "baskets": "-277"
   },
   {
     "rank": 9,
     "team": "TV Neunkirchen 3",
-    "games": 4,
+    "games": 5,
     "wins": 0,
-    "points": 95,
-    "baskets": "-319"
+    "points": 143,
+    "baskets": "-326"
   },
   {
     "rank": 10,

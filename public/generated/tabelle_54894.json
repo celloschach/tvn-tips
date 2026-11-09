@@ -33,19 +33,19 @@
   },
   {
     "rank": 5,
+    "team": "Hürther BC 2",
+    "games": 3,
+    "wins": 2,
+    "points": 212,
+    "baskets": "40"
+  },
+  {
+    "rank": 6,
     "team": "BG Aachen",
     "games": 4,
     "wins": 2,
     "points": 237,
     "baskets": "31"
-  },
-  {
-    "rank": 6,
-    "team": "Hürther BC 2",
-    "games": 2,
-    "wins": 1,
-    "points": 139,
-    "baskets": "27"
   },
   {
     "rank": 7,
@@ -58,10 +58,10 @@
   {
     "rank": 8,
     "team": "Talents BonnRhöndorf 3",
-    "games": 4,
+    "games": 5,
     "wins": 1,
-    "points": 213,
-    "baskets": "-95"
+    "points": 273,
+    "baskets": "-108"
   },
   {
     "rank": 9,

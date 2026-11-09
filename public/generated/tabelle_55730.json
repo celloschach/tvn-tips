@@ -1,6 +1,14 @@
 [
   {
     "rank": 1,
+    "team": "Dragons Rhöndorf 3",
+    "games": 3,
+    "wins": 3,
+    "points": 301,
+    "baskets": "190"
+  },
+  {
+    "rank": 2,
     "team": "Hennefer TV",
     "games": 2,
     "wins": 2,
@@ -8,7 +16,7 @@
     "baskets": "175"
   },
   {
-    "rank": 2,
+    "rank": 3,
     "team": "Sieglarer TV 1897 e. V.",
     "games": 2,
     "wins": 2,
@@ -16,28 +24,20 @@
     "baskets": "170"
   },
   {
-    "rank": 3,
-    "team": "Dragons Rhöndorf 3",
-    "games": 2,
-    "wins": 2,
-    "points": 189,
-    "baskets": "103"
-  },
-  {
     "rank": 4,
-    "team": "Bonner SV Roleber 2",
-    "games": 1,
-    "wins": 0,
-    "points": 27,
-    "baskets": "-91"
-  },
-  {
-    "rank": 5,
     "team": "SpVgg Lülsdorf-Ranzel 2",
     "games": 2,
     "wins": 0,
     "points": 88,
     "baskets": "-138"
+  },
+  {
+    "rank": 5,
+    "team": "Bonner SV Roleber 2",
+    "games": 2,
+    "wins": 0,
+    "points": 52,
+    "baskets": "-178"
   },
   {
     "rank": 6,
