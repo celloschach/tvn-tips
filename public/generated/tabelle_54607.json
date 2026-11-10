@@ -1,35 +1,35 @@
 [
   {
     "rank": 1,
-    "team": "TV Neunkirchen 2",
+    "team": "SG Bergische Löwen 3",
     "games": 5,
     "wins": 4,
-    "points": 385,
-    "baskets": "124"
+    "points": 382,
+    "baskets": "49"
   },
   {
     "rank": 2,
-    "team": "TuS Mondorf",
-    "games": 5,
-    "wins": 4,
-    "points": 442,
-    "baskets": "75"
+    "team": "TV Neunkirchen 2",
+    "games": 4,
+    "wins": 3,
+    "points": 314,
+    "baskets": "97"
   },
   {
     "rank": 3,
     "team": "SC Fast-Break Leverkusen 2",
-    "games": 5,
-    "wins": 4,
-    "points": 333,
-    "baskets": "49"
+    "games": 4,
+    "wins": 3,
+    "points": 258,
+    "baskets": "47"
   },
   {
     "rank": 4,
-    "team": "SG Bergische Löwen 3",
-    "games": 5,
-    "wins": 4,
-    "points": 365,
-    "baskets": "37"
+    "team": "TuS Mondorf",
+    "games": 4,
+    "wins": 3,
+    "points": 342,
+    "baskets": "43"
   },
   {
     "rank": 5,
@@ -49,19 +49,19 @@
   },
   {
     "rank": 7,
+    "team": "Radevormwalder TV",
+    "games": 4,
+    "wins": 2,
+    "points": 240,
+    "baskets": "2"
+  },
+  {
+    "rank": 8,
     "team": "Dragons Rhöndorf 4",
     "games": 4,
     "wins": 2,
     "points": 266,
     "baskets": "-30"
-  },
-  {
-    "rank": 8,
-    "team": "Radevormwalder TV",
-    "games": 5,
-    "wins": 2,
-    "points": 302,
-    "baskets": "-27"
   },
   {
     "rank": 9,
@@ -81,18 +81,18 @@
   },
   {
     "rank": 11,
-    "team": "Troisdorfer LG 2",
-    "games": 5,
-    "wins": 1,
-    "points": 337,
-    "baskets": "-60"
+    "team": "TuS Opladen",
+    "games": 6,
+    "wins": 0,
+    "points": 381,
+    "baskets": "-115"
   },
   {
     "rank": 12,
-    "team": "TuS Opladen",
-    "games": 5,
+    "team": "Troisdorfer LG 2",
+    "games": 0,
     "wins": 0,
-    "points": 315,
-    "baskets": "-75"
+    "points": 0,
+    "baskets": "0"
   }
 ]
