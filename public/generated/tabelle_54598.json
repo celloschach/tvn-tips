@@ -10,10 +10,10 @@
   {
     "rank": 2,
     "team": "SG Sechtem",
-    "games": 5,
-    "wins": 4,
-    "points": 367,
-    "baskets": "183"
+    "games": 6,
+    "wins": 5,
+    "points": 457,
+    "baskets": "228"
   },
   {
     "rank": 3,
@@ -26,18 +26,18 @@
   {
     "rank": 4,
     "team": "Post-SV Bonn",
-    "games": 5,
+    "games": 6,
     "wins": 3,
-    "points": 236,
-    "baskets": "-20"
+    "points": 281,
+    "baskets": "-65"
   },
   {
     "rank": 5,
     "team": "Talents BonnRhöndorf 5",
-    "games": 5,
-    "wins": 2,
-    "points": 186,
-    "baskets": "-54"
+    "games": 6,
+    "wins": 3,
+    "points": 257,
+    "baskets": "-30"
   },
   {
     "rank": 6,
@@ -58,9 +58,9 @@
   {
     "rank": 8,
     "team": "Kahramanlar-Die Brühler Helden",
-    "games": 4,
+    "games": 5,
     "wins": 0,
-    "points": 163,
-    "baskets": "-95"
+    "points": 210,
+    "baskets": "-119"
   }
 ]
