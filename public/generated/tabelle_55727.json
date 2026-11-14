@@ -1,6 +1,14 @@
 [
   {
     "rank": 1,
+    "team": "TSV Seelscheid 1920 e. V.",
+    "games": 6,
+    "wins": 6,
+    "points": 605,
+    "baskets": "350"
+  },
+  {
+    "rank": 2,
     "team": "BG Bonn 7",
     "games": 5,
     "wins": 5,
@@ -8,36 +16,28 @@
     "baskets": "416"
   },
   {
-    "rank": 2,
-    "team": "TSV Seelscheid 1920 e. V.",
-    "games": 5,
-    "wins": 5,
-    "points": 496,
-    "baskets": "287"
-  },
-  {
     "rank": 3,
     "team": "Hennefer TV",
-    "games": 5,
-    "wins": 4,
-    "points": 402,
-    "baskets": "181"
+    "games": 6,
+    "wins": 5,
+    "points": 517,
+    "baskets": "270"
   },
   {
     "rank": 4,
-    "team": "SpVgg Lülsdorf-Ranzel 1959 e.V.",
-    "games": 4,
-    "wins": 3,
-    "points": 240,
-    "baskets": "26"
-  },
-  {
-    "rank": 5,
     "team": "Dragons Rhöndorf 4",
     "games": 5,
     "wins": 3,
     "points": 432,
     "baskets": "147"
+  },
+  {
+    "rank": 5,
+    "team": "SpVgg Lülsdorf-Ranzel 1959 e.V.",
+    "games": 5,
+    "wins": 3,
+    "points": 266,
+    "baskets": "-63"
   },
   {
     "rank": 6,
@@ -74,9 +74,9 @@
   {
     "rank": 10,
     "team": "Hennefer TV 2",
-    "games": 5,
+    "games": 6,
     "wins": 0,
-    "points": 156,
-    "baskets": "-330"
+    "points": 202,
+    "baskets": "-393"
   }
 ]

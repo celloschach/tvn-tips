@@ -1,19 +1,19 @@
 [
   {
     "rank": 1,
-    "team": "TuS BW Königsdorf",
-    "games": 5,
-    "wins": 5,
-    "points": 418,
-    "baskets": "118"
-  },
-  {
-    "rank": 2,
     "team": "BG Köln",
     "games": 5,
     "wins": 5,
     "points": 466,
     "baskets": "113"
+  },
+  {
+    "rank": 2,
+    "team": "TuS BW Königsdorf",
+    "games": 6,
+    "wins": 5,
+    "points": 499,
+    "baskets": "117"
   },
   {
     "rank": 3,
@@ -25,11 +25,11 @@
   },
   {
     "rank": 4,
-    "team": "DJK Südwest Köln 2",
-    "games": 5,
-    "wins": 3,
-    "points": 370,
-    "baskets": "16"
+    "team": "BG Bonn",
+    "games": 6,
+    "wins": 4,
+    "points": 473,
+    "baskets": "27"
   },
   {
     "rank": 5,
@@ -41,11 +41,11 @@
   },
   {
     "rank": 6,
-    "team": "BG Bonn",
+    "team": "DJK Südwest Köln 2",
     "games": 5,
     "wins": 3,
-    "points": 391,
-    "baskets": "26"
+    "points": 370,
+    "baskets": "16"
   },
   {
     "rank": 7,

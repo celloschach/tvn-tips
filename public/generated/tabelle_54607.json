@@ -1,19 +1,19 @@
 [
   {
     "rank": 1,
+    "team": "TV Neunkirchen 2",
+    "games": 5,
+    "wins": 4,
+    "points": 391,
+    "baskets": "110"
+  },
+  {
+    "rank": 2,
     "team": "SG Bergische Löwen 3",
     "games": 5,
     "wins": 4,
     "points": 382,
     "baskets": "49"
-  },
-  {
-    "rank": 2,
-    "team": "TV Neunkirchen 2",
-    "games": 4,
-    "wins": 3,
-    "points": 314,
-    "baskets": "97"
   },
   {
     "rank": 3,
@@ -74,10 +74,10 @@
   {
     "rank": 10,
     "team": "Troisdorfer LG",
-    "games": 5,
+    "games": 6,
     "wins": 1,
-    "points": 291,
-    "baskets": "-48"
+    "points": 355,
+    "baskets": "-61"
   },
   {
     "rank": 11,
