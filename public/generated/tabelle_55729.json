@@ -1,19 +1,19 @@
 [
   {
     "rank": 1,
+    "team": "TV Neunkirchen",
+    "games": 4,
+    "wins": 3,
+    "points": 379,
+    "baskets": "220"
+  },
+  {
+    "rank": 2,
     "team": "Bonner SV Roleber",
     "games": 2,
     "wins": 2,
     "points": 165,
     "baskets": "23"
-  },
-  {
-    "rank": 2,
-    "team": "TV Neunkirchen",
-    "games": 3,
-    "wins": 2,
-    "points": 273,
-    "baskets": "144"
   },
   {
     "rank": 3,
@@ -25,19 +25,19 @@
   },
   {
     "rank": 4,
-    "team": "TV Lohmar",
-    "games": 2,
-    "wins": 1,
-    "points": 103,
-    "baskets": "-17"
-  },
-  {
-    "rank": 5,
     "team": "Dragons Rhöndorf 2",
     "games": 3,
     "wins": 1,
     "points": 217,
     "baskets": "-6"
+  },
+  {
+    "rank": 5,
+    "team": "TV Lohmar",
+    "games": 3,
+    "wins": 1,
+    "points": 133,
+    "baskets": "-93"
   },
   {
     "rank": 6,

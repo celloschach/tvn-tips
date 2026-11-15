@@ -1,19 +1,19 @@
 [
   {
     "rank": 1,
+    "team": "SG Sechtem",
+    "games": 4,
+    "wins": 4,
+    "points": 358,
+    "baskets": "194"
+  },
+  {
+    "rank": 2,
     "team": "BBV Köln-Nordwest 2",
     "games": 5,
     "wins": 4,
     "points": 428,
     "baskets": "189"
-  },
-  {
-    "rank": 2,
-    "team": "SG Sechtem",
-    "games": 3,
-    "wins": 3,
-    "points": 240,
-    "baskets": "115"
   },
   {
     "rank": 3,
@@ -65,19 +65,19 @@
   },
   {
     "rank": 9,
-    "team": "Talents BonnRhöndorf 4",
-    "games": 3,
-    "wins": 0,
-    "points": 108,
-    "baskets": "-119"
-  },
-  {
-    "rank": 10,
     "team": "BTV Basketball Brühl 2",
     "games": 3,
     "wins": 0,
     "points": 114,
     "baskets": "-124"
+  },
+  {
+    "rank": 10,
+    "team": "Talents BonnRhöndorf 4",
+    "games": 4,
+    "wins": 0,
+    "points": 147,
+    "baskets": "-198"
   },
   {
     "rank": 11,

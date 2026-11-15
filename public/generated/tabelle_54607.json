@@ -9,6 +9,22 @@
   },
   {
     "rank": 2,
+    "team": "SC Fast-Break Leverkusen 2",
+    "games": 5,
+    "wins": 4,
+    "points": 343,
+    "baskets": "83"
+  },
+  {
+    "rank": 3,
+    "team": "TuS Mondorf",
+    "games": 5,
+    "wins": 4,
+    "points": 423,
+    "baskets": "57"
+  },
+  {
+    "rank": 4,
     "team": "SG Bergische Löwen 3",
     "games": 5,
     "wins": 4,
@@ -16,52 +32,36 @@
     "baskets": "49"
   },
   {
-    "rank": 3,
-    "team": "SC Fast-Break Leverkusen 2",
-    "games": 4,
-    "wins": 3,
-    "points": 258,
-    "baskets": "47"
-  },
-  {
-    "rank": 4,
-    "team": "TuS Mondorf",
-    "games": 4,
-    "wins": 3,
-    "points": 342,
-    "baskets": "43"
-  },
-  {
     "rank": 5,
-    "team": "VfL Gummersbach 2",
+    "team": "Dragons Rhöndorf 4",
     "games": 5,
     "wins": 3,
-    "points": 283,
-    "baskets": "-35"
+    "points": 337,
+    "baskets": "-26"
   },
   {
     "rank": 6,
-    "team": "SG Chateau Bonn",
-    "games": 5,
+    "team": "VfL Gummersbach 2",
+    "games": 6,
     "wins": 3,
-    "points": 325,
-    "baskets": "9"
+    "points": 350,
+    "baskets": "-49"
   },
   {
     "rank": 7,
-    "team": "Radevormwalder TV",
-    "games": 4,
-    "wins": 2,
-    "points": 240,
-    "baskets": "2"
+    "team": "SG Chateau Bonn",
+    "games": 6,
+    "wins": 3,
+    "points": 392,
+    "baskets": "5"
   },
   {
     "rank": 8,
-    "team": "Dragons Rhöndorf 4",
-    "games": 4,
+    "team": "Radevormwalder TV",
+    "games": 5,
     "wins": 2,
-    "points": 266,
-    "baskets": "-30"
+    "points": 289,
+    "baskets": "-34"
   },
   {
     "rank": 9,
