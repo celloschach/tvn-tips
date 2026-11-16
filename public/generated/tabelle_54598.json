@@ -2,10 +2,10 @@
   {
     "rank": 1,
     "team": "Sieglarer TV",
-    "games": 5,
-    "wins": 5,
-    "points": 314,
-    "baskets": "174"
+    "games": 6,
+    "wins": 6,
+    "points": 334,
+    "baskets": "194"
   },
   {
     "rank": 2,
@@ -42,25 +42,25 @@
   {
     "rank": 6,
     "team": "TS Frechen",
-    "games": 4,
+    "games": 5,
     "wins": 1,
-    "points": 142,
-    "baskets": "-109"
+    "points": 166,
+    "baskets": "-141"
   },
   {
     "rank": 7,
-    "team": "BTV Basketball Brühl 2",
-    "games": 5,
+    "team": "Kahramanlar-Die Brühler Helden",
+    "games": 6,
     "wins": 1,
-    "points": 156,
-    "baskets": "-125"
+    "points": 266,
+    "baskets": "-87"
   },
   {
     "rank": 8,
-    "team": "Kahramanlar-Die Brühler Helden",
-    "games": 5,
-    "wins": 0,
-    "points": 210,
-    "baskets": "-119"
+    "team": "BTV Basketball Brühl 2",
+    "games": 6,
+    "wins": 1,
+    "points": 156,
+    "baskets": "-145"
   }
 ]

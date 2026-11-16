@@ -2,21 +2,13 @@
   {
     "rank": 1,
     "team": "Sieglarer TV 1897 e. V.",
-    "games": 4,
-    "wins": 4,
-    "points": 379,
-    "baskets": "270"
+    "games": 5,
+    "wins": 5,
+    "points": 462,
+    "baskets": "330"
   },
   {
     "rank": 2,
-    "team": "SpVgg Lülsdorf-Ranzel 1959 e.V.",
-    "games": 4,
-    "wins": 4,
-    "points": 355,
-    "baskets": "256"
-  },
-  {
-    "rank": 3,
     "team": "Hennefer Turnverein 1895 e. V.",
     "games": 5,
     "wins": 4,
@@ -24,15 +16,31 @@
     "baskets": "205"
   },
   {
+    "rank": 3,
+    "team": "SpVgg Lülsdorf-Ranzel 1959 e.V.",
+    "games": 5,
+    "wins": 4,
+    "points": 378,
+    "baskets": "196"
+  },
+  {
     "rank": 4,
     "team": "TV Neunkirchen 2",
-    "games": 3,
-    "wins": 1,
-    "points": 110,
-    "baskets": "-82"
+    "games": 4,
+    "wins": 2,
+    "points": 174,
+    "baskets": "-40"
   },
   {
     "rank": 5,
+    "team": "Bonner SV Roleber 2",
+    "games": 5,
+    "wins": 2,
+    "points": 157,
+    "baskets": "-177"
+  },
+  {
+    "rank": 6,
     "team": "SpVgg Lülsdorf-Ranzel 2",
     "games": 4,
     "wins": 1,
@@ -40,28 +48,20 @@
     "baskets": "-72"
   },
   {
-    "rank": 6,
-    "team": "Troisdorfer LG 1966 e. V.",
-    "games": 4,
-    "wins": 1,
-    "points": 104,
-    "baskets": "-188"
-  },
-  {
     "rank": 7,
-    "team": "Bonner SV Roleber 2",
-    "games": 4,
+    "team": "Troisdorfer LG 1966 e. V.",
+    "games": 5,
     "wins": 1,
-    "points": 111,
-    "baskets": "-185"
+    "points": 142,
+    "baskets": "-196"
   },
   {
     "rank": 8,
     "team": "Dragons Rhöndorf 3",
-    "games": 4,
+    "games": 5,
     "wins": 0,
-    "points": 90,
-    "baskets": "-204"
+    "points": 112,
+    "baskets": "-246"
   },
   {
     "rank": 9,

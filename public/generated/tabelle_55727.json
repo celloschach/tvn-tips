@@ -1,19 +1,19 @@
 [
   {
     "rank": 1,
+    "team": "BG Bonn 7",
+    "games": 6,
+    "wins": 6,
+    "points": 641,
+    "baskets": "459"
+  },
+  {
+    "rank": 2,
     "team": "TSV Seelscheid 1920 e. V.",
     "games": 6,
     "wins": 6,
     "points": 605,
     "baskets": "350"
-  },
-  {
-    "rank": 2,
-    "team": "BG Bonn 7",
-    "games": 5,
-    "wins": 5,
-    "points": 559,
-    "baskets": "416"
   },
   {
     "rank": 3,
@@ -25,19 +25,19 @@
   },
   {
     "rank": 4,
-    "team": "Dragons Rhöndorf 4",
-    "games": 5,
-    "wins": 3,
-    "points": 432,
-    "baskets": "147"
-  },
-  {
-    "rank": 5,
     "team": "SpVgg Lülsdorf-Ranzel 1959 e.V.",
     "games": 5,
     "wins": 3,
     "points": 266,
     "baskets": "-63"
+  },
+  {
+    "rank": 5,
+    "team": "Dragons Rhöndorf 4",
+    "games": 6,
+    "wins": 3,
+    "points": 471,
+    "baskets": "104"
   },
   {
     "rank": 6,
