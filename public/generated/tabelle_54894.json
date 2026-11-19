@@ -25,19 +25,19 @@
   },
   {
     "rank": 4,
+    "team": "Hürther BC 2",
+    "games": 4,
+    "wins": 3,
+    "points": 267,
+    "baskets": "45"
+  },
+  {
+    "rank": 5,
     "team": "DJK Köln-Nord",
     "games": 5,
     "wins": 3,
     "points": 325,
     "baskets": "-14"
-  },
-  {
-    "rank": 5,
-    "team": "Hürther BC 2",
-    "games": 3,
-    "wins": 2,
-    "points": 212,
-    "baskets": "40"
   },
   {
     "rank": 6,
@@ -66,10 +66,10 @@
   {
     "rank": 9,
     "team": "BTV Basketball Brühl 2",
-    "games": 3,
+    "games": 4,
     "wins": 0,
-    "points": 114,
-    "baskets": "-124"
+    "points": 164,
+    "baskets": "-129"
   },
   {
     "rank": 10,
