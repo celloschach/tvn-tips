@@ -2,10 +2,10 @@
   {
     "rank": 1,
     "team": "Sieglarer TV 1897 e. V.",
-    "games": 5,
-    "wins": 5,
-    "points": 462,
-    "baskets": "330"
+    "games": 6,
+    "wins": 6,
+    "points": 543,
+    "baskets": "397"
   },
   {
     "rank": 2,
@@ -25,27 +25,27 @@
   },
   {
     "rank": 4,
-    "team": "TV Neunkirchen 2",
-    "games": 4,
+    "team": "SpVgg Lülsdorf-Ranzel 2",
+    "games": 5,
     "wins": 2,
-    "points": 174,
-    "baskets": "-40"
+    "points": 264,
+    "baskets": "-7"
   },
   {
     "rank": 5,
-    "team": "Bonner SV Roleber 2",
+    "team": "TV Neunkirchen 2",
     "games": 5,
     "wins": 2,
-    "points": 157,
-    "baskets": "-177"
+    "points": 192,
+    "baskets": "-105"
   },
   {
     "rank": 6,
-    "team": "SpVgg Lülsdorf-Ranzel 2",
-    "games": 4,
-    "wins": 1,
-    "points": 181,
-    "baskets": "-72"
+    "team": "Bonner SV Roleber 2",
+    "games": 6,
+    "wins": 2,
+    "points": 171,
+    "baskets": "-244"
   },
   {
     "rank": 7,

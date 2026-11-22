@@ -33,6 +33,14 @@
   },
   {
     "rank": 5,
+    "team": "BG Aachen",
+    "games": 5,
+    "wins": 3,
+    "points": 298,
+    "baskets": "53"
+  },
+  {
+    "rank": 6,
     "team": "DJK Köln-Nord",
     "games": 5,
     "wins": 3,
@@ -40,20 +48,12 @@
     "baskets": "-14"
   },
   {
-    "rank": 6,
-    "team": "BG Aachen",
-    "games": 4,
-    "wins": 2,
-    "points": 237,
-    "baskets": "31"
-  },
-  {
     "rank": 7,
     "team": "RheinStars Köln 2",
-    "games": 4,
+    "games": 5,
     "wins": 1,
-    "points": 171,
-    "baskets": "-125"
+    "points": 210,
+    "baskets": "-147"
   },
   {
     "rank": 8,
