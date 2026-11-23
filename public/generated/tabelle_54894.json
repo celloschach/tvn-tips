@@ -25,19 +25,19 @@
   },
   {
     "rank": 4,
-    "team": "Hürther BC 2",
-    "games": 4,
-    "wins": 3,
-    "points": 267,
-    "baskets": "45"
-  },
-  {
-    "rank": 5,
     "team": "BG Aachen",
     "games": 5,
     "wins": 3,
     "points": 298,
     "baskets": "53"
+  },
+  {
+    "rank": 5,
+    "team": "Hürther BC 2",
+    "games": 5,
+    "wins": 3,
+    "points": 318,
+    "baskets": "43"
   },
   {
     "rank": 6,
@@ -50,10 +50,10 @@
   {
     "rank": 7,
     "team": "RheinStars Köln 2",
-    "games": 5,
-    "wins": 1,
-    "points": 210,
-    "baskets": "-147"
+    "games": 6,
+    "wins": 2,
+    "points": 263,
+    "baskets": "-145"
   },
   {
     "rank": 8,

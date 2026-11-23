@@ -34,10 +34,10 @@
   {
     "rank": 5,
     "team": "Dragons Rhöndorf 4",
-    "games": 5,
+    "games": 6,
     "wins": 3,
-    "points": 337,
-    "baskets": "-26"
+    "points": 416,
+    "baskets": "-40"
   },
   {
     "rank": 6,
@@ -57,19 +57,19 @@
   },
   {
     "rank": 8,
+    "team": "TSV Bayer 04 Leverkusen 4",
+    "games": 5,
+    "wins": 2,
+    "points": 385,
+    "baskets": "-5"
+  },
+  {
+    "rank": 9,
     "team": "Radevormwalder TV",
     "games": 5,
     "wins": 2,
     "points": 289,
     "baskets": "-34"
-  },
-  {
-    "rank": 9,
-    "team": "TSV Bayer 04 Leverkusen 4",
-    "games": 4,
-    "wins": 1,
-    "points": 292,
-    "baskets": "-19"
   },
   {
     "rank": 10,

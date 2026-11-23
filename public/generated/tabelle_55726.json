@@ -1,19 +1,19 @@
 [
   {
     "rank": 1,
+    "team": "TV Neunkirchen",
+    "games": 6,
+    "wins": 6,
+    "points": 558,
+    "baskets": "354"
+  },
+  {
+    "rank": 2,
     "team": "TuS Mondorf",
     "games": 5,
     "wins": 5,
     "points": 483,
     "baskets": "294"
-  },
-  {
-    "rank": 2,
-    "team": "TV Neunkirchen",
-    "games": 5,
-    "wins": 5,
-    "points": 463,
-    "baskets": "286"
   },
   {
     "rank": 3,
@@ -58,10 +58,10 @@
   {
     "rank": 8,
     "team": "BG Bonn 5",
-    "games": 5,
+    "games": 6,
     "wins": 0,
-    "points": 123,
-    "baskets": "-406"
+    "points": 150,
+    "baskets": "-474"
   },
   {
     "rank": 9,
