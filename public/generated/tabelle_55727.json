@@ -25,6 +25,14 @@
   },
   {
     "rank": 4,
+    "team": "TV Lohmar",
+    "games": 7,
+    "wins": 4,
+    "points": 510,
+    "baskets": "50"
+  },
+  {
+    "rank": 5,
     "team": "Dragons Rhöndorf 4",
     "games": 7,
     "wins": 4,
@@ -32,28 +40,20 @@
     "baskets": "146"
   },
   {
-    "rank": 5,
-    "team": "TV Lohmar",
-    "games": 6,
-    "wins": 3,
-    "points": 420,
-    "baskets": "-1"
-  },
-  {
     "rank": 6,
-    "team": "SpVgg Lülsdorf-Ranzel 1959",
-    "games": 6,
-    "wins": 3,
-    "points": 306,
-    "baskets": "-105"
-  },
-  {
-    "rank": 7,
     "team": "BG Bonn 4",
     "games": 7,
     "wins": 3,
     "points": 379,
     "baskets": "-72"
+  },
+  {
+    "rank": 7,
+    "team": "SpVgg Lülsdorf-Ranzel 1959",
+    "games": 7,
+    "wins": 3,
+    "points": 345,
+    "baskets": "-156"
   },
   {
     "rank": 8,

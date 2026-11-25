@@ -33,11 +33,11 @@
   },
   {
     "rank": 5,
-    "team": "Dragons Rhöndorf 4",
+    "team": "TSV Bayer 04 Leverkusen 4",
     "games": 6,
     "wins": 3,
-    "points": 416,
-    "baskets": "-40"
+    "points": 471,
+    "baskets": "20"
   },
   {
     "rank": 6,
@@ -49,19 +49,19 @@
   },
   {
     "rank": 7,
+    "team": "Dragons Rhöndorf 4",
+    "games": 6,
+    "wins": 3,
+    "points": 416,
+    "baskets": "-40"
+  },
+  {
+    "rank": 8,
     "team": "SG Chateau Bonn",
     "games": 6,
     "wins": 3,
     "points": 392,
     "baskets": "5"
-  },
-  {
-    "rank": 8,
-    "team": "TSV Bayer 04 Leverkusen 4",
-    "games": 5,
-    "wins": 2,
-    "points": 385,
-    "baskets": "-5"
   },
   {
     "rank": 9,
@@ -82,10 +82,10 @@
   {
     "rank": 11,
     "team": "TuS Opladen",
-    "games": 6,
+    "games": 7,
     "wins": 0,
-    "points": 381,
-    "baskets": "-115"
+    "points": 442,
+    "baskets": "-140"
   },
   {
     "rank": 12,
