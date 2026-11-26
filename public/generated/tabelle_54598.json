@@ -10,10 +10,10 @@
   {
     "rank": 2,
     "team": "SG Sechtem",
-    "games": 6,
-    "wins": 5,
-    "points": 457,
-    "baskets": "228"
+    "games": 7,
+    "wins": 6,
+    "points": 529,
+    "baskets": "262"
   },
   {
     "rank": 3,
@@ -58,9 +58,9 @@
   {
     "rank": 8,
     "team": "BTV Basketball Brühl 2",
-    "games": 6,
+    "games": 7,
     "wins": 1,
-    "points": 156,
-    "baskets": "-145"
+    "points": 194,
+    "baskets": "-179"
   }
 ]
