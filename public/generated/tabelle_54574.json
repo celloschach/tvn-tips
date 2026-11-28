@@ -34,10 +34,10 @@
   {
     "rank": 5,
     "team": "BG Bonn",
-    "games": 6,
+    "games": 7,
     "wins": 4,
-    "points": 473,
-    "baskets": "27"
+    "points": 550,
+    "baskets": "16"
   },
   {
     "rank": 6,
@@ -57,19 +57,19 @@
   },
   {
     "rank": 8,
+    "team": "Dragons Rhöndorf 2",
+    "games": 7,
+    "wins": 3,
+    "points": 497,
+    "baskets": "-39"
+  },
+  {
+    "rank": 9,
     "team": "RheinStars Köln 3",
     "games": 6,
     "wins": 2,
     "points": 475,
     "baskets": "-33"
-  },
-  {
-    "rank": 9,
-    "team": "Dragons Rhöndorf 2",
-    "games": 6,
-    "wins": 2,
-    "points": 409,
-    "baskets": "-50"
   },
   {
     "rank": 10,

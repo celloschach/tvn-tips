@@ -10,10 +10,10 @@
   {
     "rank": 2,
     "team": "Hennefer TV",
-    "games": 7,
-    "wins": 6,
-    "points": 648,
-    "baskets": "346"
+    "games": 8,
+    "wins": 7,
+    "points": 733,
+    "baskets": "420"
   },
   {
     "rank": 3,
@@ -58,25 +58,25 @@
   {
     "rank": 8,
     "team": "Hennefer TV 2",
-    "games": 7,
-    "wins": 1,
-    "points": 277,
-    "baskets": "-368"
+    "games": 8,
+    "wins": 2,
+    "points": 358,
+    "baskets": "-350"
   },
   {
     "rank": 9,
     "team": "TV Neunkirchen 2",
-    "games": 7,
+    "games": 8,
     "wins": 1,
-    "points": 231,
-    "baskets": "-377"
+    "points": 294,
+    "baskets": "-395"
   },
   {
     "rank": 10,
     "team": "TV Neunkirchen 3",
-    "games": 7,
+    "games": 8,
     "wins": 0,
-    "points": 247,
-    "baskets": "-404"
+    "points": 258,
+    "baskets": "-478"
   }
 ]
